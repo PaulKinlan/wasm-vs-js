@@ -13,20 +13,20 @@
     "gateSensitivity": "derived deadlines TIGHTEN the fast majority relative to the former blanket 5000ms; this is a deliberate gate-sensitivity change, not a loosening"
   },
   "generatedFrom": {
-    "commit": "f7221ffa6e173f80b6d4cbe6cca925338ef9f04e",
+    "commit": "4d373093ccddbf45444bfb7bcd515300d682d12b",
     "deno": "2.9.0",
     "os": "linux",
     "arch": "x86_64",
     "testPath": "tests/runner-worker-contracts.test.ts",
     "testSha256": "ef73f470ad8cc27bee6fd17f152e58b790e0e3e52dac71a0831014be79500087",
-    "loadavgStart": "15.9658203125 16.650390625 11.28759765625",
-    "loadavgEnd": "13.369140625 13.41796875 13.43798828125",
+    "loadavgStart": "9.33740234375 10.60791015625 12.01904296875",
+    "loadavgEnd": "8.89599609375 10.5419921875 11.65234375",
     "stealPctPerRun": [
-      85.9,
-      85.8,
-      84.8,
-      84.7,
-      84.5
+      83.7,
+      83.5,
+      84.3,
+      83.1,
+      83.7
     ],
     "stealNote": "stealPct = share of CPU-time delta taken by the hypervisor during each run (/proc/stat, two samples per run). Deadlines are environment-relative: derived under the recorded loadavg AND steal; re-derive on a different environment rather than reusing this table."
   },
@@ -34,13 +34,13 @@
     {
       "index": 1,
       "exitCode": 1,
-      "loadavg": "15.9658203125 16.650390625 11.28759765625",
-      "stealPct": 85.9,
+      "loadavg": "9.33740234375 10.60791015625 12.01904296875",
+      "stealPct": 83.7,
       "rows": [
         {
           "slug": "sum-u32",
           "target": "js",
-          "ms": 1898.6,
+          "ms": 807.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -48,7 +48,7 @@
         {
           "slug": "sum-u32",
           "target": "wasm",
-          "ms": 896.2,
+          "ms": 400.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -56,7 +56,7 @@
         {
           "slug": "audio-fft",
           "target": "js",
-          "ms": 1002.4,
+          "ms": 505,
           "ok": true,
           "error": "",
           "run": 1
@@ -64,7 +64,7 @@
         {
           "slug": "audio-fft",
           "target": "wasm",
-          "ms": 399.7,
+          "ms": 306.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -72,15 +72,23 @@
         {
           "slug": "audio-fir",
           "target": "js",
-          "ms": 2604.7,
-          "ok": false,
-          "error": "audio-fir[js] timed out waiting for worker message",
+          "ms": 309.5,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "audio-fir",
+          "target": "wasm",
+          "ms": 391.7,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "audio-stft",
           "target": "js",
-          "ms": 707.2,
+          "ms": 497.8,
           "ok": true,
           "error": "",
           "run": 1
@@ -88,7 +96,7 @@
         {
           "slug": "audio-stft",
           "target": "wasm",
-          "ms": 297.3,
+          "ms": 293.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -96,23 +104,39 @@
         {
           "slug": "ml-gemm",
           "target": "js",
-          "ms": 1884.2,
-          "ok": false,
-          "error": "ml-gemm[js] timed out waiting for worker message",
+          "ms": 1303.1,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "ml-gemm",
+          "target": "wasm",
+          "ms": 1085.5,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "ml-dense-mlp",
           "target": "js",
-          "ms": 2898.4,
-          "ok": false,
-          "error": "ml-dense-mlp[js] timed out waiting for worker message",
+          "ms": 1691.7,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "ml-dense-mlp",
+          "target": "wasm",
+          "ms": 306.3,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "vdom-diff-patch-demo",
           "target": "js",
-          "ms": 3196.1,
+          "ms": 1502.5,
           "ok": true,
           "error": "",
           "run": 1
@@ -120,15 +144,15 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "wasm",
-          "ms": 3703.1,
-          "ok": false,
-          "error": "vdom-diff-patch-demo[wasm] timed out waiting for worker message",
+          "ms": 2604.9,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "image-editing-demo",
           "target": "js",
-          "ms": 2693.1,
+          "ms": 1190.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -136,7 +160,7 @@
         {
           "slug": "image-editing-demo",
           "target": "wasm",
-          "ms": 2801.7,
+          "ms": 1091.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -144,15 +168,23 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "js",
-          "ms": 4297.4,
-          "ok": false,
-          "error": "image-flood-fill-demo[js] timed out waiting for worker message",
+          "ms": 1500.2,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "image-flood-fill-demo",
+          "target": "wasm",
+          "ms": 1898.5,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "regex-automata-duel-demo",
           "target": "js",
-          "ms": 5002,
+          "ms": 5011.2,
           "ok": false,
           "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
           "run": 1
@@ -160,15 +192,23 @@
         {
           "slug": "game-canvas-arcade",
           "target": "js",
-          "ms": 6696.1,
-          "ok": false,
-          "error": "game-canvas-arcade[js] timed out waiting for worker message",
+          "ms": 1910.5,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "game-canvas-arcade",
+          "target": "wasm",
+          "ms": 2090,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "game-canvas-entity-pathfinding",
           "target": "js",
-          "ms": 5099,
+          "ms": 5393.1,
           "ok": false,
           "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
           "run": 1
@@ -176,23 +216,15 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "js",
-          "ms": 6497.1,
-          "ok": true,
-          "error": "",
-          "run": 1
-        },
-        {
-          "slug": "game-dom-tactics-grid",
-          "target": "wasm",
-          "ms": 2409.4,
-          "ok": true,
-          "error": "",
+          "ms": 5909.8,
+          "ok": false,
+          "error": "game-dom-tactics-grid[js] timed out waiting for worker message",
           "run": 1
         },
         {
           "slug": "text-diff-patch",
           "target": "js",
-          "ms": 2887.9,
+          "ms": 1797.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -200,7 +232,7 @@
         {
           "slug": "text-diff-patch",
           "target": "wasm",
-          "ms": 4903.6,
+          "ms": 3107.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -208,7 +240,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "js",
-          "ms": 2008.2,
+          "ms": 1491.1,
           "ok": true,
           "error": "",
           "run": 1
@@ -216,7 +248,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "wasm",
-          "ms": 3008.5,
+          "ms": 2310.1,
           "ok": true,
           "error": "",
           "run": 1
@@ -224,7 +256,7 @@
         {
           "slug": "cad-mesh-repair-v1",
           "target": "js",
-          "ms": 9491.4,
+          "ms": 5008.7,
           "ok": false,
           "error": "cad-mesh-repair-v1[js] timed out waiting for worker message",
           "run": 1
@@ -232,7 +264,7 @@
         {
           "slug": "document-pdf-viewer-v1",
           "target": "js",
-          "ms": 7907.9,
+          "ms": 5002.6,
           "ok": false,
           "error": "document-pdf-viewer-v1[js] timed out waiting for worker message",
           "run": 1
@@ -240,15 +272,23 @@
         {
           "slug": "base-dom-todomvc-journey",
           "target": "js",
-          "ms": 3203.8,
-          "ok": false,
-          "error": "base-dom-todomvc-journey[js] timed out waiting for worker message",
+          "ms": 1199.2,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "base-dom-todomvc-journey",
+          "target": "wasm",
+          "ms": 1508,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "archive-zip-workspace-v1",
           "target": "js",
-          "ms": 8091,
+          "ms": 5002.6,
           "ok": false,
           "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
           "run": 1
@@ -256,7 +296,7 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "js",
-          "ms": 5402.8,
+          "ms": 3102.3,
           "ok": true,
           "error": "",
           "run": 1
@@ -264,7 +304,7 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "wasm",
-          "ms": 1596.4,
+          "ms": 997,
           "ok": true,
           "error": "",
           "run": 1
@@ -272,7 +312,7 @@
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "js",
-          "ms": 1105.7,
+          "ms": 590.8,
           "ok": true,
           "error": "",
           "run": 1
@@ -280,7 +320,7 @@
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "wasm",
-          "ms": 1596.3,
+          "ms": 493.3,
           "ok": true,
           "error": "",
           "run": 1
@@ -288,7 +328,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "js",
-          "ms": 2995.1,
+          "ms": 397.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -296,7 +336,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "wasm",
-          "ms": 608.1,
+          "ms": 586.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -304,23 +344,15 @@
         {
           "slug": "database-olap-chart",
           "target": "js",
-          "ms": 7395.3,
-          "ok": true,
-          "error": "",
-          "run": 1
-        },
-        {
-          "slug": "database-olap-chart",
-          "target": "wasm",
-          "ms": 3999.7,
+          "ms": 5086.6,
           "ok": false,
-          "error": "database-olap-chart[wasm] timed out waiting for worker message",
+          "error": "database-olap-chart[js] timed out waiting for worker message",
           "run": 1
         },
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "js",
-          "ms": 4085.3,
+          "ms": 2005.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -328,7 +360,7 @@
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "wasm",
-          "ms": 4610,
+          "ms": 1087.5,
           "ok": true,
           "error": "",
           "run": 1
@@ -336,7 +368,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "js",
-          "ms": 1009.8,
+          "ms": 1001.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -344,7 +376,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "wasm",
-          "ms": 601.5,
+          "ms": 497.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -352,7 +384,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "js",
-          "ms": 2596.3,
+          "ms": 1592.3,
           "ok": true,
           "error": "",
           "run": 1
@@ -360,7 +392,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "wasm",
-          "ms": 1999.3,
+          "ms": 1503,
           "ok": true,
           "error": "",
           "run": 1
@@ -368,7 +400,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "js",
-          "ms": 1312.1,
+          "ms": 791.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -376,7 +408,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "wasm",
-          "ms": 1685.2,
+          "ms": 595.8,
           "ok": true,
           "error": "",
           "run": 1
@@ -384,7 +416,7 @@
         {
           "slug": "serialization-protobuf-gateway",
           "target": "js",
-          "ms": 5000.8,
+          "ms": 5103.2,
           "ok": false,
           "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
           "run": 1
@@ -392,7 +424,7 @@
         {
           "slug": "cad-parametric-bracket",
           "target": "js",
-          "ms": 8998.1,
+          "ms": 5006.9,
           "ok": false,
           "error": "cad-parametric-bracket[js] timed out waiting for worker message",
           "run": 1
@@ -400,15 +432,23 @@
         {
           "slug": "crypto-file-integrity-v1",
           "target": "js",
-          "ms": 3308.5,
-          "ok": false,
-          "error": "crypto-file-integrity-v1[js] timed out waiting for worker message",
+          "ms": 1989.2,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "crypto-file-integrity-v1",
+          "target": "wasm",
+          "ms": 507.9,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "game-ecs-frame-update",
           "target": "js",
-          "ms": 5000.8,
+          "ms": 5099.4,
           "ok": false,
           "error": "game-ecs-frame-update[js] timed out waiting for worker message",
           "run": 1
@@ -416,7 +456,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "js",
-          "ms": 5104.9,
+          "ms": 3104.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -424,23 +464,31 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "wasm",
-          "ms": 5293.4,
-          "ok": false,
-          "error": "network-pcap-decode-v1[wasm] timed out waiting for worker message",
+          "ms": 1705,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "network-http2-quic-state",
           "target": "js",
-          "ms": 2893.4,
-          "ok": false,
-          "error": "network-http2-quic-state[js] timed out waiting for worker message",
+          "ms": 1810.7,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "network-http2-quic-state",
+          "target": "wasm",
+          "ms": 991.4,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "js",
-          "ms": 7793.8,
+          "ms": 1990.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -448,7 +496,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "wasm",
-          "ms": 6991.6,
+          "ms": 1905.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -456,23 +504,39 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "js",
-          "ms": 2790.6,
-          "ok": false,
-          "error": "serialization-json-telemetry-v1[js] timed out waiting for worker message",
+          "ms": 701,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "serialization-json-telemetry-v1",
+          "target": "wasm",
+          "ms": 500.1,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "server-ssr-template-v1",
           "target": "js",
-          "ms": 7905.6,
-          "ok": false,
-          "error": "server-ssr-template-v1[js] timed out waiting for worker message",
+          "ms": 3207.5,
+          "ok": true,
+          "error": "",
+          "run": 1
+        },
+        {
+          "slug": "server-ssr-template-v1",
+          "target": "wasm",
+          "ms": 2796.5,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "text-gc-document-edit-v1",
           "target": "js",
-          "ms": 2607,
+          "ms": 1195.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -480,15 +544,15 @@
         {
           "slug": "text-gc-document-edit-v1",
           "target": "wasm",
-          "ms": 5501,
-          "ok": false,
-          "error": "text-gc-document-edit-v1[wasm] timed out waiting for worker message",
+          "ms": 903.1,
+          "ok": true,
+          "error": "",
           "run": 1
         },
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "js",
-          "ms": 3796.1,
+          "ms": 1208,
           "ok": true,
           "error": "",
           "run": 1
@@ -496,7 +560,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "wasm",
-          "ms": 3504.9,
+          "ms": 1295,
           "ok": true,
           "error": "",
           "run": 1
@@ -504,7 +568,7 @@
         {
           "slug": "simulation-nbody-cloth",
           "target": "js",
-          "ms": 5101.1,
+          "ms": 5001,
           "ok": false,
           "error": "simulation-nbody-cloth[js] timed out waiting for worker message",
           "run": 1
@@ -512,7 +576,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "js",
-          "ms": 2805.8,
+          "ms": 1490.3,
           "ok": true,
           "error": "",
           "run": 1
@@ -520,7 +584,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "wasm",
-          "ms": 2499.4,
+          "ms": 310.8,
           "ok": true,
           "error": "",
           "run": 1
@@ -528,7 +592,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "js",
-          "ms": 3500.6,
+          "ms": 3198.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -536,7 +600,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "wasm",
-          "ms": 4300.4,
+          "ms": 2400.1,
           "ok": true,
           "error": "",
           "run": 1
@@ -544,7 +608,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "js",
-          "ms": 1603.6,
+          "ms": 895.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -552,7 +616,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "wasm",
-          "ms": 289.4,
+          "ms": 997.2,
           "ok": true,
           "error": "",
           "run": 1
@@ -560,7 +624,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "js",
-          "ms": 2102.2,
+          "ms": 1296.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -568,7 +632,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "wasm",
-          "ms": 907.5,
+          "ms": 2301.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -576,7 +640,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "js",
-          "ms": 2287.2,
+          "ms": 2198.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -584,7 +648,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "wasm",
-          "ms": 3713,
+          "ms": 3893.3,
           "ok": true,
           "error": "",
           "run": 1
@@ -592,7 +656,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "js",
-          "ms": 2405.3,
+          "ms": 2598.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -600,7 +664,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "wasm",
-          "ms": 2593,
+          "ms": 3104.7,
           "ok": true,
           "error": "",
           "run": 1
@@ -608,7 +672,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "js",
-          "ms": 2198.6,
+          "ms": 1813.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -616,7 +680,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "wasm",
-          "ms": 2797.1,
+          "ms": 3102,
           "ok": true,
           "error": "",
           "run": 1
@@ -624,7 +688,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "js",
-          "ms": 3999.6,
+          "ms": 4793.4,
           "ok": true,
           "error": "",
           "run": 1
@@ -632,7 +696,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "wasm",
-          "ms": 5400.4,
+          "ms": 5796.2,
           "ok": false,
           "error": "dom-table-sort-filter-pagination[wasm] timed out waiting for worker message",
           "run": 1
@@ -640,7 +704,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "js",
-          "ms": 1598.5,
+          "ms": 1897.6,
           "ok": true,
           "error": "",
           "run": 1
@@ -648,7 +712,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "wasm",
-          "ms": 3209.6,
+          "ms": 4987,
           "ok": true,
           "error": "",
           "run": 1
@@ -658,13 +722,13 @@
     {
       "index": 2,
       "exitCode": 1,
-      "loadavg": "18.61328125 17.4921875 13.3125",
-      "stealPct": 85.8,
+      "loadavg": "9.27734375 10.7001953125 11.857421875",
+      "stealPct": 83.5,
       "rows": [
         {
           "slug": "sum-u32",
           "target": "js",
-          "ms": 2893.3,
+          "ms": 1606.7,
           "ok": true,
           "error": "",
           "run": 2
@@ -672,7 +736,7 @@
         {
           "slug": "sum-u32",
           "target": "wasm",
-          "ms": 1693.8,
+          "ms": 505.6,
           "ok": true,
           "error": "",
           "run": 2
@@ -680,7 +744,7 @@
         {
           "slug": "audio-fft",
           "target": "js",
-          "ms": 1001.8,
+          "ms": 802.5,
           "ok": true,
           "error": "",
           "run": 2
@@ -688,7 +752,7 @@
         {
           "slug": "audio-fft",
           "target": "wasm",
-          "ms": 1291.2,
+          "ms": 1307.4,
           "ok": true,
           "error": "",
           "run": 2
@@ -696,7 +760,7 @@
         {
           "slug": "audio-fir",
           "target": "js",
-          "ms": 915.1,
+          "ms": 2303.8,
           "ok": true,
           "error": "",
           "run": 2
@@ -704,7 +768,7 @@
         {
           "slug": "audio-fir",
           "target": "wasm",
-          "ms": 2093.6,
+          "ms": 1896.2,
           "ok": true,
           "error": "",
           "run": 2
@@ -712,7 +776,7 @@
         {
           "slug": "audio-stft",
           "target": "js",
-          "ms": 1195.2,
+          "ms": 793.3,
           "ok": true,
           "error": "",
           "run": 2
@@ -720,7 +784,7 @@
         {
           "slug": "audio-stft",
           "target": "wasm",
-          "ms": 807.9,
+          "ms": 1593.5,
           "ok": true,
           "error": "",
           "run": 2
@@ -728,429 +792,13 @@
         {
           "slug": "ml-gemm",
           "target": "js",
-          "ms": 1493.8,
+          "ms": 1899.7,
           "ok": true,
           "error": "",
           "run": 2
         },
         {
           "slug": "ml-gemm",
-          "target": "wasm",
-          "ms": 1004,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "ml-dense-mlp",
-          "target": "js",
-          "ms": 1598.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "ml-dense-mlp",
-          "target": "wasm",
-          "ms": 204.8,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "vdom-diff-patch-demo",
-          "target": "js",
-          "ms": 1503.5,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "vdom-diff-patch-demo",
-          "target": "wasm",
-          "ms": 3092.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "image-editing-demo",
-          "target": "js",
-          "ms": 3197.3,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "image-editing-demo",
-          "target": "wasm",
-          "ms": 3596.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "image-flood-fill-demo",
-          "target": "js",
-          "ms": 2290.5,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "image-flood-fill-demo",
-          "target": "wasm",
-          "ms": 3307.3,
-          "ok": false,
-          "error": "image-flood-fill-demo[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "regex-automata-duel-demo",
-          "target": "js",
-          "ms": 5098.8,
-          "ok": false,
-          "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "game-canvas-arcade",
-          "target": "js",
-          "ms": 3088.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "game-canvas-arcade",
-          "target": "wasm",
-          "ms": 4104.3,
-          "ok": false,
-          "error": "game-canvas-arcade[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "game-canvas-entity-pathfinding",
-          "target": "js",
-          "ms": 5103.7,
-          "ok": false,
-          "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "game-dom-tactics-grid",
-          "target": "js",
-          "ms": 3898.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "game-dom-tactics-grid",
-          "target": "wasm",
-          "ms": 3408.6,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "text-diff-patch",
-          "target": "js",
-          "ms": 2697.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "text-diff-patch",
-          "target": "wasm",
-          "ms": 2397,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "text-markdown-cms",
-          "target": "js",
-          "ms": 2096.9,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "text-markdown-cms",
-          "target": "wasm",
-          "ms": 3399,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "cad-mesh-repair-v1",
-          "target": "js",
-          "ms": 9399,
-          "ok": false,
-          "error": "cad-mesh-repair-v1[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "document-pdf-viewer-v1",
-          "target": "js",
-          "ms": 7789.7,
-          "ok": false,
-          "error": "document-pdf-viewer-v1[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "base-dom-todomvc-journey",
-          "target": "js",
-          "ms": 3204.8,
-          "ok": false,
-          "error": "base-dom-todomvc-journey[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "archive-zip-workspace-v1",
-          "target": "js",
-          "ms": 8287.5,
-          "ok": false,
-          "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "crypto-authenticated-stream",
-          "target": "js",
-          "ms": 9797.8,
-          "ok": false,
-          "error": "crypto-authenticated-stream[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "graphics-cpu-path-tracer-v1",
-          "target": "js",
-          "ms": 2300.6,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "graphics-cpu-path-tracer-v1",
-          "target": "wasm",
-          "ms": 1904,
-          "ok": false,
-          "error": "graphics-cpu-path-tracer-v1[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "base-gltf-viewer",
-          "target": "js",
-          "ms": 2894.4,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "base-gltf-viewer",
-          "target": "wasm",
-          "ms": 501.9,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "database-olap-chart",
-          "target": "js",
-          "ms": 7699.8,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "database-olap-chart",
-          "target": "wasm",
-          "ms": 4000,
-          "ok": false,
-          "error": "database-olap-chart[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "dom-virtualized-grid-v1",
-          "target": "js",
-          "ms": 5400.1,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "dom-virtualized-grid-v1",
-          "target": "wasm",
-          "ms": 9199.6,
-          "ok": false,
-          "error": "dom-virtualized-grid-v1[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "ml-keyword-spotting-v1",
-          "target": "js",
-          "ms": 1912.8,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "ml-keyword-spotting-v1",
-          "target": "wasm",
-          "ms": 301.6,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "ml-numeric-kernels-v1",
-          "target": "js",
-          "ms": 5097.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "ml-numeric-kernels-v1",
-          "target": "wasm",
-          "ms": 3203.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "numeric-fft-spectral-filter-v1",
-          "target": "js",
-          "ms": 1708.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "numeric-fft-spectral-filter-v1",
-          "target": "wasm",
-          "ms": 2590,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "serialization-protobuf-gateway",
-          "target": "js",
-          "ms": 5204.7,
-          "ok": false,
-          "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "cad-parametric-bracket",
-          "target": "js",
-          "ms": 8994.8,
-          "ok": false,
-          "error": "cad-parametric-bracket[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "crypto-file-integrity-v1",
-          "target": "js",
-          "ms": 4403.2,
-          "ok": false,
-          "error": "crypto-file-integrity-v1[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "game-ecs-frame-update",
-          "target": "js",
-          "ms": 5004.8,
-          "ok": false,
-          "error": "game-ecs-frame-update[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "network-pcap-decode-v1",
-          "target": "js",
-          "ms": 4693,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "network-pcap-decode-v1",
-          "target": "wasm",
-          "ms": 4188.2,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "network-http2-quic-state",
-          "target": "js",
-          "ms": 2696.6,
-          "ok": false,
-          "error": "network-http2-quic-state[js] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "numeric-polybench-panel-v1",
-          "target": "js",
-          "ms": 1913.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "numeric-polybench-panel-v1",
-          "target": "wasm",
-          "ms": 4002.5,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "serialization-json-telemetry-v1",
-          "target": "js",
-          "ms": 1910.4,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "serialization-json-telemetry-v1",
-          "target": "wasm",
-          "ms": 1495.7,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "server-ssr-template-v1",
-          "target": "js",
-          "ms": 7705.3,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "server-ssr-template-v1",
-          "target": "wasm",
-          "ms": 4293.8,
-          "ok": false,
-          "error": "server-ssr-template-v1[wasm] timed out waiting for worker message",
-          "run": 2
-        },
-        {
-          "slug": "text-gc-document-edit-v1",
-          "target": "js",
-          "ms": 1997.6,
-          "ok": true,
-          "error": "",
-          "run": 2
-        },
-        {
-          "slug": "text-gc-document-edit-v1",
           "target": "wasm",
           "ms": 1003,
           "ok": true,
@@ -1158,9 +806,457 @@
           "run": 2
         },
         {
+          "slug": "ml-dense-mlp",
+          "target": "js",
+          "ms": 2696.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "ml-dense-mlp",
+          "target": "wasm",
+          "ms": 2003.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "vdom-diff-patch-demo",
+          "target": "js",
+          "ms": 2007.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "vdom-diff-patch-demo",
+          "target": "wasm",
+          "ms": 1494.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "image-editing-demo",
+          "target": "js",
+          "ms": 2399.4,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "image-editing-demo",
+          "target": "wasm",
+          "ms": 2600.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "image-flood-fill-demo",
+          "target": "js",
+          "ms": 2399.4,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "image-flood-fill-demo",
+          "target": "wasm",
+          "ms": 1115.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "regex-automata-duel-demo",
+          "target": "js",
+          "ms": 5002.5,
+          "ok": false,
+          "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "game-canvas-arcade",
+          "target": "js",
+          "ms": 3005.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "game-canvas-arcade",
+          "target": "wasm",
+          "ms": 2000.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "game-canvas-entity-pathfinding",
+          "target": "js",
+          "ms": 5001.2,
+          "ok": false,
+          "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "game-dom-tactics-grid",
+          "target": "js",
+          "ms": 2488.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "game-dom-tactics-grid",
+          "target": "wasm",
+          "ms": 1299.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-diff-patch",
+          "target": "js",
+          "ms": 1194.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-diff-patch",
+          "target": "wasm",
+          "ms": 1000.6,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-markdown-cms",
+          "target": "js",
+          "ms": 605.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-markdown-cms",
+          "target": "wasm",
+          "ms": 797.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "cad-mesh-repair-v1",
+          "target": "js",
+          "ms": 5001.4,
+          "ok": false,
+          "error": "cad-mesh-repair-v1[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "document-pdf-viewer-v1",
+          "target": "js",
+          "ms": 5002.2,
+          "ok": false,
+          "error": "document-pdf-viewer-v1[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "base-dom-todomvc-journey",
+          "target": "js",
+          "ms": 2387.3,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "base-dom-todomvc-journey",
+          "target": "wasm",
+          "ms": 2905.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "archive-zip-workspace-v1",
+          "target": "js",
+          "ms": 5002.2,
+          "ok": false,
+          "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "crypto-authenticated-stream",
+          "target": "js",
+          "ms": 3304.4,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "crypto-authenticated-stream",
+          "target": "wasm",
+          "ms": 2287.2,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "graphics-cpu-path-tracer-v1",
+          "target": "js",
+          "ms": 896.6,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "graphics-cpu-path-tracer-v1",
+          "target": "wasm",
+          "ms": 1207.7,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "base-gltf-viewer",
+          "target": "js",
+          "ms": 1209.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "base-gltf-viewer",
+          "target": "wasm",
+          "ms": 1099.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "database-olap-chart",
+          "target": "js",
+          "ms": 3612,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "database-olap-chart",
+          "target": "wasm",
+          "ms": 3114.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "dom-virtualized-grid-v1",
+          "target": "js",
+          "ms": 1701.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "dom-virtualized-grid-v1",
+          "target": "wasm",
+          "ms": 1789.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "ml-keyword-spotting-v1",
+          "target": "js",
+          "ms": 792.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "ml-keyword-spotting-v1",
+          "target": "wasm",
+          "ms": 310.6,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "ml-numeric-kernels-v1",
+          "target": "js",
+          "ms": 1798.4,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "ml-numeric-kernels-v1",
+          "target": "wasm",
+          "ms": 999.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "numeric-fft-spectral-filter-v1",
+          "target": "js",
+          "ms": 488.3,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "numeric-fft-spectral-filter-v1",
+          "target": "wasm",
+          "ms": 1097.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "serialization-protobuf-gateway",
+          "target": "js",
+          "ms": 5087.9,
+          "ok": false,
+          "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "cad-parametric-bracket",
+          "target": "js",
+          "ms": 5001.8,
+          "ok": false,
+          "error": "cad-parametric-bracket[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "crypto-file-integrity-v1",
+          "target": "js",
+          "ms": 410.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "crypto-file-integrity-v1",
+          "target": "wasm",
+          "ms": 1298.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "game-ecs-frame-update",
+          "target": "js",
+          "ms": 5007.6,
+          "ok": false,
+          "error": "game-ecs-frame-update[js] timed out waiting for worker message",
+          "run": 2
+        },
+        {
+          "slug": "network-pcap-decode-v1",
+          "target": "js",
+          "ms": 2795.6,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "network-pcap-decode-v1",
+          "target": "wasm",
+          "ms": 2491.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "network-http2-quic-state",
+          "target": "js",
+          "ms": 2802.2,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "network-http2-quic-state",
+          "target": "wasm",
+          "ms": 1594.8,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "numeric-polybench-panel-v1",
+          "target": "js",
+          "ms": 1601.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "numeric-polybench-panel-v1",
+          "target": "wasm",
+          "ms": 2897.2,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "serialization-json-telemetry-v1",
+          "target": "js",
+          "ms": 1094.3,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "serialization-json-telemetry-v1",
+          "target": "wasm",
+          "ms": 398.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "server-ssr-template-v1",
+          "target": "js",
+          "ms": 4292.9,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "server-ssr-template-v1",
+          "target": "wasm",
+          "ms": 1795.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-gc-document-edit-v1",
+          "target": "js",
+          "ms": 795.2,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "text-gc-document-edit-v1",
+          "target": "wasm",
+          "ms": 793.7,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "js",
-          "ms": 4496.9,
+          "ms": 810.5,
           "ok": true,
           "error": "",
           "run": 2
@@ -1168,7 +1264,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "wasm",
-          "ms": 2799.5,
+          "ms": 1394.9,
           "ok": true,
           "error": "",
           "run": 2
@@ -1176,7 +1272,7 @@
         {
           "slug": "simulation-nbody-cloth",
           "target": "js",
-          "ms": 5005.3,
+          "ms": 5001.2,
           "ok": false,
           "error": "simulation-nbody-cloth[js] timed out waiting for worker message",
           "run": 2
@@ -1184,7 +1280,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "js",
-          "ms": 1404.7,
+          "ms": 2198.9,
           "ok": true,
           "error": "",
           "run": 2
@@ -1192,7 +1288,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "wasm",
-          "ms": 1609.9,
+          "ms": 1001.4,
           "ok": true,
           "error": "",
           "run": 2
@@ -1200,7 +1296,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "js",
-          "ms": 2700.1,
+          "ms": 4599.7,
           "ok": true,
           "error": "",
           "run": 2
@@ -1208,7 +1304,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "wasm",
-          "ms": 4898.9,
+          "ms": 1907.1,
           "ok": true,
           "error": "",
           "run": 2
@@ -1216,7 +1312,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "js",
-          "ms": 3212,
+          "ms": 1001.8,
           "ok": true,
           "error": "",
           "run": 2
@@ -1224,7 +1320,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "wasm",
-          "ms": 1803.7,
+          "ms": 401.7,
           "ok": true,
           "error": "",
           "run": 2
@@ -1232,7 +1328,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "js",
-          "ms": 496,
+          "ms": 895.1,
           "ok": true,
           "error": "",
           "run": 2
@@ -1240,7 +1336,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "wasm",
-          "ms": 3002,
+          "ms": 1497,
           "ok": true,
           "error": "",
           "run": 2
@@ -1248,31 +1344,55 @@
         {
           "slug": "dom-grid-movement",
           "target": "js",
-          "ms": 3796,
-          "ok": false,
-          "error": "dom-grid-movement[js] timed out waiting for worker message",
+          "ms": 1295.7,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "dom-grid-movement",
+          "target": "wasm",
+          "ms": 1402.3,
+          "ok": true,
+          "error": "",
           "run": 2
         },
         {
           "slug": "dom-keyed-list-mutation",
           "target": "js",
-          "ms": 4010.5,
-          "ok": false,
-          "error": "dom-keyed-list-mutation[js] timed out waiting for worker message",
+          "ms": 999.5,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "dom-keyed-list-mutation",
+          "target": "wasm",
+          "ms": 2700.5,
+          "ok": true,
+          "error": "",
           "run": 2
         },
         {
           "slug": "dom-nested-tree-mutation",
           "target": "js",
-          "ms": 3604.1,
-          "ok": false,
-          "error": "dom-nested-tree-mutation[js] timed out waiting for worker message",
+          "ms": 1111.1,
+          "ok": true,
+          "error": "",
+          "run": 2
+        },
+        {
+          "slug": "dom-nested-tree-mutation",
+          "target": "wasm",
+          "ms": 1298,
+          "ok": true,
+          "error": "",
           "run": 2
         },
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "js",
-          "ms": 6191.8,
+          "ms": 2699.1,
           "ok": true,
           "error": "",
           "run": 2
@@ -1280,7 +1400,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "wasm",
-          "ms": 5194.3,
+          "ms": 5102,
           "ok": false,
           "error": "dom-table-sort-filter-pagination[wasm] timed out waiting for worker message",
           "run": 2
@@ -1288,7 +1408,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "js",
-          "ms": 1402.9,
+          "ms": 1692.4,
           "ok": true,
           "error": "",
           "run": 2
@@ -1296,7 +1416,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "wasm",
-          "ms": 3289.4,
+          "ms": 2304.6,
           "ok": true,
           "error": "",
           "run": 2
@@ -1306,13 +1426,13 @@
     {
       "index": 3,
       "exitCode": 1,
-      "loadavg": "13.833984375 15.49951171875 13.65478515625",
-      "stealPct": 84.8,
+      "loadavg": "19.5224609375 14.48974609375 13.01220703125",
+      "stealPct": 84.3,
       "rows": [
         {
           "slug": "sum-u32",
           "target": "js",
-          "ms": 1391.8,
+          "ms": 993.1,
           "ok": true,
           "error": "",
           "run": 3
@@ -1320,7 +1440,7 @@
         {
           "slug": "sum-u32",
           "target": "wasm",
-          "ms": 691.8,
+          "ms": 607,
           "ok": true,
           "error": "",
           "run": 3
@@ -1328,7 +1448,7 @@
         {
           "slug": "audio-fft",
           "target": "js",
-          "ms": 698.3,
+          "ms": 489.5,
           "ok": true,
           "error": "",
           "run": 3
@@ -1336,7 +1456,7 @@
         {
           "slug": "audio-fft",
           "target": "wasm",
-          "ms": 607.2,
+          "ms": 803.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1344,7 +1464,7 @@
         {
           "slug": "audio-fir",
           "target": "js",
-          "ms": 610.2,
+          "ms": 693.6,
           "ok": true,
           "error": "",
           "run": 3
@@ -1352,7 +1472,7 @@
         {
           "slug": "audio-fir",
           "target": "wasm",
-          "ms": 511.6,
+          "ms": 397.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1360,7 +1480,7 @@
         {
           "slug": "audio-stft",
           "target": "js",
-          "ms": 595.8,
+          "ms": 392,
           "ok": true,
           "error": "",
           "run": 3
@@ -1368,7 +1488,7 @@
         {
           "slug": "audio-stft",
           "target": "wasm",
-          "ms": 703.6,
+          "ms": 300.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1376,7 +1496,7 @@
         {
           "slug": "ml-gemm",
           "target": "js",
-          "ms": 1289.7,
+          "ms": 598.5,
           "ok": true,
           "error": "",
           "run": 3
@@ -1384,7 +1504,7 @@
         {
           "slug": "ml-gemm",
           "target": "wasm",
-          "ms": 1196.3,
+          "ms": 309.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1392,7 +1512,7 @@
         {
           "slug": "ml-dense-mlp",
           "target": "js",
-          "ms": 2294.8,
+          "ms": 398.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1400,15 +1520,15 @@
         {
           "slug": "ml-dense-mlp",
           "target": "wasm",
-          "ms": 1210.2,
-          "ok": false,
-          "error": "ml-dense-mlp[wasm] timed out waiting for worker message",
+          "ms": 415.3,
+          "ok": true,
+          "error": "",
           "run": 3
         },
         {
           "slug": "vdom-diff-patch-demo",
           "target": "js",
-          "ms": 2993.8,
+          "ms": 895,
           "ok": true,
           "error": "",
           "run": 3
@@ -1416,7 +1536,7 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "wasm",
-          "ms": 2506.6,
+          "ms": 1102.6,
           "ok": true,
           "error": "",
           "run": 3
@@ -1424,7 +1544,7 @@
         {
           "slug": "image-editing-demo",
           "target": "js",
-          "ms": 1999.8,
+          "ms": 802.7,
           "ok": true,
           "error": "",
           "run": 3
@@ -1432,7 +1552,7 @@
         {
           "slug": "image-editing-demo",
           "target": "wasm",
-          "ms": 1101.4,
+          "ms": 494.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1440,7 +1560,7 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "js",
-          "ms": 1300.4,
+          "ms": 891.6,
           "ok": true,
           "error": "",
           "run": 3
@@ -1448,7 +1568,7 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "wasm",
-          "ms": 1199.4,
+          "ms": 698.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1456,7 +1576,7 @@
         {
           "slug": "regex-automata-duel-demo",
           "target": "js",
-          "ms": 5000.2,
+          "ms": 5001.5,
           "ok": false,
           "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
           "run": 3
@@ -1464,15 +1584,23 @@
         {
           "slug": "game-canvas-arcade",
           "target": "js",
-          "ms": 5483.8,
-          "ok": false,
-          "error": "game-canvas-arcade[js] timed out waiting for worker message",
+          "ms": 1889.8,
+          "ok": true,
+          "error": "",
+          "run": 3
+        },
+        {
+          "slug": "game-canvas-arcade",
+          "target": "wasm",
+          "ms": 1598.7,
+          "ok": true,
+          "error": "",
           "run": 3
         },
         {
           "slug": "game-canvas-entity-pathfinding",
           "target": "js",
-          "ms": 5104.2,
+          "ms": 5000.3,
           "ok": false,
           "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
           "run": 3
@@ -1480,7 +1608,7 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "js",
-          "ms": 11801.6,
+          "ms": 5140.8,
           "ok": false,
           "error": "game-dom-tactics-grid[js] timed out waiting for worker message",
           "run": 3
@@ -1488,7 +1616,7 @@
         {
           "slug": "text-diff-patch",
           "target": "js",
-          "ms": 4000.9,
+          "ms": 2799.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1496,7 +1624,7 @@
         {
           "slug": "text-diff-patch",
           "target": "wasm",
-          "ms": 4700,
+          "ms": 1298.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1504,7 +1632,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "js",
-          "ms": 2590.3,
+          "ms": 400.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1512,7 +1640,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "wasm",
-          "ms": 2198.6,
+          "ms": 989.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1520,7 +1648,7 @@
         {
           "slug": "cad-mesh-repair-v1",
           "target": "js",
-          "ms": 9399.4,
+          "ms": 5001.3,
           "ok": false,
           "error": "cad-mesh-repair-v1[js] timed out waiting for worker message",
           "run": 3
@@ -1528,7 +1656,7 @@
         {
           "slug": "document-pdf-viewer-v1",
           "target": "js",
-          "ms": 7794.7,
+          "ms": 5001.6,
           "ok": false,
           "error": "document-pdf-viewer-v1[js] timed out waiting for worker message",
           "run": 3
@@ -1536,15 +1664,23 @@
         {
           "slug": "base-dom-todomvc-journey",
           "target": "js",
-          "ms": 3287.7,
-          "ok": false,
-          "error": "base-dom-todomvc-journey[js] timed out waiting for worker message",
+          "ms": 2907.6,
+          "ok": true,
+          "error": "",
+          "run": 3
+        },
+        {
+          "slug": "base-dom-todomvc-journey",
+          "target": "wasm",
+          "ms": 890.9,
+          "ok": true,
+          "error": "",
           "run": 3
         },
         {
           "slug": "archive-zip-workspace-v1",
           "target": "js",
-          "ms": 8013.6,
+          "ms": 5011.4,
           "ok": false,
           "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
           "run": 3
@@ -1552,23 +1688,15 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "js",
-          "ms": 6311.9,
-          "ok": true,
-          "error": "",
-          "run": 3
-        },
-        {
-          "slug": "crypto-authenticated-stream",
-          "target": "wasm",
-          "ms": 2488.1,
-          "ok": true,
-          "error": "",
+          "ms": 5090.1,
+          "ok": false,
+          "error": "crypto-authenticated-stream[js] timed out waiting for worker message",
           "run": 3
         },
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "js",
-          "ms": 1505.9,
+          "ms": 2904.5,
           "ok": true,
           "error": "",
           "run": 3
@@ -1576,7 +1704,7 @@
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "wasm",
-          "ms": 1594.7,
+          "ms": 1003.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1584,7 +1712,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "js",
-          "ms": 2299.6,
+          "ms": 1087.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1592,7 +1720,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "wasm",
-          "ms": 1910.3,
+          "ms": 1008.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1600,39 +1728,23 @@
         {
           "slug": "database-olap-chart",
           "target": "js",
-          "ms": 8794.9,
-          "ok": true,
-          "error": "",
-          "run": 3
-        },
-        {
-          "slug": "database-olap-chart",
-          "target": "wasm",
-          "ms": 3498.6,
-          "ok": true,
-          "error": "",
+          "ms": 5294.6,
+          "ok": false,
+          "error": "database-olap-chart[js] timed out waiting for worker message",
           "run": 3
         },
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "js",
-          "ms": 3408.8,
-          "ok": true,
-          "error": "",
-          "run": 3
-        },
-        {
-          "slug": "dom-virtualized-grid-v1",
-          "target": "wasm",
-          "ms": 5208,
-          "ok": true,
-          "error": "",
+          "ms": 5001.8,
+          "ok": false,
+          "error": "dom-virtualized-grid-v1[js] timed out waiting for worker message",
           "run": 3
         },
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "js",
-          "ms": 1402.3,
+          "ms": 4504,
           "ok": true,
           "error": "",
           "run": 3
@@ -1640,7 +1752,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "wasm",
-          "ms": 700.2,
+          "ms": 1788.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1648,23 +1760,15 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "js",
-          "ms": 4009.7,
-          "ok": true,
-          "error": "",
-          "run": 3
-        },
-        {
-          "slug": "ml-numeric-kernels-v1",
-          "target": "wasm",
-          "ms": 3288.9,
-          "ok": true,
-          "error": "",
+          "ms": 5011.4,
+          "ok": false,
+          "error": "ml-numeric-kernels-v1[js] timed out waiting for worker message",
           "run": 3
         },
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "js",
-          "ms": 2399,
+          "ms": 3904.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1672,7 +1776,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "wasm",
-          "ms": 1703.2,
+          "ms": 2201.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1680,7 +1784,7 @@
         {
           "slug": "serialization-protobuf-gateway",
           "target": "js",
-          "ms": 5308.9,
+          "ms": 5001.2,
           "ok": false,
           "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
           "run": 3
@@ -1688,7 +1792,7 @@
         {
           "slug": "cad-parametric-bracket",
           "target": "js",
-          "ms": 8895.4,
+          "ms": 5001.1,
           "ok": false,
           "error": "cad-parametric-bracket[js] timed out waiting for worker message",
           "run": 3
@@ -1696,15 +1800,23 @@
         {
           "slug": "crypto-file-integrity-v1",
           "target": "js",
-          "ms": 3189,
-          "ok": false,
-          "error": "crypto-file-integrity-v1[js] timed out waiting for worker message",
+          "ms": 1808.7,
+          "ok": true,
+          "error": "",
+          "run": 3
+        },
+        {
+          "slug": "crypto-file-integrity-v1",
+          "target": "wasm",
+          "ms": 1002.2,
+          "ok": true,
+          "error": "",
           "run": 3
         },
         {
           "slug": "game-ecs-frame-update",
           "target": "js",
-          "ms": 5003.7,
+          "ms": 5089.9,
           "ok": false,
           "error": "game-ecs-frame-update[js] timed out waiting for worker message",
           "run": 3
@@ -1712,7 +1824,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "js",
-          "ms": 6090.5,
+          "ms": 3004.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1720,7 +1832,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "wasm",
-          "ms": 3000.5,
+          "ms": 1604,
           "ok": true,
           "error": "",
           "run": 3
@@ -1728,7 +1840,7 @@
         {
           "slug": "network-http2-quic-state",
           "target": "js",
-          "ms": 1501.9,
+          "ms": 1197.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1736,7 +1848,7 @@
         {
           "slug": "network-http2-quic-state",
           "target": "wasm",
-          "ms": 1588.6,
+          "ms": 1901.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1744,7 +1856,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "js",
-          "ms": 4306.9,
+          "ms": 2597.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1752,7 +1864,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "wasm",
-          "ms": 894.8,
+          "ms": 2704.1,
           "ok": true,
           "error": "",
           "run": 3
@@ -1760,7 +1872,7 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "js",
-          "ms": 601.3,
+          "ms": 1203.1,
           "ok": true,
           "error": "",
           "run": 3
@@ -1768,7 +1880,7 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "wasm",
-          "ms": 1491.6,
+          "ms": 498.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1776,7 +1888,7 @@
         {
           "slug": "server-ssr-template-v1",
           "target": "js",
-          "ms": 4104.7,
+          "ms": 3601.7,
           "ok": true,
           "error": "",
           "run": 3
@@ -1784,7 +1896,7 @@
         {
           "slug": "server-ssr-template-v1",
           "target": "wasm",
-          "ms": 3694.7,
+          "ms": 3306.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1792,7 +1904,7 @@
         {
           "slug": "text-gc-document-edit-v1",
           "target": "js",
-          "ms": 1603.1,
+          "ms": 1295.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1800,7 +1912,7 @@
         {
           "slug": "text-gc-document-edit-v1",
           "target": "wasm",
-          "ms": 809.3,
+          "ms": 806.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1808,7 +1920,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "js",
-          "ms": 2006.8,
+          "ms": 1588.5,
           "ok": true,
           "error": "",
           "run": 3
@@ -1816,7 +1928,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "wasm",
-          "ms": 1800.3,
+          "ms": 2495.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1824,7 +1936,7 @@
         {
           "slug": "simulation-nbody-cloth",
           "target": "js",
-          "ms": 5006.1,
+          "ms": 5093,
           "ok": false,
           "error": "simulation-nbody-cloth[js] timed out waiting for worker message",
           "run": 3
@@ -1832,7 +1944,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "js",
-          "ms": 3099.4,
+          "ms": 4699.7,
           "ok": true,
           "error": "",
           "run": 3
@@ -1840,7 +1952,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "wasm",
-          "ms": 513.1,
+          "ms": 2205.8,
           "ok": true,
           "error": "",
           "run": 3
@@ -1848,23 +1960,15 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "js",
-          "ms": 4510.2,
-          "ok": true,
-          "error": "",
-          "run": 3
-        },
-        {
-          "slug": "tooling-c-to-wasm-compile-v1",
-          "target": "wasm",
-          "ms": 3201.5,
-          "ok": true,
-          "error": "",
+          "ms": 5083.9,
+          "ok": false,
+          "error": "tooling-c-to-wasm-compile-v1[js] timed out waiting for worker message",
           "run": 3
         },
         {
           "slug": "text-regex-log-scan",
           "target": "js",
-          "ms": 1195.3,
+          "ms": 2502.1,
           "ok": true,
           "error": "",
           "run": 3
@@ -1872,7 +1976,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "wasm",
-          "ms": 905.1,
+          "ms": 2400,
           "ok": true,
           "error": "",
           "run": 3
@@ -1880,7 +1984,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "js",
-          "ms": 2709.1,
+          "ms": 2204.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1888,7 +1992,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "wasm",
-          "ms": 3397.8,
+          "ms": 2809.9,
           "ok": true,
           "error": "",
           "run": 3
@@ -1896,7 +2000,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "js",
-          "ms": 2000.6,
+          "ms": 801.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1904,7 +2008,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "wasm",
-          "ms": 1710.5,
+          "ms": 1902.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1912,7 +2016,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "js",
-          "ms": 1399.3,
+          "ms": 2397.4,
           "ok": true,
           "error": "",
           "run": 3
@@ -1920,7 +2024,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "wasm",
-          "ms": 1793.7,
+          "ms": 2891.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1928,7 +2032,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "js",
-          "ms": 1396.9,
+          "ms": 1902.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1936,7 +2040,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "wasm",
-          "ms": 2103,
+          "ms": 3102.3,
           "ok": true,
           "error": "",
           "run": 3
@@ -1944,7 +2048,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "js",
-          "ms": 3911.7,
+          "ms": 4589.7,
           "ok": true,
           "error": "",
           "run": 3
@@ -1952,7 +2056,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "wasm",
-          "ms": 5084.9,
+          "ms": 5105.7,
           "ok": false,
           "error": "dom-table-sort-filter-pagination[wasm] timed out waiting for worker message",
           "run": 3
@@ -1960,7 +2064,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "js",
-          "ms": 989.7,
+          "ms": 2107.2,
           "ok": true,
           "error": "",
           "run": 3
@@ -1968,7 +2072,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "wasm",
-          "ms": 3504.7,
+          "ms": 3095.5,
           "ok": true,
           "error": "",
           "run": 3
@@ -1978,13 +2082,13 @@
     {
       "index": 4,
       "exitCode": 1,
-      "loadavg": "18.03466796875 15.39794921875 13.9453125",
-      "stealPct": 84.7,
+      "loadavg": "13.0859375 12.658203125 12.4755859375",
+      "stealPct": 83.1,
       "rows": [
         {
           "slug": "sum-u32",
           "target": "js",
-          "ms": 898.1,
+          "ms": 1100.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -1992,7 +2096,7 @@
         {
           "slug": "sum-u32",
           "target": "wasm",
-          "ms": 311.3,
+          "ms": 494.8,
           "ok": true,
           "error": "",
           "run": 4
@@ -2000,7 +2104,7 @@
         {
           "slug": "audio-fft",
           "target": "js",
-          "ms": 110,
+          "ms": 789.7,
           "ok": true,
           "error": "",
           "run": 4
@@ -2008,7 +2112,7 @@
         {
           "slug": "audio-fft",
           "target": "wasm",
-          "ms": 299.1,
+          "ms": 308,
           "ok": true,
           "error": "",
           "run": 4
@@ -2016,7 +2120,7 @@
         {
           "slug": "audio-fir",
           "target": "js",
-          "ms": 595.9,
+          "ms": 692.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -2024,7 +2128,7 @@
         {
           "slug": "audio-fir",
           "target": "wasm",
-          "ms": 199,
+          "ms": 203.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2032,7 +2136,7 @@
         {
           "slug": "audio-stft",
           "target": "js",
-          "ms": 505.5,
+          "ms": 694.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2040,7 +2144,7 @@
         {
           "slug": "audio-stft",
           "target": "wasm",
-          "ms": 605.8,
+          "ms": 504.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2048,7 +2152,7 @@
         {
           "slug": "ml-gemm",
           "target": "js",
-          "ms": 600.2,
+          "ms": 695.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -2056,7 +2160,7 @@
         {
           "slug": "ml-gemm",
           "target": "wasm",
-          "ms": 391.3,
+          "ms": 295.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2064,7 +2168,7 @@
         {
           "slug": "ml-dense-mlp",
           "target": "js",
-          "ms": 793.1,
+          "ms": 595.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2072,7 +2176,7 @@
         {
           "slug": "ml-dense-mlp",
           "target": "wasm",
-          "ms": 402.9,
+          "ms": 807.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2080,7 +2184,7 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "js",
-          "ms": 696.5,
+          "ms": 1491.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2088,7 +2192,7 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "wasm",
-          "ms": 692.7,
+          "ms": 1097.7,
           "ok": true,
           "error": "",
           "run": 4
@@ -2096,7 +2200,7 @@
         {
           "slug": "image-editing-demo",
           "target": "js",
-          "ms": 883.9,
+          "ms": 706.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2104,7 +2208,7 @@
         {
           "slug": "image-editing-demo",
           "target": "wasm",
-          "ms": 703.9,
+          "ms": 810.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2112,7 +2216,7 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "js",
-          "ms": 1701.4,
+          "ms": 1200.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2120,7 +2224,7 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "wasm",
-          "ms": 1900.6,
+          "ms": 897.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2128,7 +2232,7 @@
         {
           "slug": "regex-automata-duel-demo",
           "target": "js",
-          "ms": 5001.7,
+          "ms": 5004.5,
           "ok": false,
           "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
           "run": 4
@@ -2136,7 +2240,7 @@
         {
           "slug": "game-canvas-arcade",
           "target": "js",
-          "ms": 2095.5,
+          "ms": 1996.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2144,7 +2248,7 @@
         {
           "slug": "game-canvas-arcade",
           "target": "wasm",
-          "ms": 2308.2,
+          "ms": 1400.7,
           "ok": true,
           "error": "",
           "run": 4
@@ -2152,7 +2256,7 @@
         {
           "slug": "game-canvas-entity-pathfinding",
           "target": "js",
-          "ms": 5011.4,
+          "ms": 5087.8,
           "ok": false,
           "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
           "run": 4
@@ -2160,7 +2264,7 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "js",
-          "ms": 2507.4,
+          "ms": 1183.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2168,7 +2272,7 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "wasm",
-          "ms": 997.3,
+          "ms": 905.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2176,7 +2280,7 @@
         {
           "slug": "text-diff-patch",
           "target": "js",
-          "ms": 792,
+          "ms": 605.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2184,7 +2288,7 @@
         {
           "slug": "text-diff-patch",
           "target": "wasm",
-          "ms": 1602.7,
+          "ms": 1309.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2192,7 +2296,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "js",
-          "ms": 292.8,
+          "ms": 711,
           "ok": true,
           "error": "",
           "run": 4
@@ -2200,7 +2304,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "wasm",
-          "ms": 999.8,
+          "ms": 1399.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2208,7 +2312,7 @@
         {
           "slug": "cad-mesh-repair-v1",
           "target": "js",
-          "ms": 8700.3,
+          "ms": 3403.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2216,15 +2320,15 @@
         {
           "slug": "cad-mesh-repair-v1",
           "target": "wasm",
-          "ms": 6888.2,
-          "ok": false,
-          "error": "cad-mesh-repair-v1[wasm] timed out waiting for worker message",
+          "ms": 4597.2,
+          "ok": true,
+          "error": "",
           "run": 4
         },
         {
           "slug": "document-pdf-viewer-v1",
           "target": "js",
-          "ms": 7798.1,
+          "ms": 5101.2,
           "ok": false,
           "error": "document-pdf-viewer-v1[js] timed out waiting for worker message",
           "run": 4
@@ -2232,7 +2336,7 @@
         {
           "slug": "base-dom-todomvc-journey",
           "target": "js",
-          "ms": 887.8,
+          "ms": 2699.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2240,7 +2344,7 @@
         {
           "slug": "base-dom-todomvc-journey",
           "target": "wasm",
-          "ms": 1197,
+          "ms": 1501,
           "ok": true,
           "error": "",
           "run": 4
@@ -2248,7 +2352,7 @@
         {
           "slug": "archive-zip-workspace-v1",
           "target": "js",
-          "ms": 8009.3,
+          "ms": 5001.2,
           "ok": false,
           "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
           "run": 4
@@ -2256,7 +2360,7 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "js",
-          "ms": 1807.2,
+          "ms": 3108.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2264,7 +2368,7 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "wasm",
-          "ms": 1289.9,
+          "ms": 1306.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2272,7 +2376,7 @@
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "js",
-          "ms": 298.2,
+          "ms": 390.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2280,7 +2384,7 @@
         {
           "slug": "graphics-cpu-path-tracer-v1",
           "target": "wasm",
-          "ms": 803.6,
+          "ms": 601.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2288,7 +2392,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "js",
-          "ms": 894.2,
+          "ms": 907.8,
           "ok": true,
           "error": "",
           "run": 4
@@ -2296,7 +2400,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "wasm",
-          "ms": 1706,
+          "ms": 504,
           "ok": true,
           "error": "",
           "run": 4
@@ -2304,7 +2408,7 @@
         {
           "slug": "database-olap-chart",
           "target": "js",
-          "ms": 8398.1,
+          "ms": 3297.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2312,15 +2416,15 @@
         {
           "slug": "database-olap-chart",
           "target": "wasm",
-          "ms": 4288.4,
-          "ok": false,
-          "error": "database-olap-chart[wasm] timed out waiting for worker message",
+          "ms": 1592.2,
+          "ok": true,
+          "error": "",
           "run": 4
         },
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "js",
-          "ms": 6202.1,
+          "ms": 1591.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2328,7 +2432,7 @@
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "wasm",
-          "ms": 2400.6,
+          "ms": 1692.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -2336,7 +2440,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "js",
-          "ms": 906,
+          "ms": 603.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2344,7 +2448,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "wasm",
-          "ms": 1495.9,
+          "ms": 299.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2352,7 +2456,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "js",
-          "ms": 2297.1,
+          "ms": 998,
           "ok": true,
           "error": "",
           "run": 4
@@ -2360,7 +2464,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "wasm",
-          "ms": 1999.6,
+          "ms": 1002,
           "ok": true,
           "error": "",
           "run": 4
@@ -2368,7 +2472,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "js",
-          "ms": 3394.2,
+          "ms": 690.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2376,7 +2480,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "wasm",
-          "ms": 1900.2,
+          "ms": 701.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2384,7 +2488,7 @@
         {
           "slug": "serialization-protobuf-gateway",
           "target": "js",
-          "ms": 5098.2,
+          "ms": 5792,
           "ok": false,
           "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
           "run": 4
@@ -2392,23 +2496,15 @@
         {
           "slug": "cad-parametric-bracket",
           "target": "js",
-          "ms": 7201.2,
-          "ok": true,
-          "error": "",
-          "run": 4
-        },
-        {
-          "slug": "cad-parametric-bracket",
-          "target": "wasm",
-          "ms": 4393.9,
+          "ms": 5010.5,
           "ok": false,
-          "error": "cad-parametric-bracket[wasm] timed out waiting for worker message",
+          "error": "cad-parametric-bracket[js] timed out waiting for worker message",
           "run": 4
         },
         {
           "slug": "crypto-file-integrity-v1",
           "target": "js",
-          "ms": 708.8,
+          "ms": 1799.8,
           "ok": true,
           "error": "",
           "run": 4
@@ -2416,7 +2512,7 @@
         {
           "slug": "crypto-file-integrity-v1",
           "target": "wasm",
-          "ms": 794.6,
+          "ms": 706.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2424,7 +2520,7 @@
         {
           "slug": "game-ecs-frame-update",
           "target": "js",
-          "ms": 5000.6,
+          "ms": 5087.6,
           "ok": false,
           "error": "game-ecs-frame-update[js] timed out waiting for worker message",
           "run": 4
@@ -2432,7 +2528,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "js",
-          "ms": 2910.3,
+          "ms": 2203.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -2440,7 +2536,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "wasm",
-          "ms": 3698.3,
+          "ms": 3893,
           "ok": true,
           "error": "",
           "run": 4
@@ -2448,15 +2544,23 @@
         {
           "slug": "network-http2-quic-state",
           "target": "js",
-          "ms": 2809.2,
-          "ok": false,
-          "error": "network-http2-quic-state[js] timed out waiting for worker message",
+          "ms": 2199.6,
+          "ok": true,
+          "error": "",
+          "run": 4
+        },
+        {
+          "slug": "network-http2-quic-state",
+          "target": "wasm",
+          "ms": 2398,
+          "ok": true,
+          "error": "",
           "run": 4
         },
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "js",
-          "ms": 3592.8,
+          "ms": 2094.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2464,7 +2568,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "wasm",
-          "ms": 3408.1,
+          "ms": 2199.6,
           "ok": true,
           "error": "",
           "run": 4
@@ -2472,7 +2576,7 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "js",
-          "ms": 1399,
+          "ms": 508,
           "ok": true,
           "error": "",
           "run": 4
@@ -2480,7 +2584,7 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "wasm",
-          "ms": 602.7,
+          "ms": 888.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2488,7 +2592,7 @@
         {
           "slug": "server-ssr-template-v1",
           "target": "js",
-          "ms": 5194.5,
+          "ms": 4404.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2496,7 +2600,7 @@
         {
           "slug": "server-ssr-template-v1",
           "target": "wasm",
-          "ms": 3396.6,
+          "ms": 2207.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2504,7 +2608,7 @@
         {
           "slug": "text-gc-document-edit-v1",
           "target": "js",
-          "ms": 1097.1,
+          "ms": 797.7,
           "ok": true,
           "error": "",
           "run": 4
@@ -2512,7 +2616,7 @@
         {
           "slug": "text-gc-document-edit-v1",
           "target": "wasm",
-          "ms": 1010.8,
+          "ms": 311.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2520,7 +2624,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "js",
-          "ms": 2111.7,
+          "ms": 1588.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2528,7 +2632,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "wasm",
-          "ms": 4490.9,
+          "ms": 1595,
           "ok": true,
           "error": "",
           "run": 4
@@ -2536,7 +2640,7 @@
         {
           "slug": "simulation-nbody-cloth",
           "target": "js",
-          "ms": 5398.5,
+          "ms": 5000.5,
           "ok": false,
           "error": "simulation-nbody-cloth[js] timed out waiting for worker message",
           "run": 4
@@ -2544,7 +2648,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "js",
-          "ms": 3405,
+          "ms": 1891.9,
           "ok": true,
           "error": "",
           "run": 4
@@ -2552,7 +2656,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "wasm",
-          "ms": 1187.5,
+          "ms": 1495.6,
           "ok": true,
           "error": "",
           "run": 4
@@ -2560,7 +2664,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "js",
-          "ms": 4612.9,
+          "ms": 3811.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2568,15 +2672,15 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "wasm",
-          "ms": 4509.1,
-          "ok": true,
-          "error": "",
+          "ms": 5087.8,
+          "ok": false,
+          "error": "tooling-c-to-wasm-compile-v1[wasm] timed out waiting for worker message",
           "run": 4
         },
         {
           "slug": "text-regex-log-scan",
           "target": "js",
-          "ms": 2085.8,
+          "ms": 2598.6,
           "ok": true,
           "error": "",
           "run": 4
@@ -2584,7 +2688,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "wasm",
-          "ms": 2108.9,
+          "ms": 1189.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2592,7 +2696,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "js",
-          "ms": 2097.5,
+          "ms": 2483.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2600,7 +2704,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "wasm",
-          "ms": 2694.7,
+          "ms": 3211.2,
           "ok": true,
           "error": "",
           "run": 4
@@ -2608,23 +2712,39 @@
         {
           "slug": "dom-grid-movement",
           "target": "js",
-          "ms": 3502.8,
-          "ok": false,
-          "error": "dom-grid-movement[js] timed out waiting for worker message",
+          "ms": 2697.6,
+          "ok": true,
+          "error": "",
+          "run": 4
+        },
+        {
+          "slug": "dom-grid-movement",
+          "target": "wasm",
+          "ms": 3995.9,
+          "ok": true,
+          "error": "",
           "run": 4
         },
         {
           "slug": "dom-keyed-list-mutation",
           "target": "js",
-          "ms": 3599.2,
-          "ok": false,
-          "error": "dom-keyed-list-mutation[js] timed out waiting for worker message",
+          "ms": 1403.3,
+          "ok": true,
+          "error": "",
+          "run": 4
+        },
+        {
+          "slug": "dom-keyed-list-mutation",
+          "target": "wasm",
+          "ms": 3495.8,
+          "ok": true,
+          "error": "",
           "run": 4
         },
         {
           "slug": "dom-nested-tree-mutation",
           "target": "js",
-          "ms": 2598,
+          "ms": 1700.1,
           "ok": true,
           "error": "",
           "run": 4
@@ -2632,7 +2752,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "wasm",
-          "ms": 3801.7,
+          "ms": 3409,
           "ok": true,
           "error": "",
           "run": 4
@@ -2640,7 +2760,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "js",
-          "ms": 3007.5,
+          "ms": 2892.5,
           "ok": true,
           "error": "",
           "run": 4
@@ -2648,7 +2768,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "wasm",
-          "ms": 8686.8,
+          "ms": 5000.5,
           "ok": false,
           "error": "dom-table-sort-filter-pagination[wasm] timed out waiting for worker message",
           "run": 4
@@ -2656,7 +2776,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "js",
-          "ms": 696.9,
+          "ms": 1085.3,
           "ok": true,
           "error": "",
           "run": 4
@@ -2664,7 +2784,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "wasm",
-          "ms": 2404.6,
+          "ms": 2795.4,
           "ok": true,
           "error": "",
           "run": 4
@@ -2674,13 +2794,13 @@
     {
       "index": 5,
       "exitCode": 1,
-      "loadavg": "13.369140625 13.41796875 13.43798828125",
-      "stealPct": 84.5,
+      "loadavg": "8.89599609375 10.5419921875 11.65234375",
+      "stealPct": 83.7,
       "rows": [
         {
           "slug": "sum-u32",
           "target": "js",
-          "ms": 1003.3,
+          "ms": 1594.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -2688,7 +2808,7 @@
         {
           "slug": "sum-u32",
           "target": "wasm",
-          "ms": 592.9,
+          "ms": 1492.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -2696,7 +2816,7 @@
         {
           "slug": "audio-fft",
           "target": "js",
-          "ms": 601.2,
+          "ms": 798,
           "ok": true,
           "error": "",
           "run": 5
@@ -2704,7 +2824,7 @@
         {
           "slug": "audio-fft",
           "target": "wasm",
-          "ms": 597,
+          "ms": 306.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -2712,7 +2832,7 @@
         {
           "slug": "audio-fir",
           "target": "js",
-          "ms": 302.5,
+          "ms": 686.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -2720,7 +2840,7 @@
         {
           "slug": "audio-fir",
           "target": "wasm",
-          "ms": 202.8,
+          "ms": 404,
           "ok": true,
           "error": "",
           "run": 5
@@ -2728,15 +2848,23 @@
         {
           "slug": "audio-stft",
           "target": "js",
-          "ms": 1709.5,
-          "ok": false,
-          "error": "audio-stft[js] timed out waiting for worker message",
+          "ms": 608.6,
+          "ok": true,
+          "error": "",
+          "run": 5
+        },
+        {
+          "slug": "audio-stft",
+          "target": "wasm",
+          "ms": 303,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "ml-gemm",
           "target": "js",
-          "ms": 1303.9,
+          "ms": 508.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -2744,7 +2872,7 @@
         {
           "slug": "ml-gemm",
           "target": "wasm",
-          "ms": 300.2,
+          "ms": 604.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -2752,7 +2880,7 @@
         {
           "slug": "ml-dense-mlp",
           "target": "js",
-          "ms": 800.4,
+          "ms": 905.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -2760,7 +2888,7 @@
         {
           "slug": "ml-dense-mlp",
           "target": "wasm",
-          "ms": 611.8,
+          "ms": 499,
           "ok": true,
           "error": "",
           "run": 5
@@ -2768,7 +2896,7 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "js",
-          "ms": 1199.6,
+          "ms": 909.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -2776,7 +2904,7 @@
         {
           "slug": "vdom-diff-patch-demo",
           "target": "wasm",
-          "ms": 1597.5,
+          "ms": 1290.4,
           "ok": true,
           "error": "",
           "run": 5
@@ -2784,7 +2912,7 @@
         {
           "slug": "image-editing-demo",
           "target": "js",
-          "ms": 1302.1,
+          "ms": 1895.4,
           "ok": true,
           "error": "",
           "run": 5
@@ -2792,7 +2920,7 @@
         {
           "slug": "image-editing-demo",
           "target": "wasm",
-          "ms": 800,
+          "ms": 1903.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -2800,7 +2928,7 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "js",
-          "ms": 2394.4,
+          "ms": 2195.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -2808,15 +2936,15 @@
         {
           "slug": "image-flood-fill-demo",
           "target": "wasm",
-          "ms": 2194.8,
-          "ok": false,
-          "error": "image-flood-fill-demo[wasm] timed out waiting for worker message",
+          "ms": 905,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "regex-automata-duel-demo",
           "target": "js",
-          "ms": 5000.4,
+          "ms": 5001.4,
           "ok": false,
           "error": "regex-automata-duel-demo[js] timed out waiting for worker message",
           "run": 5
@@ -2824,7 +2952,7 @@
         {
           "slug": "game-canvas-arcade",
           "target": "js",
-          "ms": 4194.7,
+          "ms": 2406,
           "ok": true,
           "error": "",
           "run": 5
@@ -2832,7 +2960,7 @@
         {
           "slug": "game-canvas-arcade",
           "target": "wasm",
-          "ms": 2286.4,
+          "ms": 1402.2,
           "ok": true,
           "error": "",
           "run": 5
@@ -2840,7 +2968,7 @@
         {
           "slug": "game-canvas-entity-pathfinding",
           "target": "js",
-          "ms": 5088.9,
+          "ms": 5000.7,
           "ok": false,
           "error": "game-canvas-entity-pathfinding[js] timed out waiting for worker message",
           "run": 5
@@ -2848,7 +2976,7 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "js",
-          "ms": 3507,
+          "ms": 2504.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -2856,7 +2984,7 @@
         {
           "slug": "game-dom-tactics-grid",
           "target": "wasm",
-          "ms": 1995.4,
+          "ms": 1295.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -2864,7 +2992,7 @@
         {
           "slug": "text-diff-patch",
           "target": "js",
-          "ms": 1010.3,
+          "ms": 902.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -2872,7 +3000,7 @@
         {
           "slug": "text-diff-patch",
           "target": "wasm",
-          "ms": 2193.9,
+          "ms": 1909.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -2880,7 +3008,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "js",
-          "ms": 1407.8,
+          "ms": 1201.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -2888,7 +3016,7 @@
         {
           "slug": "text-markdown-cms",
           "target": "wasm",
-          "ms": 2295.9,
+          "ms": 812.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -2896,23 +3024,15 @@
         {
           "slug": "cad-mesh-repair-v1",
           "target": "js",
-          "ms": 6408.9,
-          "ok": true,
-          "error": "",
-          "run": 5
-        },
-        {
-          "slug": "cad-mesh-repair-v1",
-          "target": "wasm",
-          "ms": 3886.3,
-          "ok": true,
-          "error": "",
+          "ms": 5001,
+          "ok": false,
+          "error": "cad-mesh-repair-v1[js] timed out waiting for worker message",
           "run": 5
         },
         {
           "slug": "document-pdf-viewer-v1",
           "target": "js",
-          "ms": 3801.1,
+          "ms": 4401.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -2920,15 +3040,15 @@
         {
           "slug": "document-pdf-viewer-v1",
           "target": "wasm",
-          "ms": 4996.6,
-          "ok": true,
-          "error": "",
+          "ms": 5092.4,
+          "ok": false,
+          "error": "document-pdf-viewer-v1[wasm] timed out waiting for worker message",
           "run": 5
         },
         {
           "slug": "base-dom-todomvc-journey",
           "target": "js",
-          "ms": 1798.8,
+          "ms": 1401.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -2936,7 +3056,7 @@
         {
           "slug": "base-dom-todomvc-journey",
           "target": "wasm",
-          "ms": 991.2,
+          "ms": 2082.4,
           "ok": true,
           "error": "",
           "run": 5
@@ -2944,7 +3064,7 @@
         {
           "slug": "archive-zip-workspace-v1",
           "target": "js",
-          "ms": 8091.7,
+          "ms": 5001.4,
           "ok": false,
           "error": "archive-zip-workspace-v1[js] timed out waiting for worker message",
           "run": 5
@@ -2952,39 +3072,31 @@
         {
           "slug": "crypto-authenticated-stream",
           "target": "js",
-          "ms": 3406.6,
-          "ok": true,
-          "error": "",
-          "run": 5
-        },
-        {
-          "slug": "crypto-authenticated-stream",
-          "target": "wasm",
-          "ms": 1296.5,
-          "ok": true,
-          "error": "",
-          "run": 5
-        },
-        {
-          "slug": "graphics-cpu-path-tracer-v1",
-          "target": "js",
-          "ms": 315.3,
-          "ok": true,
-          "error": "",
-          "run": 5
-        },
-        {
-          "slug": "graphics-cpu-path-tracer-v1",
-          "target": "wasm",
-          "ms": 2097.2,
+          "ms": 5091.4,
           "ok": false,
-          "error": "graphics-cpu-path-tracer-v1[wasm] timed out waiting for worker message",
+          "error": "crypto-authenticated-stream[js] timed out waiting for worker message",
+          "run": 5
+        },
+        {
+          "slug": "graphics-cpu-path-tracer-v1",
+          "target": "js",
+          "ms": 1999.3,
+          "ok": true,
+          "error": "",
+          "run": 5
+        },
+        {
+          "slug": "graphics-cpu-path-tracer-v1",
+          "target": "wasm",
+          "ms": 1604.5,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "base-gltf-viewer",
           "target": "js",
-          "ms": 1002,
+          "ms": 1107.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -2992,7 +3104,7 @@
         {
           "slug": "base-gltf-viewer",
           "target": "wasm",
-          "ms": 1588.7,
+          "ms": 1495.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -3000,23 +3112,15 @@
         {
           "slug": "database-olap-chart",
           "target": "js",
-          "ms": 6198,
-          "ok": true,
-          "error": "",
-          "run": 5
-        },
-        {
-          "slug": "database-olap-chart",
-          "target": "wasm",
-          "ms": 3408.8,
-          "ok": true,
-          "error": "",
+          "ms": 5198.2,
+          "ok": false,
+          "error": "database-olap-chart[js] timed out waiting for worker message",
           "run": 5
         },
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "js",
-          "ms": 3210.4,
+          "ms": 3200.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -3024,7 +3128,7 @@
         {
           "slug": "dom-virtualized-grid-v1",
           "target": "wasm",
-          "ms": 4601,
+          "ms": 2509,
           "ok": true,
           "error": "",
           "run": 5
@@ -3032,7 +3136,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "js",
-          "ms": 1400.4,
+          "ms": 598.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -3040,7 +3144,7 @@
         {
           "slug": "ml-keyword-spotting-v1",
           "target": "wasm",
-          "ms": 205.3,
+          "ms": 999.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -3048,7 +3152,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "js",
-          "ms": 1205.8,
+          "ms": 3008.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -3056,7 +3160,7 @@
         {
           "slug": "ml-numeric-kernels-v1",
           "target": "wasm",
-          "ms": 3391.9,
+          "ms": 1488.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -3064,7 +3168,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "js",
-          "ms": 1110,
+          "ms": 894.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -3072,7 +3176,7 @@
         {
           "slug": "numeric-fft-spectral-filter-v1",
           "target": "wasm",
-          "ms": 799.5,
+          "ms": 801.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -3080,7 +3184,7 @@
         {
           "slug": "serialization-protobuf-gateway",
           "target": "js",
-          "ms": 5099.6,
+          "ms": 5001,
           "ok": false,
           "error": "serialization-protobuf-gateway[js] timed out waiting for worker message",
           "run": 5
@@ -3088,7 +3192,7 @@
         {
           "slug": "cad-parametric-bracket",
           "target": "js",
-          "ms": 8195.3,
+          "ms": 4593.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -3096,15 +3200,15 @@
         {
           "slug": "cad-parametric-bracket",
           "target": "wasm",
-          "ms": 4400.4,
-          "ok": false,
-          "error": "cad-parametric-bracket[wasm] timed out waiting for worker message",
+          "ms": 2404.4,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "crypto-file-integrity-v1",
           "target": "js",
-          "ms": 1001.2,
+          "ms": 299.4,
           "ok": true,
           "error": "",
           "run": 5
@@ -3112,7 +3216,7 @@
         {
           "slug": "crypto-file-integrity-v1",
           "target": "wasm",
-          "ms": 1314.6,
+          "ms": 299.4,
           "ok": true,
           "error": "",
           "run": 5
@@ -3120,7 +3224,7 @@
         {
           "slug": "game-ecs-frame-update",
           "target": "js",
-          "ms": 5003.5,
+          "ms": 5002.5,
           "ok": false,
           "error": "game-ecs-frame-update[js] timed out waiting for worker message",
           "run": 5
@@ -3128,7 +3232,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "js",
-          "ms": 1501.6,
+          "ms": 697.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -3136,7 +3240,7 @@
         {
           "slug": "network-pcap-decode-v1",
           "target": "wasm",
-          "ms": 2900.8,
+          "ms": 1410.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -3144,7 +3248,7 @@
         {
           "slug": "network-http2-quic-state",
           "target": "js",
-          "ms": 1490.9,
+          "ms": 1298.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -3152,7 +3256,7 @@
         {
           "slug": "network-http2-quic-state",
           "target": "wasm",
-          "ms": 1908.6,
+          "ms": 997.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -3160,7 +3264,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "js",
-          "ms": 7291,
+          "ms": 2706.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -3168,7 +3272,7 @@
         {
           "slug": "numeric-polybench-panel-v1",
           "target": "wasm",
-          "ms": 4401.8,
+          "ms": 706,
           "ok": true,
           "error": "",
           "run": 5
@@ -3176,31 +3280,55 @@
         {
           "slug": "serialization-json-telemetry-v1",
           "target": "js",
-          "ms": 4398.6,
-          "ok": false,
-          "error": "serialization-json-telemetry-v1[js] timed out waiting for worker message",
+          "ms": 805.6,
+          "ok": true,
+          "error": "",
+          "run": 5
+        },
+        {
+          "slug": "serialization-json-telemetry-v1",
+          "target": "wasm",
+          "ms": 986,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "server-ssr-template-v1",
           "target": "js",
-          "ms": 7892.6,
-          "ok": false,
-          "error": "server-ssr-template-v1[js] timed out waiting for worker message",
+          "ms": 3996,
+          "ok": true,
+          "error": "",
+          "run": 5
+        },
+        {
+          "slug": "server-ssr-template-v1",
+          "target": "wasm",
+          "ms": 3707.1,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "text-gc-document-edit-v1",
           "target": "js",
-          "ms": 3291.3,
-          "ok": false,
-          "error": "text-gc-document-edit-v1[js] timed out waiting for worker message",
+          "ms": 985.3,
+          "ok": true,
+          "error": "",
+          "run": 5
+        },
+        {
+          "slug": "text-gc-document-edit-v1",
+          "target": "wasm",
+          "ms": 606.5,
+          "ok": true,
+          "error": "",
           "run": 5
         },
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "js",
-          "ms": 2506,
+          "ms": 1513.2,
           "ok": true,
           "error": "",
           "run": 5
@@ -3208,7 +3336,7 @@
         {
           "slug": "base-audio-webaudio-effects-v1",
           "target": "wasm",
-          "ms": 2100.3,
+          "ms": 1494.3,
           "ok": true,
           "error": "",
           "run": 5
@@ -3216,7 +3344,7 @@
         {
           "slug": "simulation-nbody-cloth",
           "target": "js",
-          "ms": 5000.4,
+          "ms": 5000.8,
           "ok": false,
           "error": "simulation-nbody-cloth[js] timed out waiting for worker message",
           "run": 5
@@ -3224,7 +3352,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "js",
-          "ms": 707.4,
+          "ms": 1290.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -3232,7 +3360,7 @@
         {
           "slug": "simulation-rigid-body-2d-v1",
           "target": "wasm",
-          "ms": 1604,
+          "ms": 1686.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -3240,7 +3368,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "js",
-          "ms": 2003.4,
+          "ms": 2294.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -3248,7 +3376,7 @@
         {
           "slug": "tooling-c-to-wasm-compile-v1",
           "target": "wasm",
-          "ms": 4093.4,
+          "ms": 2490.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -3256,7 +3384,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "js",
-          "ms": 999.8,
+          "ms": 1603.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -3264,7 +3392,7 @@
         {
           "slug": "text-regex-log-scan",
           "target": "wasm",
-          "ms": 1090,
+          "ms": 200.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -3272,7 +3400,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "js",
-          "ms": 1394.5,
+          "ms": 503.6,
           "ok": true,
           "error": "",
           "run": 5
@@ -3280,7 +3408,7 @@
         {
           "slug": "dom-dependent-form-validation",
           "target": "wasm",
-          "ms": 703.5,
+          "ms": 1499.2,
           "ok": true,
           "error": "",
           "run": 5
@@ -3288,7 +3416,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "js",
-          "ms": 1200.7,
+          "ms": 1207.7,
           "ok": true,
           "error": "",
           "run": 5
@@ -3296,7 +3424,7 @@
         {
           "slug": "dom-grid-movement",
           "target": "wasm",
-          "ms": 1289.9,
+          "ms": 1600.8,
           "ok": true,
           "error": "",
           "run": 5
@@ -3304,7 +3432,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "js",
-          "ms": 702.8,
+          "ms": 1000,
           "ok": true,
           "error": "",
           "run": 5
@@ -3312,7 +3440,7 @@
         {
           "slug": "dom-keyed-list-mutation",
           "target": "wasm",
-          "ms": 2088.9,
+          "ms": 1009,
           "ok": true,
           "error": "",
           "run": 5
@@ -3320,7 +3448,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "js",
-          "ms": 1905.2,
+          "ms": 793.5,
           "ok": true,
           "error": "",
           "run": 5
@@ -3328,7 +3456,7 @@
         {
           "slug": "dom-nested-tree-mutation",
           "target": "wasm",
-          "ms": 2488.7,
+          "ms": 2409.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -3336,7 +3464,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "js",
-          "ms": 5896.7,
+          "ms": 3193.2,
           "ok": true,
           "error": "",
           "run": 5
@@ -3344,7 +3472,7 @@
         {
           "slug": "dom-table-sort-filter-pagination",
           "target": "wasm",
-          "ms": 5006.1,
+          "ms": 5001,
           "ok": false,
           "error": "dom-table-sort-filter-pagination[wasm] timed out waiting for worker message",
           "run": 5
@@ -3352,7 +3480,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "js",
-          "ms": 5191.5,
+          "ms": 1498.9,
           "ok": true,
           "error": "",
           "run": 5
@@ -3360,7 +3488,7 @@
         {
           "slug": "dom-virtualized-scrolling",
           "target": "wasm",
-          "ms": 4203.5,
+          "ms": 4584.1,
           "ok": true,
           "error": "",
           "run": 5
@@ -3395,8 +3523,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1002.4,
-      "deadlineMs": 2005,
+      "p95Ms": 802.5,
+      "deadlineMs": 1605,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3405,48 +3533,48 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1291.2,
-      "deadlineMs": 2583,
+      "p95Ms": 1307.4,
+      "deadlineMs": 2615,
       "fallback": false,
       "fallbackReason": null
     },
     "audio-fir|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 915.1,
-      "deadlineMs": 1831,
+      "p95Ms": 2303.8,
+      "deadlineMs": 4608,
       "fallback": false,
       "fallbackReason": null
     },
     "audio-fir|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2093.6,
-      "deadlineMs": 4188,
+      "p95Ms": 1896.2,
+      "deadlineMs": 3793,
       "fallback": false,
       "fallbackReason": null
     },
     "audio-stft|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1195.2,
-      "deadlineMs": 2391,
+      "p95Ms": 793.3,
+      "deadlineMs": 1587,
       "fallback": false,
       "fallbackReason": null
     },
     "audio-stft|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 807.9,
-      "deadlineMs": 1616,
+      "p95Ms": 1593.5,
+      "deadlineMs": 3187,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3455,8 +3583,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 4496.9,
-      "deadlineMs": 8994,
+      "p95Ms": 1588.5,
+      "deadlineMs": 3177,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3465,28 +3593,28 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 4490.9,
-      "deadlineMs": 8982,
+      "p95Ms": 2495.3,
+      "deadlineMs": 4991,
       "fallback": false,
       "fallbackReason": null
     },
     "base-dom-todomvc-journey|js": {
       "n": 5,
-      "okRows": 2,
-      "censored": 3,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1798.8,
-      "deadlineMs": 3598,
+      "p95Ms": 2907.6,
+      "deadlineMs": 5816,
       "fallback": false,
       "fallbackReason": null
     },
     "base-dom-todomvc-journey|wasm": {
-      "n": 2,
-      "okRows": 2,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1197,
-      "deadlineMs": 2394,
+      "p95Ms": 2905.9,
+      "deadlineMs": 5812,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3495,8 +3623,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2995.1,
-      "deadlineMs": 5991,
+      "p95Ms": 1209.8,
+      "deadlineMs": 2420,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3505,108 +3633,108 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1910.3,
-      "deadlineMs": 3821,
+      "p95Ms": 1495.3,
+      "deadlineMs": 2991,
       "fallback": false,
       "fallbackReason": null
     },
     "cad-mesh-repair-v1|js": {
       "n": 5,
-      "okRows": 2,
-      "censored": 3,
+      "okRows": 1,
+      "censored": 4,
       "errors": 0,
-      "p95Ms": 8700.3,
-      "deadlineMs": 17401,
+      "p95Ms": 3403.1,
+      "deadlineMs": 6807,
       "fallback": false,
       "fallbackReason": null
     },
     "cad-mesh-repair-v1|wasm": {
-      "n": 2,
+      "n": 1,
       "okRows": 1,
-      "censored": 1,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 3886.3,
-      "deadlineMs": 7773,
+      "p95Ms": 4597.2,
+      "deadlineMs": 9195,
       "fallback": false,
       "fallbackReason": null
     },
     "cad-parametric-bracket|js": {
       "n": 5,
-      "okRows": 2,
-      "censored": 3,
+      "okRows": 1,
+      "censored": 4,
       "errors": 0,
-      "p95Ms": 8195.3,
-      "deadlineMs": 16391,
+      "p95Ms": 4593.5,
+      "deadlineMs": 9187,
       "fallback": false,
       "fallbackReason": null
     },
     "cad-parametric-bracket|wasm": {
-      "n": 2,
-      "okRows": 0,
-      "censored": 2,
+      "n": 1,
+      "okRows": 1,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": null,
-      "deadlineMs": 5000,
-      "fallback": true,
-      "fallbackReason": "no baseline measured; current constant retained pending defect fix"
+      "p95Ms": 2404.4,
+      "deadlineMs": 4809,
+      "fallback": false,
+      "fallbackReason": null
     },
     "crypto-authenticated-stream|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 3,
+      "censored": 2,
       "errors": 0,
-      "p95Ms": 6311.9,
-      "deadlineMs": 12624,
+      "p95Ms": 3304.4,
+      "deadlineMs": 6609,
       "fallback": false,
       "fallbackReason": null
     },
     "crypto-authenticated-stream|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 3,
+      "okRows": 3,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2488.1,
-      "deadlineMs": 4977,
+      "p95Ms": 2287.2,
+      "deadlineMs": 4575,
       "fallback": false,
       "fallbackReason": null
     },
     "crypto-file-integrity-v1|js": {
       "n": 5,
-      "okRows": 2,
-      "censored": 3,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1001.2,
-      "deadlineMs": 2003,
+      "p95Ms": 1989.2,
+      "deadlineMs": 3979,
       "fallback": false,
       "fallbackReason": null
     },
     "crypto-file-integrity-v1|wasm": {
-      "n": 2,
-      "okRows": 2,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1314.6,
-      "deadlineMs": 2630,
+      "p95Ms": 1298.8,
+      "deadlineMs": 2598,
       "fallback": false,
       "fallbackReason": null
     },
     "database-olap-chart|js": {
       "n": 5,
-      "okRows": 5,
-      "censored": 0,
+      "okRows": 2,
+      "censored": 3,
       "errors": 0,
-      "p95Ms": 8794.9,
-      "deadlineMs": 17590,
+      "p95Ms": 3612,
+      "deadlineMs": 7224,
       "fallback": false,
       "fallbackReason": null
     },
     "database-olap-chart|wasm": {
-      "n": 5,
+      "n": 2,
       "okRows": 2,
-      "censored": 3,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 3498.6,
-      "deadlineMs": 6998,
+      "p95Ms": 3114.1,
+      "deadlineMs": 6229,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3615,28 +3743,28 @@
       "okRows": 1,
       "censored": 4,
       "errors": 0,
-      "p95Ms": 3801.1,
-      "deadlineMs": 7603,
+      "p95Ms": 4401.1,
+      "deadlineMs": 8803,
       "fallback": false,
       "fallbackReason": null
     },
     "document-pdf-viewer-v1|wasm": {
       "n": 1,
-      "okRows": 1,
-      "censored": 0,
+      "okRows": 0,
+      "censored": 1,
       "errors": 0,
-      "p95Ms": 4996.6,
-      "deadlineMs": 9994,
-      "fallback": false,
-      "fallbackReason": null
+      "p95Ms": null,
+      "deadlineMs": 5000,
+      "fallback": true,
+      "fallbackReason": "no baseline measured; current constant retained pending defect fix"
     },
     "dom-dependent-form-validation|js": {
       "n": 5,
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2709.1,
-      "deadlineMs": 5419,
+      "p95Ms": 2483.2,
+      "deadlineMs": 4967,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3645,68 +3773,68 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3397.8,
-      "deadlineMs": 6796,
+      "p95Ms": 3211.2,
+      "deadlineMs": 6423,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-grid-movement|js": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2287.2,
-      "deadlineMs": 4575,
+      "p95Ms": 2697.6,
+      "deadlineMs": 5396,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-grid-movement|wasm": {
-      "n": 3,
-      "okRows": 3,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3713,
-      "deadlineMs": 7426,
+      "p95Ms": 3995.9,
+      "deadlineMs": 7992,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-keyed-list-mutation|js": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2405.3,
-      "deadlineMs": 4811,
+      "p95Ms": 2598.6,
+      "deadlineMs": 5198,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-keyed-list-mutation|wasm": {
-      "n": 3,
-      "okRows": 3,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2593,
-      "deadlineMs": 5186,
+      "p95Ms": 3495.8,
+      "deadlineMs": 6992,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-nested-tree-mutation|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2598,
-      "deadlineMs": 5196,
+      "p95Ms": 1902.3,
+      "deadlineMs": 3805,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-nested-tree-mutation|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3801.7,
-      "deadlineMs": 7604,
+      "p95Ms": 3409,
+      "deadlineMs": 6818,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3715,8 +3843,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 6191.8,
-      "deadlineMs": 12384,
+      "p95Ms": 4793.4,
+      "deadlineMs": 9587,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3732,21 +3860,21 @@
     },
     "dom-virtualized-grid-v1|js": {
       "n": 5,
-      "okRows": 5,
-      "censored": 0,
+      "okRows": 4,
+      "censored": 1,
       "errors": 0,
-      "p95Ms": 6202.1,
-      "deadlineMs": 12405,
+      "p95Ms": 3200.1,
+      "deadlineMs": 6401,
       "fallback": false,
       "fallbackReason": null
     },
     "dom-virtualized-grid-v1|wasm": {
-      "n": 5,
+      "n": 4,
       "okRows": 4,
-      "censored": 1,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 5208,
-      "deadlineMs": 10416,
+      "p95Ms": 2509,
+      "deadlineMs": 5018,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3755,8 +3883,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 5191.5,
-      "deadlineMs": 10383,
+      "p95Ms": 2107.2,
+      "deadlineMs": 4215,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3765,28 +3893,28 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 4203.5,
-      "deadlineMs": 8407,
+      "p95Ms": 4987,
+      "deadlineMs": 9974,
       "fallback": false,
       "fallbackReason": null
     },
     "game-canvas-arcade|js": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 4194.7,
-      "deadlineMs": 8390,
+      "p95Ms": 3005.1,
+      "deadlineMs": 6011,
       "fallback": false,
       "fallbackReason": null
     },
     "game-canvas-arcade|wasm": {
-      "n": 3,
-      "okRows": 2,
-      "censored": 1,
+      "n": 5,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2308.2,
-      "deadlineMs": 4617,
+      "p95Ms": 2090,
+      "deadlineMs": 4180,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3813,21 +3941,21 @@
     },
     "game-dom-tactics-grid|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 3,
+      "censored": 2,
       "errors": 0,
-      "p95Ms": 6497.1,
-      "deadlineMs": 12995,
+      "p95Ms": 2504.6,
+      "deadlineMs": 5010,
       "fallback": false,
       "fallbackReason": null
     },
     "game-dom-tactics-grid|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 3,
+      "okRows": 3,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3408.6,
-      "deadlineMs": 6818,
+      "p95Ms": 1299.5,
+      "deadlineMs": 2599,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3857,18 +3985,18 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2300.6,
-      "deadlineMs": 4602,
+      "p95Ms": 2904.5,
+      "deadlineMs": 5809,
       "fallback": false,
       "fallbackReason": null
     },
     "graphics-cpu-path-tracer-v1|wasm": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1596.3,
-      "deadlineMs": 3193,
+      "p95Ms": 1604.5,
+      "deadlineMs": 3209,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3877,8 +4005,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3197.3,
-      "deadlineMs": 6395,
+      "p95Ms": 2399.4,
+      "deadlineMs": 4799,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3887,68 +4015,68 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3596.2,
-      "deadlineMs": 7193,
+      "p95Ms": 2600.8,
+      "deadlineMs": 5202,
       "fallback": false,
       "fallbackReason": null
     },
     "image-flood-fill-demo|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2394.4,
-      "deadlineMs": 4789,
+      "p95Ms": 2399.4,
+      "deadlineMs": 4799,
       "fallback": false,
       "fallbackReason": null
     },
     "image-flood-fill-demo|wasm": {
-      "n": 4,
-      "okRows": 2,
-      "censored": 2,
+      "n": 5,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1900.6,
-      "deadlineMs": 3802,
+      "p95Ms": 1898.5,
+      "deadlineMs": 3797,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-dense-mlp|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2294.8,
-      "deadlineMs": 4590,
+      "p95Ms": 2696.1,
+      "deadlineMs": 5393,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-dense-mlp|wasm": {
-      "n": 4,
-      "okRows": 3,
-      "censored": 1,
+      "n": 5,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 611.8,
-      "deadlineMs": 1224,
+      "p95Ms": 2003.9,
+      "deadlineMs": 4008,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-gemm|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1493.8,
-      "deadlineMs": 2988,
+      "p95Ms": 1899.7,
+      "deadlineMs": 3800,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-gemm|wasm": {
-      "n": 4,
-      "okRows": 4,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1196.3,
-      "deadlineMs": 2393,
+      "p95Ms": 1085.5,
+      "deadlineMs": 2171,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3957,8 +4085,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1912.8,
-      "deadlineMs": 3826,
+      "p95Ms": 4504,
+      "deadlineMs": 9008,
       "fallback": false,
       "fallbackReason": null
     },
@@ -3967,48 +4095,48 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1495.9,
-      "deadlineMs": 2992,
+      "p95Ms": 1788.8,
+      "deadlineMs": 3578,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-numeric-kernels-v1|js": {
       "n": 5,
-      "okRows": 5,
-      "censored": 0,
+      "okRows": 4,
+      "censored": 1,
       "errors": 0,
-      "p95Ms": 5097.2,
-      "deadlineMs": 10195,
+      "p95Ms": 3008.3,
+      "deadlineMs": 6017,
       "fallback": false,
       "fallbackReason": null
     },
     "ml-numeric-kernels-v1|wasm": {
-      "n": 5,
-      "okRows": 5,
+      "n": 4,
+      "okRows": 4,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3391.9,
-      "deadlineMs": 6784,
+      "p95Ms": 1503,
+      "deadlineMs": 3006,
       "fallback": false,
       "fallbackReason": null
     },
     "network-http2-quic-state|js": {
       "n": 5,
-      "okRows": 2,
-      "censored": 3,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1501.9,
-      "deadlineMs": 3004,
+      "p95Ms": 2802.2,
+      "deadlineMs": 5605,
       "fallback": false,
       "fallbackReason": null
     },
     "network-http2-quic-state|wasm": {
-      "n": 2,
-      "okRows": 2,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1908.6,
-      "deadlineMs": 3818,
+      "p95Ms": 2398,
+      "deadlineMs": 4796,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4017,18 +4145,18 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 6090.5,
-      "deadlineMs": 12181,
+      "p95Ms": 3104.2,
+      "deadlineMs": 6209,
       "fallback": false,
       "fallbackReason": null
     },
     "network-pcap-decode-v1|wasm": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 4188.2,
-      "deadlineMs": 8377,
+      "p95Ms": 3893,
+      "deadlineMs": 7786,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4037,8 +4165,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3394.2,
-      "deadlineMs": 6789,
+      "p95Ms": 3904.8,
+      "deadlineMs": 7810,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4047,8 +4175,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2590,
-      "deadlineMs": 5180,
+      "p95Ms": 2201.4,
+      "deadlineMs": 4403,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4057,8 +4185,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 7793.8,
-      "deadlineMs": 15588,
+      "p95Ms": 2706.7,
+      "deadlineMs": 5414,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4067,8 +4195,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 6991.6,
-      "deadlineMs": 13984,
+      "p95Ms": 2897.2,
+      "deadlineMs": 5795,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4095,21 +4223,21 @@
     },
     "serialization-json-telemetry-v1|js": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1910.4,
-      "deadlineMs": 3821,
+      "p95Ms": 1203.1,
+      "deadlineMs": 2407,
       "fallback": false,
       "fallbackReason": null
     },
     "serialization-json-telemetry-v1|wasm": {
-      "n": 3,
-      "okRows": 3,
+      "n": 5,
+      "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1495.7,
-      "deadlineMs": 2992,
+      "p95Ms": 986,
+      "deadlineMs": 1972,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4136,21 +4264,21 @@
     },
     "server-ssr-template-v1|js": {
       "n": 5,
-      "okRows": 3,
-      "censored": 2,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 7705.3,
-      "deadlineMs": 15411,
+      "p95Ms": 4404.1,
+      "deadlineMs": 8809,
       "fallback": false,
       "fallbackReason": null
     },
     "server-ssr-template-v1|wasm": {
-      "n": 3,
-      "okRows": 2,
-      "censored": 1,
+      "n": 5,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 3694.7,
-      "deadlineMs": 7390,
+      "p95Ms": 3707.1,
+      "deadlineMs": 7415,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4180,8 +4308,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3405,
-      "deadlineMs": 6810,
+      "p95Ms": 4699.7,
+      "deadlineMs": 9400,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4190,8 +4318,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2499.4,
-      "deadlineMs": 4999,
+      "p95Ms": 2205.8,
+      "deadlineMs": 4412,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4200,8 +4328,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2893.3,
-      "deadlineMs": 5787,
+      "p95Ms": 1606.7,
+      "deadlineMs": 3214,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4210,8 +4338,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 1693.8,
-      "deadlineMs": 3388,
+      "p95Ms": 1492.5,
+      "deadlineMs": 2985,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4220,8 +4348,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 4000.9,
-      "deadlineMs": 8002,
+      "p95Ms": 2799.9,
+      "deadlineMs": 5600,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4230,28 +4358,28 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 4903.6,
-      "deadlineMs": 9808,
+      "p95Ms": 3107.7,
+      "deadlineMs": 6216,
       "fallback": false,
       "fallbackReason": null
     },
     "text-gc-document-edit-v1|js": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 2607,
-      "deadlineMs": 5214,
+      "p95Ms": 1295.3,
+      "deadlineMs": 2591,
       "fallback": false,
       "fallbackReason": null
     },
     "text-gc-document-edit-v1|wasm": {
-      "n": 4,
-      "okRows": 3,
-      "censored": 1,
+      "n": 5,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 1010.8,
-      "deadlineMs": 2022,
+      "p95Ms": 903.1,
+      "deadlineMs": 1807,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4260,8 +4388,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2590.3,
-      "deadlineMs": 5181,
+      "p95Ms": 1491.1,
+      "deadlineMs": 2983,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4270,8 +4398,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3399,
-      "deadlineMs": 6798,
+      "p95Ms": 2310.1,
+      "deadlineMs": 4621,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4280,8 +4408,8 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3212,
-      "deadlineMs": 6424,
+      "p95Ms": 2598.6,
+      "deadlineMs": 5198,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4290,28 +4418,28 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 2108.9,
-      "deadlineMs": 4218,
+      "p95Ms": 2400,
+      "deadlineMs": 4800,
       "fallback": false,
       "fallbackReason": null
     },
     "tooling-c-to-wasm-compile-v1|js": {
       "n": 5,
-      "okRows": 5,
-      "censored": 0,
+      "okRows": 4,
+      "censored": 1,
       "errors": 0,
-      "p95Ms": 4612.9,
-      "deadlineMs": 9226,
+      "p95Ms": 4599.7,
+      "deadlineMs": 9200,
       "fallback": false,
       "fallbackReason": null
     },
     "tooling-c-to-wasm-compile-v1|wasm": {
-      "n": 5,
-      "okRows": 5,
-      "censored": 0,
+      "n": 4,
+      "okRows": 3,
+      "censored": 1,
       "errors": 0,
-      "p95Ms": 4898.9,
-      "deadlineMs": 9798,
+      "p95Ms": 2490.6,
+      "deadlineMs": 4982,
       "fallback": false,
       "fallbackReason": null
     },
@@ -4320,18 +4448,18 @@
       "okRows": 5,
       "censored": 0,
       "errors": 0,
-      "p95Ms": 3196.1,
-      "deadlineMs": 6393,
+      "p95Ms": 2007.1,
+      "deadlineMs": 4015,
       "fallback": false,
       "fallbackReason": null
     },
     "vdom-diff-patch-demo|wasm": {
       "n": 5,
-      "okRows": 4,
-      "censored": 1,
+      "okRows": 5,
+      "censored": 0,
       "errors": 0,
-      "p95Ms": 3092.7,
-      "deadlineMs": 6186,
+      "p95Ms": 2604.9,
+      "deadlineMs": 5210,
       "fallback": false,
       "fallbackReason": null
     }
@@ -4339,7 +4467,7 @@
   "fallbacks": [
     "archive-zip-workspace-v1|js",
     "archive-zip-workspace-v1|wasm",
-    "cad-parametric-bracket|wasm",
+    "document-pdf-viewer-v1|wasm",
     "dom-table-sort-filter-pagination|wasm",
     "game-canvas-entity-pathfinding|js",
     "game-canvas-entity-pathfinding|wasm",
