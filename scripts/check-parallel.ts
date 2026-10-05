@@ -152,19 +152,21 @@ async function signalStageGroup(
   }
   // Negative pid targets the whole process group; the stage child is its
   // leader (spawned via setsid), so this reaches grandchildren too.
-  await new Deno.Command("kill", {
-    args: [`-${signal}`, `-${ls.pgid}`],
-    stdout: "null",
-    stderr: "null",
-  }).output().catch(() => {});
+  // Deno.kill passes straight to kill(2), which takes negative pids. NOTE:
+  // do NOT shell out to /bin/kill for this — procps kill misparses
+  // `-TERM -PGID` without a `--` separator (exits 0, delivers nothing).
+  try {
+    Deno.kill(-ls.pgid, signal === "TERM" ? "SIGTERM" : "SIGKILL");
+  } catch { /* group already gone (ESRCH) */ }
 }
 
 async function groupGone(pgid: number): Promise<boolean> {
   if (!GROUP_KILL) return true;
   // kill -0 to a negative pid fails with ESRCH only when no process in the
-  // group remains.
+  // group remains. The `--` separator is load-bearing: without it procps
+  // kill misparses the negative pid (exits 0 having delivered nothing).
   const out = await new Deno.Command("kill", {
-    args: ["-0", `-${pgid}`],
+    args: ["-0", "--", `-${pgid}`],
     stdout: "null",
     stderr: "null",
   }).output().catch(() => ({ success: false }));
