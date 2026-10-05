@@ -196,17 +196,25 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
     }`,
   );
   for (const v of victims) signalStageGroup(v, "TERM");
-  // Grace period: stages that trap SIGTERM get a moment to exit before KILL.
-  const settled = new Set<string>();
-  await Promise.all(victims.map(async (v) => {
-    const grace = new Promise<void>((resolve) => setTimeout(resolve, 2000));
-    await Promise.race([
-      v.statusPromise.then(() => settled.add(v.name)),
-      grace,
-    ]);
-  }));
+  // Grace period: groups that trap SIGTERM get up to 2s to die before KILL.
+  const graceDeadline = performance.now() + 2000;
+  while (performance.now() < graceDeadline) {
+    let allGone = true;
+    for (const v of victims) {
+      if (!(await groupGone(v.pgid))) {
+        allGone = false;
+        break;
+      }
+    }
+    if (allGone) break;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  // Escalate on GROUP liveness, never on the direct child's status: a stage
+  // can exit on TERM while a grandchild (e.g. a test-spawned server) ignores
+  // it, and that group must still get KILL — otherwise the wrapper would
+  // exit with the group alive (review, wasm-vs-js-pz5).
   for (const v of victims) {
-    if (!settled.has(v.name)) signalStageGroup(v, "KILL");
+    if (!(await groupGone(v.pgid))) signalStageGroup(v, "KILL");
   }
   // Reap every child so neither zombie nor orphan outlives the wrapper.
   await Promise.allSettled(victims.map((v) => v.statusPromise));
@@ -259,6 +267,20 @@ for (const [sig, code] of [["SIGTERM", 143], ["SIGINT", 130]] as const) {
     });
   });
 }
+
+// An uncaught rejection mid-run must not bypass the sweep either: without
+// this, a throwing stage-spawn or probe would crash the wrapper and strand
+// every live stage group (review, wasm-vs-js-pz5). Exit 70 (EX_SOFTWARE).
+globalThis.addEventListener("unhandledrejection", (event) => {
+  event.preventDefault();
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.error(`check-parallel: unhandled rejection: ${event.reason}`);
+  terminateJobGroup("unhandled rejection").then((clean) => {
+    reportShutdown("unhandled rejection", clean);
+    Deno.exit(70);
+  });
+});
 
 // Note: taskset CPU pinning was tried and REJECTED (2026-08-04) — each deno
 // process brings several V8 background threads, so pinned core sets
@@ -315,6 +337,16 @@ if (missing.length > 0) {
 }
 
 async function runStage(stage: Stage): Promise<void> {
+  if (shuttingDown) {
+    // Deferred lanes (the heavy readers behind 1.2s/4s setTimeouts) reach
+    // here DURING a sweep when an early stage fails: spawning now would
+    // register in the already-snapshotted map and orphan the moment the
+    // sweep owner exits — the early-failure orphan path (review,
+    // wasm-vs-js-pz5). Never spawn once shutdown has begun. Returning is
+    // safe: killed siblings pend forever, so the main-line Promise.all
+    // still cannot march on.
+    return;
+  }
   const stageStart = performance.now();
   // Each stage is its own process-group leader (setsid) so the failure sweep
   // can take down the whole group — workers, servers and other grandchildren
@@ -391,6 +423,53 @@ if (Deno.args.includes("--self-test-group-kill")) {
   ]);
   // The failing stage must win the race; reaching here means the sweep never
   // ran and the defect is present.
+  console.error(
+    "check-parallel: SELF-TEST FAILED — failing stage did not terminate the run",
+  );
+  Deno.exit(1);
+}
+
+// Acceptance driver for the EARLY-failure path (review, wasm-vs-js-pz5): a
+// fast-failing stage plus deferred lanes that mirror the real heavy-reader
+// map's setTimeout pattern, so a deferred lane fires DURING the sweep. The
+// term-ignoring long stage stretches the sweep across the 1.2s deferred
+// lane: it survives TERM, eats the full 2s grace, and is KILLed on group
+// liveness. Expected: exit 3, and no selftest-early-fail-deferred process
+// ever exists — verifiable by polling `ps -eo pid,ppid,pgid,cmd | grep
+// selftest-early-fail` during and after the run.
+if (Deno.args.includes("--self-test-early-fail")) {
+  const marker = "selftest-early-fail";
+  await Promise.all([
+    runStage({
+      name: "selftest-fail-fast",
+      args: [
+        "eval",
+        `/*${marker}*/ await new Promise((r) => setTimeout(r, 400)); Deno.exit(3);`,
+      ],
+    }),
+    runStage({
+      name: "selftest-term-ignorer",
+      args: [
+        "eval",
+        `/*${marker}*/ Deno.addSignalListener("SIGTERM", () => {}); setTimeout(() => {}, 120000);`,
+      ],
+    }),
+    // Mirrors the heavy-reader map: deferred 1.2s/4s lanes calling runStage.
+    // The 1.2s lane fires mid-sweep and must hit the shuttingDown guard; the
+    // 4s lane must never fire at all.
+    ...[1200, 4000].map((delay, i) =>
+      (async () => {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        await runStage({
+          name: `selftest-deferred-${i}`,
+          args: [
+            "eval",
+            `/*${marker}-deferred-${i}*/ setTimeout(() => {}, 120000);`,
+          ],
+        });
+      })()
+    ),
+  ]);
   console.error(
     "check-parallel: SELF-TEST FAILED — failing stage did not terminate the run",
   );
