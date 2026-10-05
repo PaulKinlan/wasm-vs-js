@@ -165,11 +165,22 @@ async function groupGone(pgid: number): Promise<boolean> {
   // kill -0 to a negative pid fails with ESRCH only when no process in the
   // group remains. The `--` separator is load-bearing: without it procps
   // kill misparses the negative pid (exits 0 having delivered nothing).
-  const out = await new Deno.Command("kill", {
-    args: ["-0", "--", `-${pgid}`],
-    stdout: "null",
-    stderr: "null",
-  }).output().catch(() => ({ success: false }));
+  // try/catch, never a chained .catch: Deno 2.9's Command.output() throws
+  // out of the call itself when the binary is absent (wasm-vs-js-ccs). And
+  // a failed probe must NOT read as "gone": this check is the one thing
+  // standing between a stage failure and a false all-clear, so an
+  // inconclusive probe fails CLOSED — the caller retries, then reports a
+  // DIRTY shutdown instead of claiming no survivors.
+  let out: Deno.CommandOutput;
+  try {
+    out = await new Deno.Command("kill", {
+      args: ["-0", "--", `-${pgid}`],
+      stdout: "null",
+      stderr: "null",
+    }).output();
+  } catch {
+    return false; // probe inconclusive — not proven gone
+  }
   return !out.success;
 }
 
