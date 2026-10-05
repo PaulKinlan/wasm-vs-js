@@ -128,15 +128,44 @@ function json(data: unknown, status = 200): Response {
 
 // ── Extracted handlers for /v1/runs ──
 
+// Constant-time bearer comparison: never early-exit on a mismatching byte,
+// so the check does not leak the token through timing. Loops over the
+// longer input so a length difference still costs the full comparison.
+function bearerEqual(provided: string | null, token: string): boolean {
+  const expected = new TextEncoder().encode(`Bearer ${token}`);
+  const actual = new TextEncoder().encode(provided ?? "");
+  let diff = expected.length === actual.length ? 0 : 1;
+  const len = Math.max(expected.length, actual.length);
+  for (let i = 0; i < len; i++) {
+    diff |= (expected[i] ?? 0) ^ (actual[i] ?? 0);
+  }
+  return diff === 0;
+}
+
 async function handlePostRuns(
   request: Request,
   config: ReportingConfig,
-  _serverMode: string,
+  serverMode: "local" | "public",
 ): Promise<Response> {
-  // Reporter authorization
+  // Reporter authorization — FAIL CLOSED (wasm-vs-js-a37). In public mode
+  // an absent reporter token is a misconfiguration, never "no auth
+  // required": the check used to be skipped entirely when the token was
+  // unset, leaving POST /v1/runs unauthenticated on a public deployment.
+  // Refusing must live here in the route's code path so it holds however
+  // the server is started. CONSEQUENCE, by design: a public deployment
+  // without WASM_VS_JS_REPORTER_TOKEN begins REFUSING reports; setting the
+  // token restores ingestion. 503 (not 401) because the fault is the
+  // server's configuration, not the client's credentials; the body names
+  // the auth gate so it can never be confused with the KV-layer 503.
+  if (serverMode === "public" && !config.reporterToken) {
+    return json(
+      { error: "reporter token not configured — public ingestion refuses to serve without one" },
+      503,
+    );
+  }
   if (config.reporterToken) {
     const auth = request.headers.get("authorization");
-    if (auth !== `Bearer ${config.reporterToken}`) {
+    if (!bearerEqual(auth, config.reporterToken)) {
       return json({ error: "reporter not authorized" }, 401);
     }
   }

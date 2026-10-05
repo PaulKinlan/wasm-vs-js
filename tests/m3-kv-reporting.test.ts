@@ -523,6 +523,60 @@ Deno.test({
 });
 
 Deno.test({
+  name: "reporting-api: public mode with no reporter token fails closed (wasm-vs-js-a37)",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    // KV AVAILABLE, so any refusal can only have come from the auth gate —
+    // a 503 "KV store unavailable" would pass a naive non-2xx check while
+    // proving nothing about the gate.
+    const kv = await makeKv();
+    const config = makeConfig(kv); // reporterToken: null
+
+    const postRequest = new Request("https://example.test/v1/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const postResponse = await handleReportingRoute(
+      postRequest,
+      new URL(postRequest.url),
+      config,
+      "public",
+    );
+    assert(postResponse !== null);
+    // Non-2xx is necessary but NOT sufficient: assert the refusal NAMES the
+    // auth gate rather than the KV layer.
+    assertEquals(postResponse!.status, 503);
+    const body = await postResponse!.json();
+    assert(
+      String(body.error).includes("reporter token not configured"),
+      `expected the auth-gate refusal, got: ${JSON.stringify(body)}`,
+    );
+
+    // Local mode with no token keeps serving (the loopback developer path):
+    // the same request must get PAST the gate. With KV present and an empty
+    // object body the store layer answers 400 schema denied — any status
+    // other than 503 proves the request was not refused by the gate.
+    const localRequest = new Request("https://example.test/v1/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const localResponse = await handleReportingRoute(
+      localRequest,
+      new URL(localRequest.url),
+      config,
+      "local",
+    );
+    assert(localResponse !== null);
+    assertEquals(localResponse!.status, 400);
+
+    kv.close();
+  },
+});
+
+Deno.test({
   name: "kv-store: exportLogical and importLogical roundtrip",
   sanitizeOps: false,
   sanitizeResources: false,
