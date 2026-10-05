@@ -14,10 +14,14 @@
 #      push ran.
 #   1  Precondition/assertion failure — fail closed, do NOT push: dirty
 #      worktree (status --porcelain also counts untracked files, so a stray
-#      artefact lands here), target absent from origin/<target> without
-#      --new-branch (a typo'd target lands here), HEAD == origin/<target>
-#      (the benign "nothing to land" case — it exits 1 here, not 2),
-#      dry-run non-zero exit, update-row sha mismatch, usage error.
+#      artefact lands here), invalid target name (HEAD, */HEAD, a refs/ path,
+#      or a name with '..', ':', whitespace, a leading '-', or characters
+#      outside [A-Za-z0-9_./-]), target absent from
+#      refs/remotes/origin/<target> without --new-branch (a typo'd target
+#      lands here), a dry-run new-branch row without --new-branch, HEAD ==
+#      origin/<target> (the benign "nothing to land" case — it exits 1 here,
+#      not 2), dry-run non-zero exit, update-row sha mismatch, usage error
+#      (including multiple positional targets).
 #   2  Nothing to land: "Everything up-to-date" — HEAD has nothing the target
 #      lacks. Do NOT push. NOTE: nearly unreachable in the intended flow; see
 #      exit 1 (HEAD == origin/<target> fires first). Reaching here needs a
@@ -34,6 +38,46 @@ usage() {
   echo "  Runs 'git push --dry-run origin HEAD:<target>' and pushes only when the" >&2
   echo "  dry-run (exit 0) shows a genuine update or new-branch row." >&2
   echo "  A target not already present as origin/<target> requires --new-branch." >&2
+  echo "  <target-branch> is a bare branch name, not a ref path; HEAD and */HEAD" >&2
+  echo "  are refused (see the header for the exact name pattern)." >&2
+}
+
+# A gate whose safety depends on the caller typing correctly is the gate that
+# failed here twice. Validate the target as a bare branch NAME before any git
+# work, so a caller cannot smuggle a symbolic ref, a ref path, or a
+# path-shaped string through the later checks.
+validate_target() {
+  local t="$1"
+  if [[ "$t" == "HEAD" || "$t" == */HEAD ]]; then
+    echo "landing-preflight: invalid target '$t': HEAD is a symbolic ref, not a branch name" >&2
+    exit 1
+  fi
+  if [[ "$t" == refs/* ]]; then
+    echo "landing-preflight: invalid target '$t': pass a branch name (e.g. 'main'), not a ref path (e.g. 'refs/heads/main')" >&2
+    exit 1
+  fi
+  # The option parser already rejects a leading '-', but keep the rule here so
+  # the validator is complete on its own.
+  if [[ "$t" == -* ]]; then
+    echo "landing-preflight: invalid target '$t': must not start with '-'" >&2
+    exit 1
+  fi
+  if [[ "$t" == *..* ]]; then
+    echo "landing-preflight: invalid target '$t': must not contain '..'" >&2
+    exit 1
+  fi
+  if [[ "$t" == *:* ]]; then
+    echo "landing-preflight: invalid target '$t': must not contain ':'" >&2
+    exit 1
+  fi
+  if [[ "$t" == *[[:space:]]* ]]; then
+    echo "landing-preflight: invalid target '$t': must not contain whitespace" >&2
+    exit 1
+  fi
+  if [[ ! "$t" =~ ^[A-Za-z0-9_./-]+$ ]]; then
+    echo "landing-preflight: invalid target '$t': allowed characters are letters, digits, '-', '_', '.', '/'" >&2
+    exit 1
+  fi
 }
 
 new_branch=false
@@ -43,7 +87,13 @@ for arg in "$@"; do
     --new-branch) new_branch=true ;;
     -h | --help) usage; exit 0 ;;
     -*) echo "landing-preflight: unknown option: $arg" >&2; usage; exit 1 ;;
-    *) target="$arg" ;;
+    *)
+      if [[ -n "$target" ]]; then
+        echo "landing-preflight: too many targets: '$target' and '$arg' — pass exactly one <target-branch>" >&2
+        usage
+        exit 1
+      fi
+      target="$arg" ;;
   esac
 done
 
@@ -51,6 +101,7 @@ if [[ -z "$target" ]]; then
   usage
   exit 1
 fi
+validate_target "$target"
 
 # Precondition: clean worktree. An uncommitted merge leaves HEAD at the old
 # tip and would reproduce the false green. `git status --porcelain` also
@@ -63,12 +114,19 @@ fi
 
 head="$(git rev-parse HEAD)"
 
-# The target must already exist as origin/<target> unless the caller opts in
-# to creating a new remote branch. A typo'd target (e.g. "mian") would
-# otherwise dry-run as "* [new branch]" and be pushed onto the shared remote.
+# The target must already exist as a remote-tracking ref unless the caller
+# opts in to creating a new remote branch. A typo'd target (e.g. "mian")
+# would otherwise dry-run as "* [new branch]" and be pushed onto the shared
+# remote.
+#
+# Qualify the namespace: check refs/remotes/origin/$target, never the bare
+# origin/$target. `git rev-parse` resolves an unqualified name in the order
+# refs/heads, refs/tags, refs/remotes — so a LOCAL branch or tag literally
+# named origin/$target would satisfy a bare origin/$target check and make the
+# guard read green while the remote has no such branch.
 remote_tip=""
 remote_exists=false
-if remote_tip="$(git rev-parse --verify --quiet "origin/$target")"; then
+if remote_tip="$(git rev-parse --verify --quiet "refs/remotes/origin/$target")"; then
   remote_exists=true
 fi
 if ! $remote_exists && ! $new_branch; then
@@ -120,10 +178,17 @@ do_push() {
 }
 
 # Brand-new target ref: a "* [new branch]" row has NO sha pair, so it must be
-# handled explicitly rather than falling into the unrecognised branch. Only
-# reachable with --new-branch (the existence check above fails closed
-# otherwise).
-if grep -qF '* [new branch]' "$dry"; then
+# handled explicitly rather than falling into the unrecognised branch. The
+# regex is anchored to line start (a remote MOTD or hook line that merely
+# contains the text cannot match) and the block RE-CHECKS --new-branch: a
+# stale tracking ref can make the existence check above read green while the
+# remote has since deleted the branch, so the dry-run still reports a new
+# branch — without the flag that must fail closed, never push.
+if grep -qE '^ *\* \[new branch\] +HEAD -> ' "$dry"; then
+  if ! $new_branch; then
+    echo "landing-preflight: dry-run shows a new remote branch for origin/$target but --new-branch was not passed — refusing to create it, not pushing" >&2
+    exit 1
+  fi
   if [[ "$rc" -ne 0 ]]; then
     echo "landing-preflight: dry-run emitted a new-branch row but exited non-zero (rc=$rc) — failing closed, not pushing" >&2
     exit 1
