@@ -24,7 +24,7 @@
       "files": {
         "form_validate_trace": "form_validate_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_trace.wat",
       "initialMemoryBytes": 65536
     },
     {

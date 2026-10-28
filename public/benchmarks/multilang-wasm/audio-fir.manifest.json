@@ -1,6 +1,6 @@
 {
   "workloadId": "audio.fir.v1",
-  "kernelLabel": "FIR direct convolution \u2014 16,384 samples \u00d7 256 taps",
+  "kernelLabel": "FIR direct convolution — 16,384 samples × 256 taps",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "fir"
@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/audio-fir/fir.ts"
     },
     {
       "key": "wat",
@@ -19,7 +19,7 @@
       "lang": "wat",
       "offset": 0,
       "url": "/artifacts/audio-fir/audio-fir.wasm",
-      "source": "benchmarks/audio-fir/audio-fir.wat"
+      "source": "benchmarks/multilang-wasm/audio-fir/fir.wat"
     },
     {
       "key": "c",

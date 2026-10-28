@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v1/serialization-json-telemetry/workload.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "telemetry": "telemetry_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.wat",
       "initialMemoryBytes": 1048576
     },
     {

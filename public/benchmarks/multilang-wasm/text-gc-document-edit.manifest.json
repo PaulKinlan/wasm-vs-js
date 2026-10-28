@@ -24,7 +24,7 @@
       "files": {
         "gc_document_edit_trace": "gc_document_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_edit_trace.wat",
       "initialMemoryBytes": 655360
     },
     {

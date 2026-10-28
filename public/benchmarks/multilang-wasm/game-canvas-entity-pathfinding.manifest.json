@@ -24,7 +24,7 @@
       "files": {
         "pathfinding_trace": "pathfinding_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_trace.wat",
       "initialMemoryBytes": 3407872
     },
     {

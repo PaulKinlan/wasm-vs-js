@@ -31,6 +31,7 @@ import {
   toCsv,
   trajectoryChartSvg,
 } from "./benchmark-report.js";
+import { resolveEngineSource } from "./multilang-runner.js";
 
 export const WORKLOAD_CONFIGS = {
   "sum-u32": {
@@ -1506,12 +1507,20 @@ export function buildExplorerRows({
   const primaryKernel = kernels[0] ?? null;
   const kernelRows = primaryKernel ? (multilangResults?.[primaryKernel] ?? []) : [];
   for (const r of kernelRows) {
+    const engineCfg = manifest?.engines?.find((e) => e.key === r.key);
+    const resolvedSource = r.source ?? resolveEngineSource(manifest, engineCfg, primaryKernel);
     byScope.kernel.push({
       key: r.key,
       label: r.label,
       toolchain: ENGINE_TOOLCHAINS[r.key] ?? "—",
-      source: manifest?.engines?.find((e) => e.key === r.key)?.source ?? null,
+      source: resolvedSource || null,
       bytes: r.bytes || null,
+      binaryUrl: r.binaryUrl ?? null,
+      fetchMs: r.fetchMs ?? 0,
+      initMs: r.initMs ?? 0,
+      coldMs: r.coldMs ?? null,
+      track: r.track ?? "A",
+      samples: r.samples ?? [],
       summary: summarize(r.samples ?? [], { scope: "kernel", label: r.label }),
     });
   }
@@ -1531,6 +1540,8 @@ export function buildExplorerRows({
           toolchain: ENGINE_TOOLCHAINS[key],
           source: null,
           bytes: null,
+          binaryUrl: null,
+          samples: stats.samples ?? [],
           summary: stats.kernelSummary,
         });
       }
@@ -1538,6 +1549,9 @@ export function buildExplorerRows({
   }
 
   // Pipeline scope: the primary worker lane.
+  const jsKernelRow = byScope.kernel.find((r) => r.key === "js");
+  const wasmKernelRow = byScope.kernel.find((r) => r.key === "wat") ??
+    byScope.kernel.find((r) => r.key !== "js");
   for (
     const [key, label, stats] of [
       ["js", "JavaScript", primaryStats?.jsStats],
@@ -1545,12 +1559,23 @@ export function buildExplorerRows({
     ]
   ) {
     if (stats?.pipelineSummary) {
+      const isJs = key === "js";
+      const src = isJs ? (jsKernelRow?.source ?? null) : (wasmKernelRow?.source ?? null);
+      const binUrl = isJs
+        ? (jsKernelRow?.binaryUrl ?? jsKernelRow?.source ?? null)
+        : (wasmKernelRow?.binaryUrl ?? null);
+      const byteCount = isJs
+        ? (primaryStats?.jsStats?.firstUse?.bytesByKind?.scriptBytes || jsKernelRow?.bytes || null)
+        : (primaryStats?.wasmStats?.firstUse?.bytesByKind?.wasmBytes || wasmKernelRow?.bytes ||
+          null);
       byScope.pipeline.push({
         key,
         label,
         toolchain: ENGINE_TOOLCHAINS[key],
-        source: null,
-        bytes: null,
+        source: src,
+        binaryUrl: binUrl,
+        bytes: byteCount,
+        samples: stats.samples ?? [],
         summary: stats.pipelineSummary,
         note: stats.workerReuse === "respawned-per-iteration"
           ? "includes a worker boot per sample"
@@ -1562,12 +1587,18 @@ export function buildExplorerRows({
   // Real-DOM scope: every engine that drove the same rendered UI.
   for (const [key, stats] of Object.entries(domResults?.perTarget ?? {})) {
     if (!stats) continue;
+    const kRow = byScope.kernel.find((r) =>
+      r.key === key || (key === "javascript" && r.key === "js") ||
+      (key === "wasm" && r.key === "wat")
+    );
     byScope.domJourney.push({
       key,
       label: DOM_ENGINE_LABELS[key] ?? key,
       toolchain: ENGINE_TOOLCHAINS[key] ?? "—",
-      source: null,
-      bytes: null,
+      source: kRow?.source ?? null,
+      binaryUrl: kRow?.binaryUrl ?? null,
+      bytes: kRow?.bytes || null,
+      samples: stats.samples ?? [],
       summary: summarize(stats.samples ?? [], {
         scope: "domJourney",
         label: DOM_ENGINE_LABELS[key] ?? key,
@@ -1636,6 +1667,25 @@ function renderUnifiedExplorer({
   const jsPipeline = pipelineRows.find((r) => r.key === "js");
   const wasmPipeline = pipelineRows.find((r) => r.key === "wasm");
 
+  const wasmInitOverheadMs = (bestWasmKernel?.fetchMs ?? 0) + (bestWasmKernel?.initMs ?? 0) +
+    Math.max(0, (bestWasmKernel?.coldMs ?? 0) - (bestWasmKernel?.summary?.p50Ms ?? 0));
+  const jsInitOverheadMs = Math.max(
+    0,
+    (jsKernel?.coldMs ?? 0) - (jsKernel?.summary?.p50Ms ?? 0),
+  );
+  const deliveryCandidateMs = wasmInitOverheadMs > 0 ? wasmInitOverheadMs : Math.max(
+    0,
+    (primaryStats?.wasmStats?.firstUse?.totalMs ?? 0) - (wasmPipeline?.summary?.p50Ms ?? 0),
+  );
+  const deliveryBaselineMs = jsInitOverheadMs > 0 ? jsInitOverheadMs : Math.max(
+    0,
+    (primaryStats?.jsStats?.firstUse?.totalMs ?? 0) - (jsPipeline?.summary?.p50Ms ?? 0),
+  );
+  const deliveryBaselineBytes = jsKernel?.bytes ||
+    primaryStats?.jsStats?.firstUse?.bytesByKind?.scriptBytes || null;
+  const deliveryCandidateBytes = bestWasmKernel?.bytes ||
+    primaryStats?.wasmStats?.firstUse?.bytesByKind?.wasmBytes || null;
+
   // The decision panel is drawn here, not in the primary report, because only
   // at this point has every lane — worker, multi-language, real DOM — reported.
   const decision = document.createElement("div");
@@ -1656,13 +1706,10 @@ function renderUnifiedExplorer({
       }
       : null,
     delivery: {
-      baselineMs: primaryStats?.jsStats?.firstUse?.totalMs ?? null,
-      candidateMs: primaryStats?.wasmStats?.firstUse?.totalMs ?? null,
-      // The algorithm's own JavaScript against the binary that replaces it.
-      // Previously only the Wasm total was reported, so JavaScript read as
-      // though it arrived for free.
-      baselineBytes: primaryStats?.jsStats?.firstUse?.bytesByKind?.scriptBytes ?? null,
-      candidateBytes: primaryStats?.wasmStats?.firstUse?.bytesByKind?.wasmBytes ?? null,
+      baselineMs: deliveryBaselineMs,
+      candidateMs: deliveryCandidateMs,
+      baselineBytes: deliveryBaselineBytes,
+      candidateBytes: deliveryCandidateBytes,
     },
     contamination: primaryStats?.wasmStats?.contamination ??
       primaryStats?.jsStats?.contamination,
@@ -1752,9 +1799,7 @@ function renderUnifiedExplorer({
     amortHost.innerHTML = amortizationChartSvg(
       [jsKernel, bestWasmKernel].map((r) => ({
         label: r.label,
-        deliveryMs: r.key === "js"
-          ? (primaryStats?.jsStats?.firstUse?.totalMs ?? 0)
-          : (primaryStats?.wasmStats?.firstUse?.totalMs ?? 0),
+        deliveryMs: r.key === "js" ? (deliveryBaselineMs ?? 0) : (deliveryCandidateMs ?? 0),
         perMs: r.summary.p50Ms,
         kind: r.key === "js" ? "js" : "wasm",
       })),

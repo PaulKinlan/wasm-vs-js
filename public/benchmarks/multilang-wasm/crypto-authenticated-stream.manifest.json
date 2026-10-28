@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/crypto-authenticated-stream/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "crypto": "crypto_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.wat",
       "initialMemoryBytes": 16777216
     },
     {

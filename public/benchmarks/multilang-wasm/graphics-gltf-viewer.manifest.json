@@ -24,7 +24,7 @@
       "files": {
         "viewer": "viewer_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.wat",
       "initialMemoryBytes": 67108864
     },
     {

@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/ml-numeric-kernels/workload.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "numeric": "numeric_kernels_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric.wat",
       "initialMemoryBytes": 1048576
     },
     {

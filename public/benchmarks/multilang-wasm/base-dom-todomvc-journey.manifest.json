@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/dom-todomvc-journey/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "todomvc_engine": "todomvc_engine_wat.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.wat"
     },
     {
       "key": "c",
@@ -53,7 +53,7 @@
       "kind": "dart",
       "file": "todomvc_engine_dart.wasm",
       "glue": "todomvc_engine_dart.mjs",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.dart"
     }
   ]
 }

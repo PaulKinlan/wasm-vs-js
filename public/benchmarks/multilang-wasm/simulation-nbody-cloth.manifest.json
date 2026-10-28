@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/simulation-nbody/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "nbody_step": "nbody_step_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody_step.wat",
       "initialMemoryBytes": 16777216
     },
     {

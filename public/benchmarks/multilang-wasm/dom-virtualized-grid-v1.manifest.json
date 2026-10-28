@@ -24,7 +24,7 @@
       "files": {
         "grid_trace": "grid_trace_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/dom-virtualized-grid-v1/grid_trace.wat",
       "initialMemoryBytes": 6291456
     },
     {

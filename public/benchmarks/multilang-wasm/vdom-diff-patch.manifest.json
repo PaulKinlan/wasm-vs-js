@@ -24,7 +24,7 @@
       "files": {
         "vdom_diff_trace": "vdom_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_diff_trace.wat",
       "initialMemoryBytes": 131072
     },
     {

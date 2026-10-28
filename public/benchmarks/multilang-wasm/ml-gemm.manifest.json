@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v2/ml-gemm/workload.js"
     },
     {
       "key": "wat",
@@ -321,7 +321,8 @@
       "track": "B",
       "baseline": "js",
       "equivalence": "bit-identical",
-      "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns."
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns.",
+      "source": "benchmarks/v2/ml-gemm/workload.js"
     },
     {
       "key": "wat-simd",

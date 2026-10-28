@@ -24,7 +24,7 @@
       "files": {
         "keyed_list_trace": "keyed_list_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_trace.wat",
       "initialMemoryBytes": 131072
     },
     {

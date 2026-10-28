@@ -24,7 +24,7 @@
       "files": {
         "table_sort_trace": "table_sort_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_trace.wat",
       "initialMemoryBytes": 131072
     },
     {

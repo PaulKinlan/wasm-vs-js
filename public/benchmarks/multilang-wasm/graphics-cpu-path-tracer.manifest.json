@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base-v1/graphics-cpu-path-tracer/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "render": "path_tracer_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/render.wat",
       "initialMemoryBytes": 16777216
     },
     {

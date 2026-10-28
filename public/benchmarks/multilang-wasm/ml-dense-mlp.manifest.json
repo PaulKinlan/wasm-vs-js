@@ -1,6 +1,6 @@
 {
   "workloadId": "ml.dense-mlp.v1",
-  "kernelLabel": "Dense MLP forward \u2014 4 hidden + 1 projection (16\u00d7128)",
+  "kernelLabel": "Dense MLP forward — 4 hidden + 1 projection (16×128)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "mlp_forward"
@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v2/ml-dense-mlp/workload.js"
     },
     {
       "key": "wat",

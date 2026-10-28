@@ -25,7 +25,7 @@
       "files": {
         "grid_trace": "grid_kernel_wat.wasm"
       },
-      "source": "benchmarks/dom-grid-movement/dom-grid-movement.wat"
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.wat"
     },
     {
       "key": "c",
@@ -82,7 +82,8 @@
       "track": "B",
       "baseline": "js",
       "equivalence": "bit-identical",
-      "optimizationLog": "Replaces array of entity coordinate objects with flat Int32Array coordinates, eliminating object allocation and pointer dereferences."
+      "optimizationLog": "Replaces array of entity coordinate objects with flat Int32Array coordinates, eliminating object allocation and pointer dereferences.",
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.ts"
     }
   ]
 }

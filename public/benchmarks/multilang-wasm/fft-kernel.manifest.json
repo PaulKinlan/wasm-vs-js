@@ -21,7 +21,7 @@
       "files": {
         "fft": "fft_wat.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/fft_kernel.wat"
     },
     {
       "key": "asc",

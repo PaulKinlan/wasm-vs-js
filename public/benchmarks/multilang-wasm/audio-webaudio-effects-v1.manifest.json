@@ -24,7 +24,7 @@
       "files": {
         "audio_dsp": "audio_dsp_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects-v1/audio_dsp.wat",
       "initialMemoryBytes": 3670016
     },
     {

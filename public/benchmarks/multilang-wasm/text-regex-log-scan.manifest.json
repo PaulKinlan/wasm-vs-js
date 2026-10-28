@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/text-regex-log-scan/workload.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "scan_log": "scan_log_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.wat",
       "initialMemoryBytes": 4194304
     },
     {

@@ -454,7 +454,7 @@ function ciCell(summary) {
  * One scope, one table, one baseline.
  *
  * @param {{ scopeId: string, rows: { label: string, summary: any, toolchain?: string,
- *           source?: string|null, bytes?: number|null, note?: string }[],
+ *           source?: string|null, bytes?: number|null, binaryUrl?: string|null, note?: string }[],
  *           baselineLabel?: string, iterations?: number }} input
  */
 export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", iterations }) {
@@ -479,6 +479,13 @@ export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", it
       ? `<a class="commit-link" href="${esc(r.source.startsWith("/") ? r.source : "/" + r.source)}"
            target="_blank" rel="noopener">${esc(r.source.split("/").pop() ?? r.source)}</a>`
       : "";
+    const binCell = r.bytes
+      ? (r.binaryUrl
+        ? `<a class="commit-link" href="${
+          esc(r.binaryUrl.startsWith("/") ? r.binaryUrl : "/" + r.binaryUrl)
+        }" target="_blank" rel="noopener">${fmtBytes(r.bytes)}</a>`
+        : fmtBytes(r.bytes))
+      : "—";
     return `<tr${r === baseline ? ' class="is-baseline"' : ""}>
       <th scope="row">${esc(r.label)}${
       r.note ? `<br><small class="muted">${esc(r.note)}</small>` : ""
@@ -491,7 +498,7 @@ export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", it
       <td class="num">${s ? fmtMs(s.p90Ms) : "—"}</td>
       <td class="num">${s ? fmtMs(s.maxMs) : "—"}</td>
       <td class="num">${s ? fmtMs(s.madMs) : "—"}</td>
-      <td class="num">${r.bytes ? fmtBytes(r.bytes) : "—"}</td>
+      <td class="num">${binCell}</td>
       <td class="num">${ratioCell}</td>
     </tr>`;
   }).join("");
@@ -590,22 +597,43 @@ export function decisionPanelHtml(
   const kernelRatio = kernel ? ratio(kernel.baseline, kernel.best) : null;
   if (kernelRatio && kernelRatio.status === "ok") {
     const sep = kernelRatio.separated === false;
+    const isWasmFaster = kernelRatio.value >= 1;
+    const speedupVal = isWasmFaster ? kernelRatio.value : (1 / kernelRatio.value);
+    const speedupHeadline = `${speedupVal.toFixed(2)}× faster in ${isWasmFaster ? "Wasm" : "JS"}`;
+    const detail = isWasmFaster
+      ? `${esc(kernel.bestLabel)} (${fmtMs(kernel.best.p50Ms)} median) vs JavaScript (${
+        fmtMs(kernel.baseline.p50Ms)
+      } median) on the bare in-memory kernel${
+        sep ? ", but the confidence intervals overlap — treat this as no measured difference" : ""
+      }.`
+      : `JavaScript (${fmtMs(kernel.baseline.p50Ms)} median) beats ${esc(kernel.bestLabel)} (${
+        fmtMs(kernel.best.p50Ms)
+      } median) on the bare in-memory kernel${
+        sep ? ", but the confidence intervals overlap — treat this as no measured difference" : ""
+      }.`;
     cards.push(`<div class="decision-card${sep ? " is-inconclusive" : ""}">
       <h4>${icon(sep ? "warn" : "check")} Algorithm</h4>
-      <p class="decision-number">${kernelRatio.value.toFixed(2)}×</p>
-      <p class="decision-detail">${esc(kernel.bestLabel)} against JavaScript on the bare kernel${
-      sep ? ", but the confidence intervals overlap — treat this as no measured difference" : ""
-    }.</p>
+      <p class="decision-number">${speedupHeadline}</p>
+      <p class="decision-detail">${detail}</p>
     </div>`);
   }
 
   const pipeRatio = pipeline ? ratio(pipeline.baseline, pipeline.best) : null;
   if (pipeRatio && pipeRatio.status === "ok") {
+    const isWasmFaster = pipeRatio.value >= 1;
+    const speedupVal = isWasmFaster ? pipeRatio.value : (1 / pipeRatio.value);
+    const speedupHeadline = `${speedupVal.toFixed(2)}× faster in ${isWasmFaster ? "Wasm" : "JS"}`;
+    const detail = isWasmFaster
+      ? `WebAssembly (${fmtMs(pipeline.best.p50Ms)}) vs JavaScript (${
+        fmtMs(pipeline.baseline.p50Ms)
+      }) once worker dispatch, serialization and validation are counted. This is what an application would feel.`
+      : `JavaScript (${fmtMs(pipeline.baseline.p50Ms)}) beats WebAssembly (${
+        fmtMs(pipeline.best.p50Ms)
+      }) once worker dispatch, serialization and validation are counted. This is what an application would feel.`;
     cards.push(`<div class="decision-card">
       <h4>${icon("clock")} Whole task</h4>
-      <p class="decision-number">${pipeRatio.value.toFixed(2)}×</p>
-      <p class="decision-detail">The same comparison once worker dispatch, serialization and
-      validation are counted. This is what an application would feel.</p>
+      <p class="decision-number">${speedupHeadline}</p>
+      <p class="decision-detail">${detail}</p>
     </div>`);
   }
 
@@ -668,10 +696,12 @@ export function decisionPanelHtml(
   if (be.status === "ok") {
     cards.push(`<div class="decision-card is-verdict">
       <h4>${icon("check")} Break-even</h4>
-      <p class="decision-number">${be.invocations}</p>
+      <p class="decision-number">${be.invocations} ${be.invocations === 1 ? "call" : "calls"}</p>
       <p class="decision-detail">invocations per page load before ${
       esc(kernel.bestLabel)
-    } has repaid its delivery cost. Below that, JavaScript finishes the work sooner.</p>
+    } has repaid its +${fmtMs(be.extraFixedMs)} init overhead (saving ${
+      fmtMs(be.perSavingMs)
+    } per call vs JavaScript). Below that, JavaScript finishes the work sooner.</p>
     </div>`);
   } else if (be.status === "never") {
     cards.push(`<div class="decision-card is-verdict is-inconclusive">
@@ -683,9 +713,12 @@ export function decisionPanelHtml(
   } else if (be.status === "immediate") {
     cards.push(`<div class="decision-card is-verdict">
       <h4>${icon("check")} Break-even</h4>
-      <p class="decision-number">1</p>
-      <p class="decision-detail">Wasm costs no more to deliver and runs faster, so it is ahead from
-      the first invocation.</p>
+      <p class="decision-number">1 call</p>
+      <p class="decision-detail">${
+      esc(kernel.bestLabel)
+    } initializes at least as fast as JavaScript and saves ${
+      fmtMs(be.perSavingMs)
+    } per call, so it is ahead from the first invocation.</p>
     </div>`);
   }
 

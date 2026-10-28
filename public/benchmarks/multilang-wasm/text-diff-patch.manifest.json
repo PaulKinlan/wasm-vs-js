@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v2/text-diff-patch/workload.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "myers_diff": "myers_diff_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.wat",
       "initialMemoryBytes": 16777216
     },
     {

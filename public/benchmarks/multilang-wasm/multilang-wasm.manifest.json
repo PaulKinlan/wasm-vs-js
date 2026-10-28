@@ -11,7 +11,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/fft_kernel.ts"
     },
     {
       "key": "wat",
@@ -22,7 +22,7 @@
       "kernels": [
         "sum"
       ],
-      "source": ""
+      "source": "benchmarks/multilang-wasm/fft_kernel.wat"
     },
     {
       "key": "asc",
@@ -62,7 +62,7 @@
       "kind": "dart",
       "file": "fft_dart.wasm",
       "glue": "fft_dart.mjs",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/fft_kernel.dart"
     }
   ]
 }

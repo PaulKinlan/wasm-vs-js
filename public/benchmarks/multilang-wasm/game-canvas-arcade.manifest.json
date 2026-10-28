@@ -24,7 +24,7 @@
       "files": {
         "arcade_trace": "arcade_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_trace.wat",
       "initialMemoryBytes": 196608
     },
     {

@@ -24,7 +24,7 @@
       "files": {
         "ssr_render": "server_ssr_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/server-ssr-template-v1/ssr_render.wat",
       "initialMemoryBytes": 5242880
     },
     {

@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/cad-mesh-repair/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "mesh_repair": "mesh_repair_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.wat",
       "initialMemoryBytes": 1048576
     },
     {

@@ -24,7 +24,7 @@
       "files": {
         "tactics_trace": "tactics_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_trace.wat",
       "initialMemoryBytes": 4194304
     },
     {

@@ -24,7 +24,7 @@
       "files": {
         "zip_build": "zip_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/archive-zip-workspace-v1/zip_build.wat",
       "initialMemoryBytes": 7340032
     },
     {

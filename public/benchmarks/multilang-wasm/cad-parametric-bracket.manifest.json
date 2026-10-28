@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/cad-parametric-bracket/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "bracket": "bracket_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/cad-parametric-bracket/bracket.wat",
       "initialMemoryBytes": 8388608
     },
     {

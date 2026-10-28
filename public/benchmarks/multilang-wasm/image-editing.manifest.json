@@ -1,9 +1,9 @@
 {
   "workloadId": "image-editing.v1",
-  "kernelLabel": "Flood fill 64\u00d748 + luma Gaussian pipeline 40\u00d730 (integer-only)",
+  "kernelLabel": "Flood fill 64×48 + luma Gaussian pipeline 40×30 (integer-only)",
   "kernelLabels": {
-    "flood_fill": "Flood fill \u2014 64\u00d748, seed (10,12), threshold 12",
-    "luma_gaussian_pipeline": "Luma + 3-tap Gaussian pipeline \u2014 40\u00d730"
+    "flood_fill": "Flood fill — 64×48, seed (10,12), threshold 12",
+    "luma_gaussian_pipeline": "Luma + 3-tap Gaussian pipeline — 40×30"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -15,7 +15,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.ts"
     },
     {
       "key": "wat",
@@ -80,7 +80,7 @@
       "kind": "dart",
       "file": "image_kernels_dart.wasm",
       "glue": "image_kernels_dart.mjs",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.dart"
     }
   ]
 }

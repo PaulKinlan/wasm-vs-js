@@ -24,7 +24,7 @@
       "files": {
         "markdown_cms_render": "markdown_cms_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_render.wat",
       "initialMemoryBytes": 33554432
     },
     {

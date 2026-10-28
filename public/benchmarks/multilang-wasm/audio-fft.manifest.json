@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/fft_kernel.ts"
     },
     {
       "key": "wat",

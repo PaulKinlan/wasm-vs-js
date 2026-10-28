@@ -7730,9 +7730,12 @@ export async function loadEngines(manifest) {
       // Linear engines use one wasm per kernel: <kernel>_<lang>.wasm unless the
       // engine pins a file per kernel via engine.files.
       const file = engine.files?.[kernel] ?? `${kernel}_${engine.lang}.wasm`;
+      const binaryUrl = engine.url ?? `${base}/${file}`;
+      const tFetch0 = performance.now();
       const bytes = engine.url
         ? new Uint8Array(await (await fetch(engine.url, { cache: "no-store" })).arrayBuffer())
         : await fetchBytes(base, file);
+      const fetchMs = performance.now() - tFetch0;
       const t0 = performance.now();
       const mod = new WebAssembly.Module(bytes);
       const instance = new WebAssembly.Instance(
@@ -7740,21 +7743,27 @@ export async function loadEngines(manifest) {
         { env: { abort: () => {} } },
       );
       const initMs = performance.now() - t0;
-      byKernel[engine.key][kernel] = { instance, bytes, initMs };
+      byKernel[engine.key][kernel] = { instance, bytes, initMs, fetchMs, binaryUrl };
     }
   }
   for (const engine of linear) {
+    const firstK = byKernel[engine.key][manifest.kernels[0]];
     out.engines[engine.key] = {
       cfg: engine,
       instances: byKernel[engine.key],
-      bytes: byKernel[engine.key][manifest.kernels[0]].bytes,
-      initMs: byKernel[engine.key][manifest.kernels[0]].initMs ?? 0,
+      bytes: firstK?.bytes,
+      initMs: firstK?.initMs ?? 0,
+      fetchMs: firstK?.fetchMs ?? 0,
+      binaryUrl: firstK?.binaryUrl ?? null,
     };
   }
 
   for (const engine of manifest.engines.filter((e) => e.kind === "dart")) {
+    const binaryUrl = `${base}/${engine.file}`;
+    const tFetch0 = performance.now();
     const bytes = await fetchBytes(base, engine.file);
     const glueText = await (await fetch(`${base}/${engine.glue}`, { cache: "no-store" })).text();
+    const fetchMs = performance.now() - tFetch0;
     const url = URL.createObjectURL(new Blob([glueText], { type: "text/javascript" }));
     const glue = await import(url);
     const t0 = performance.now();
@@ -7764,7 +7773,7 @@ export async function loadEngines(manifest) {
     const initMs = performance.now() - t0;
     const kernels = globalThis.dartKernels;
     if (!kernels) throw new Error(`${engine.label}: dartKernels not published`);
-    out.engines[engine.key] = { cfg: engine, kernels, bytes, initMs };
+    out.engines[engine.key] = { cfg: engine, kernels, bytes, initMs, fetchMs, binaryUrl };
   }
 
   cache.set(manifest.workloadId, out);
@@ -7837,17 +7846,47 @@ async function benchmarkOne(fn, iterations) {
   };
 }
 
+const COMPILER_SOURCE_FALLBACKS = {
+  "ml.keyword-spotting.v1:c": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.c",
+  "ml.keyword-spotting.v1:cpp": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.cpp",
+  "ml.keyword-spotting.v1:rs": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.rs",
+  "ml.keyword-spotting.v1:asc": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.ts",
+  "dom.todomvc-journey.v1:c": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.c",
+  "dom.todomvc-journey.v1:cpp": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.cpp",
+  "dom.todomvc-journey.v1:rs": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.rs",
+  "image-editing:c": "benchmarks/multilang-wasm/image-editing/img_edit.c",
+  "image-editing:cpp": "benchmarks/multilang-wasm/image-editing/img_edit.cpp",
+  "image-editing:rs": "benchmarks/multilang-wasm/image-editing/img_edit.rs",
+  "image-editing:asc": "benchmarks/multilang-wasm/image-editing/img_edit.ts",
+  "document.pdf-viewer.v1:c": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
+};
+
+export function resolveEngineSource(manifest, engine, kernel) {
+  if (!engine) return "";
+  const raw = engine.source || "";
+  if (raw) {
+    if (raw.startsWith("multilang-wasm/")) return `benchmarks/${raw}`;
+    return raw.replace(/^\//, "");
+  }
+  const wid = manifest?.workloadId ?? "";
+  if (wid === "multilang-wasm") {
+    const stem = kernel === "fft" ? "fft_kernel" : "sum_kernel";
+    const extMap = { asc: "ts", c: "c", cpp: "cpp", rs: "rs" };
+    if (extMap[engine.key]) return `benchmarks/multilang-wasm/${stem}.${extMap[engine.key]}`;
+  }
+  return COMPILER_SOURCE_FALLBACKS[`${wid}:${engine.key}`] ?? "";
+}
+
 // Source-size lookup: each kernel's source file (e.g. <kernel>.c) lives either
 // flat in benchmarks/multilang-wasm/ (sum/fft) or in a per-workload subdir
 // (<dir>/<kernel>.c). Try both; return bytes or 0 (kept honest as "—").
 const sourceSizeCache = new Map();
 async function kernelSourceBytes(manifest, _kernel, lang, explicitSource) {
-  // Only explicit sources are probed (declared per-engine); no fallback
-  // guessing that could 404.
   void manifest;
   void lang;
   if (!explicitSource || explicitSource === "") return 0;
-  const candidates = [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "")}`];
+  const clean = explicitSource.replace(/^\//, "");
+  const candidates = [clean.startsWith("benchmarks/") ? `/${clean}` : `/benchmarks/${clean}`];
   for (const path of candidates) {
     if (sourceSizeCache.has(path)) {
       const n = sourceSizeCache.get(path);
@@ -7889,22 +7928,38 @@ export async function runWorkload(
     if (!fn) continue; // engine not applicable to this kernel (e.g. WAT sum-only)
     onProgress(`${engine.label}: ${kernel}...`);
     const stats = await benchmarkOne(fn, iterations);
-    const bytes = mods.engines[engine.key]?.bytes?.byteLength ?? 0;
-    const sourceBytes = await kernelSourceBytes(
+    const resolvedSource = resolveEngineSource(manifest, engine, kernel);
+    const kInst = mods.engines[engine.key]?.instances?.[kernel];
+    const wasmBytes = kInst?.bytes?.byteLength ?? mods.engines[engine.key]?.bytes?.byteLength ?? 0;
+    let sourceBytes = await kernelSourceBytes(
       manifest,
       kernel,
       engine.lang ?? engine.key,
-      engine.source,
+      resolvedSource,
     );
+    if (
+      sourceBytes === 0 &&
+      (engine.kind === "js" || engine.key === "js" || engine.key === "js-opt")
+    ) {
+      sourceBytes = new TextEncoder().encode(fn.toString()).byteLength;
+    }
+    const bytes = wasmBytes > 0 ? wasmBytes : sourceBytes;
+    const binaryUrl = wasmBytes > 0
+      ? (kInst?.binaryUrl ?? mods.engines[engine.key]?.binaryUrl ?? null)
+      : (resolvedSource ? `/${resolvedSource.replace(/^\//, "")}` : null);
     results.push({
       key: engine.key,
       label: engine.label,
       track: engine.track ?? "A",
       baseline: engine.baseline ?? "js",
       optimizationLog: engine.optimizationLog ?? null,
-      initMs: mods.engines[engine.key]?.initMs ?? 0,
+      initMs: kInst?.initMs ?? mods.engines[engine.key]?.initMs ?? 0,
+      fetchMs: kInst?.fetchMs ?? mods.engines[engine.key]?.fetchMs ?? 0,
       bytes,
+      wasmBytes,
       sourceBytes,
+      source: resolvedSource ? `/${resolvedSource.replace(/^\//, "")}` : null,
+      binaryUrl,
       ...stats,
     });
   }
@@ -8273,18 +8328,31 @@ function renderTables(
   const renderRow = (r) => {
     const ratio = r.medianMs > 0 ? (jsMs / r.medianMs).toFixed(2) : (jsMs === 0 ? "1.00" : "—");
     const pct = Math.max(2, (r.medianMs / maxMs) * 100);
-    const wasmSize = r.bytes > 0 ? `${r.bytes.toLocaleString()} B` : "";
-    const srcSize = r.sourceBytes > 0 ? `src ${r.sourceBytes.toLocaleString()} B` : "";
-    const size = [wasmSize, srcSize].filter(Boolean).join(" · ") || "—";
+    const binSizeHtml = r.bytes > 0
+      ? (r.binaryUrl
+        ? `<a class="commit-link" href="${
+          esc(r.binaryUrl)
+        }" target="_blank" rel="noopener" title="Download or view binary/script (${r.bytes.toLocaleString()} B)">${r.bytes.toLocaleString()} B</a>`
+        : `${r.bytes.toLocaleString()} B`)
+      : "";
+    const srcSizeHtml = r.sourceBytes > 0 && r.wasmBytes > 0
+      ? (r.source
+        ? `<a class="commit-link" href="${
+          esc(r.source)
+        }" target="_blank" rel="noopener" title="View source (${r.sourceBytes.toLocaleString()} B)">src ${r.sourceBytes.toLocaleString()} B</a>`
+        : `src ${r.sourceBytes.toLocaleString()} B`)
+      : "";
+    const size = [binSizeHtml, srcSizeHtml].filter(Boolean).join(" · ") || "—";
     const engineCfg = manifest.engines?.find((e) => e.key === r.key);
     const toolchain = TOOLCHAIN_COMMANDS[engineCfg?.lang ?? r.key] ?? engineCfg?.toolchain ?? "—";
     let sourceHtml = "";
-    const srcPath = engineCfg?.source ||
-      (r.key === "wat" ? "benchmarks/multilang-wasm/sum.wat" : "");
-    if (srcPath) {
-      const srcName = srcPath.split("/").pop();
-      sourceHtml =
-        `<a class="commit-link" href="/${srcPath}" target="_blank" rel="noopener" title="View ${srcName}">${srcName}</a>`;
+    const resolvedSrc = r.source || resolveEngineSource(manifest, engineCfg, primaryKernel);
+    if (resolvedSrc) {
+      const href = resolvedSrc.startsWith("/") ? resolvedSrc : `/${resolvedSrc}`;
+      const srcName = href.split("/").pop();
+      sourceHtml = `<a class="commit-link" href="${
+        esc(href)
+      }" target="_blank" rel="noopener" title="View ${esc(srcName)}">${esc(srcName)}</a>`;
     } else if (r.key === "js") {
       sourceHtml = `<span class="muted">JS baseline</span>`;
     }

@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/crypto-file-integrity/sha256.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "sha256": "sha256_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.wat",
       "initialMemoryBytes": 1048576
     },
     {

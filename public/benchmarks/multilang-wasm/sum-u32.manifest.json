@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/sum_u32.ts"
+      "source": "benchmarks/sum-u32/workload.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "kernels": [
         "sum"
       ],
-      "source": ""
+      "source": "benchmarks/multilang-wasm/sum_u32.wat"
     },
     {
       "key": "asc",
@@ -74,7 +74,8 @@
       "track": "B",
       "baseline": "js",
       "equivalence": "bit-identical",
-      "optimizationLog": "4-way loop unrolling over Uint32Array with explicit 32-bit integer modulo accumulation, eliminating loop index branch overhead."
+      "optimizationLog": "4-way loop unrolling over Uint32Array with explicit 32-bit integer modulo accumulation, eliminating loop index branch overhead.",
+      "source": "benchmarks/sum-u32/workload.js"
     },
     {
       "key": "wat-simd",
@@ -85,7 +86,7 @@
       "files": {
         "sum": "sum_wat_simd.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/sum_u32_simd.wat",
       "targetFeatures": [
         "simd128"
       ],

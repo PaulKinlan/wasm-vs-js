@@ -211,7 +211,7 @@ export function ratio(baseline, candidate) {
       candidateScope: candidate.scope,
     };
   }
-  if (!(candidate.p50Ms > 0)) return { status: "unavailable" };
+  if (!(baseline.p50Ms > 0) || !(candidate.p50Ms > 0)) return { status: "unavailable" };
   const value = baseline.p50Ms / candidate.p50Ms;
   let lo = null, hi = null, separated = null;
   if (baseline.ci95 && candidate.ci95 && candidate.ci95.highMs > 0) {

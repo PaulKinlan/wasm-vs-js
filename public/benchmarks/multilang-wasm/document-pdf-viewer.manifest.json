@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/document-pdf-viewer/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "pdf_parse": "pdf_engine_wat.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_parse.wat"
     },
     {
       "key": "c",

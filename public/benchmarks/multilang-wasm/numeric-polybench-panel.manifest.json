@@ -1,6 +1,6 @@
 {
   "workloadId": "numeric.polybench-panel.v1",
-  "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) \u2014 double precision (f64)",
+  "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) — double precision (f64)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "polybench"
@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/numeric-polybench-panel/workload.js"
     },
     {
       "key": "wat",
@@ -19,7 +19,7 @@
       "lang": "wat",
       "offset": 0,
       "url": "/artifacts/numeric-polybench-panel/polybench-panel.wasm",
-      "source": "benchmarks/base/numeric-polybench-panel/polybench-panel.wat"
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.wat"
     },
     {
       "key": "c",

@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/database-olap-chart/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "olap": "olap_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/database-olap-chart/olap.wat",
       "initialMemoryBytes": 1048576
     },
     {

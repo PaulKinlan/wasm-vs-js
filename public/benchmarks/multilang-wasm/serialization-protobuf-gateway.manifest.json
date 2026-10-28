@@ -24,7 +24,7 @@
       "files": {
         "protobuf_gateway": "protobuf_gateway_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway.wat",
       "initialMemoryBytes": 8388608
     },
     {

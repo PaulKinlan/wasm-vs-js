@@ -24,7 +24,7 @@
       "files": {
         "regex_scan": "regex_scan_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/regex-automata-duel-demo/regex_scan.wat",
       "initialMemoryBytes": 8388608
     },
     {

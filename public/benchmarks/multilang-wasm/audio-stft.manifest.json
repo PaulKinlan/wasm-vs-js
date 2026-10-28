@@ -1,6 +1,6 @@
 {
   "workloadId": "audio.stft.v1",
-  "kernelLabel": "STFT \u2014 8,192 samples, 1,024-frame, 256-hop, frozen twiddle",
+  "kernelLabel": "STFT — 8,192 samples, 1,024-frame, 256-hop, frozen twiddle",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "stft"
@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/multilang-wasm/audio-stft/stft.ts"
     },
     {
       "key": "wat",
@@ -19,7 +19,7 @@
       "lang": "wat",
       "offset": 0,
       "url": "/artifacts/audio-stft/audio-stft.wasm",
-      "source": "benchmarks/audio-stft/audio-stft.wat"
+      "source": "benchmarks/multilang-wasm/audio-stft/stft.wat"
     },
     {
       "key": "c",

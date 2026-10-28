@@ -27,7 +27,7 @@
       "files": {
         "kws_run": "kws_kernel_wat.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting-v1/kws_run.wat"
     },
     {
       "key": "c",

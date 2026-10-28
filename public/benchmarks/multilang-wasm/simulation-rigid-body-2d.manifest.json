@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v1/simulation-rigid-body-2d/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "rigid_engine": "rigid_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.wat",
       "initialMemoryBytes": 16777216
     },
     {

@@ -24,7 +24,7 @@
       "files": {
         "nested_tree_trace": "nested_tree_kernel_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_trace.wat",
       "initialMemoryBytes": 131072
     },
     {

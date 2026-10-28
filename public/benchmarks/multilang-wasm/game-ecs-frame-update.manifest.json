@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/v1/game-ecs-frame-update/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "ecs_frame_update": "ecs_frame_update_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.wat",
       "initialMemoryBytes": 16777216
     },
     {

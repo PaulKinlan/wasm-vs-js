@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": ""
+      "source": "benchmarks/base/network-pcap-decode/engine.js"
     },
     {
       "key": "wat",
@@ -21,7 +21,7 @@
       "files": {
         "pcap_decode": "pcap_decode_wat.wasm"
       },
-      "source": "",
+      "source": "benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.wat",
       "initialMemoryBytes": 1048576
     },
     {
