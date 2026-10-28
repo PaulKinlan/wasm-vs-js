@@ -123,7 +123,7 @@ function renderEntry(entry) {
     actions.append(blockedBadge);
   }
 
-  card.append(header, story, work, actions, details);
+  card.append(header, actions, story, work, details);
   return card;
 }
 
@@ -159,21 +159,30 @@ try {
   for (const [name, count] of domains) addDefinition(domainList, name, String(count));
   domainTotals.append(domainList);
 
-  const term = query.value.trim().toLocaleLowerCase();
-  const visible = catalog.entries.filter((entry) => {
-    const haystack = `${entry.id} ${entry.title} ${entry.story} ${entry.domain}`
-      .toLocaleLowerCase();
-    return (!term || haystack.includes(term)) &&
-      (priority.value === "all" || entry.priority === priority.value) &&
-      (domain.value === "all" || entry.domain === domain.value) &&
-      (status.value === "all" || entry.status === status.value);
-  });
-  list.replaceChildren(...visible.map(renderEntry));
-  const demoCount = visible.filter((entry) => WORKLOAD_DEMO_ROUTES[entry.id]).length;
-  statusLine.textContent =
-    `Showing ${visible.length} of ${catalog.entries.length} workloads. Proposed: ${
-      catalog.entries.filter((entry) => entry.status === "proposed").length
-    }. With runnable demos: ${demoCount}. Accepted into the frozen corpus: ${catalog.implementationCoverage.implementedCatalogEntries} of 38 (acceptance has not run yet — demos are not accepted evidence).`;
+  const applyFilter = () => {
+    const term = query.value.trim().toLocaleLowerCase();
+    const visible = catalog.entries.filter((entry) => {
+      const haystack = `${entry.id} ${entry.title} ${entry.story} ${entry.domain}`
+        .toLocaleLowerCase();
+      return (!term || haystack.includes(term)) &&
+        (priority.value === "all" || entry.priority === priority.value) &&
+        (domain.value === "all" || entry.domain === domain.value) &&
+        (status.value === "all" || entry.status === status.value);
+    });
+    list.replaceChildren(...visible.map(renderEntry));
+    const demoCount = visible.filter((entry) => WORKLOAD_DEMO_ROUTES[entry.id]).length;
+    statusLine.textContent =
+      `Showing ${visible.length} of ${catalog.entries.length} workloads. Proposed: ${
+        catalog.entries.filter((entry) => entry.status === "proposed").length
+      }. With runnable demos: ${demoCount}. Accepted into the frozen corpus: ${catalog.implementationCoverage.implementedCatalogEntries} of 38 (acceptance has not run yet — demos are not accepted evidence).`;
+  };
+
+  query.addEventListener("input", applyFilter);
+  priority.addEventListener("change", applyFilter);
+  domain.addEventListener("change", applyFilter);
+  status.addEventListener("change", applyFilter);
+
+  applyFilter();
 } catch (error) {
   statusLine.textContent = `Catalog unavailable: ${
     error instanceof Error ? error.message : "unknown error"

@@ -18,6 +18,7 @@
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
       <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/results/">Results</a>
       <a href="/experiments/">Experiment</a>
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
@@ -30,6 +31,87 @@
           class="lede">The catalog names kernels, components, applications, browser journeys, and server tasks before implementation begins. Each row fixes the intended work, oracle family, target modes, phases, rights state, and blockers.</p>
         <p
           class="notice"><strong>Catalog status: 49 runnable browser demos across 38 proposed workloads. Every demo runs locally in your browser; nothing is uploaded.</strong> Every demo runs locally in your browser; nothing is uploaded.</p>
+      </section>
+
+      <section aria-labelledby="totals-title">
+        <p class="eyebrow">38-WORKLOAD DENOMINATOR</p>
+        <h2 id="totals-title">Exact denominator</h2>
+        <dl class="metrics catalog-metrics" id="catalog-totals">
+          <div>
+            <dt>Total workloads</dt>
+            <dd>38</dd>
+          </div>
+          <div>
+            <dt>P0 harness/calibration</dt>
+            <dd>12</dd>
+          </div>
+          <div>
+            <dt>P1 representative applications</dt>
+            <dd>12</dd>
+          </div>
+          <div>
+            <dt>P2 breadth/stress</dt>
+            <dd>14</dd>
+          </div>
+          <div>
+            <dt>Implemented catalog entries</dt>
+            <dd>0</dd>
+          </div>
+        </dl>
+        <div id="domain-totals" class="domain-totals" aria-label="Workload totals by domain"></div>
+      </section>
+
+      <section aria-labelledby="filter-title">
+        <h2 id="filter-title">Inspect every workload</h2>
+        <form class="catalog-filters" action="/benchmarks/" method="get" role="search">
+          <fieldset>
+            <legend>Filter the frozen denominator</legend>
+            <div class="filter-grid">
+              <label for="catalog-query">Search title, story, domain, or ID
+                <input id="catalog-query" name="q" type="search" autocomplete="off">
+              </label>
+              <label for="catalog-priority">Priority
+                <select id="catalog-priority" name="priority">
+                  <option value="all">All priorities</option>
+                  <option value="P0">P0</option>
+                  <option value="P1">P1</option>
+                  <option value="P2">P2</option>
+                </select>
+              </label>
+              <label for="catalog-domain">Domain
+                <select id="catalog-domain" name="domain"><option value="all">All domains</option></select>
+              </label>
+              <label for="catalog-status">Status
+                <select id="catalog-status" name="status">
+                  <option value="all">All statuses</option>
+                  <option value="proposed">Proposed</option>
+                  <option value="frozen">Frozen</option>
+                  <option value="implemented">Implemented</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="retired">Retired</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit">Apply filters</button>
+            <a href="/benchmarks/">Clear</a>
+          </fieldset>
+        </form>
+        <p id="catalog-status-line" role="status"
+          aria-live="polite">Loading 38 workload definitions…</p>
+        <div id="catalog-list" class="catalog-list"></div>
+        <noscript><p>JavaScript is required for the filterable view. <a href="/data/workloads.v1.json">Inspect all 38 machine-readable workload records</a>.</p></noscript>
+      </section>
+
+      <section aria-labelledby="rules-title">
+        <h2 id="rules-title">Rules for filling the catalog</h2>
+        <p>A fixture can move to <strong>frozen</strong> only after its rights, provenance, redistribution terms, and SHA-256 have been checked. When results arrive:</p>
+        <ul>
+          <li>algorithm-equivalent aggregates may contain only one declared algorithm family;</li>
+          <li>semantic product-choice comparisons stay separate from controlled algorithm comparisons;</li>
+          <li>load, transfer, compute, IO, rendering, memory, boundary, and end-to-end costs remain separate fields;</li>
+          <li>missing JavaScript, linear-Wasm, WasmGC, or hybrid cells retain a typed reason.</li>
+        </ul>
+        <p><a href="/data/workloads.v1.json">Download the catalog JSON</a> · <a href="/#workload-sum-u32">Run sum-u32 in the playground</a> · <a href="/evidence/">Check implementation evidence</a></p>
       </section>
 
       <section class="proposal-inventory" aria-labelledby="base-candidates-title">
@@ -220,87 +302,6 @@
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section aria-labelledby="totals-title">
-        <p class="eyebrow">38-WORKLOAD DENOMINATOR</p>
-        <h2 id="totals-title">Exact denominator</h2>
-        <dl class="metrics catalog-metrics" id="catalog-totals">
-          <div>
-            <dt>Total workloads</dt>
-            <dd>38</dd>
-          </div>
-          <div>
-            <dt>P0 harness/calibration</dt>
-            <dd>12</dd>
-          </div>
-          <div>
-            <dt>P1 representative applications</dt>
-            <dd>12</dd>
-          </div>
-          <div>
-            <dt>P2 breadth/stress</dt>
-            <dd>14</dd>
-          </div>
-          <div>
-            <dt>Implemented catalog entries</dt>
-            <dd>0</dd>
-          </div>
-        </dl>
-        <div id="domain-totals" class="domain-totals" aria-label="Workload totals by domain"></div>
-      </section>
-
-      <section aria-labelledby="filter-title">
-        <h2 id="filter-title">Inspect every workload</h2>
-        <form class="catalog-filters" action="/benchmarks/" method="get" role="search">
-          <fieldset>
-            <legend>Filter the frozen denominator</legend>
-            <div class="filter-grid">
-              <label for="catalog-query">Search title, story, domain, or ID
-                <input id="catalog-query" name="q" type="search" autocomplete="off">
-              </label>
-              <label for="catalog-priority">Priority
-                <select id="catalog-priority" name="priority">
-                  <option value="all">All priorities</option>
-                  <option value="P0">P0</option>
-                  <option value="P1">P1</option>
-                  <option value="P2">P2</option>
-                </select>
-              </label>
-              <label for="catalog-domain">Domain
-                <select id="catalog-domain" name="domain"><option value="all">All domains</option></select>
-              </label>
-              <label for="catalog-status">Status
-                <select id="catalog-status" name="status">
-                  <option value="all">All statuses</option>
-                  <option value="proposed">Proposed</option>
-                  <option value="frozen">Frozen</option>
-                  <option value="implemented">Implemented</option>
-                  <option value="blocked">Blocked</option>
-                  <option value="retired">Retired</option>
-                </select>
-              </label>
-            </div>
-            <button type="submit">Apply filters</button>
-            <a href="/benchmarks/">Clear</a>
-          </fieldset>
-        </form>
-        <p id="catalog-status-line" role="status"
-          aria-live="polite">Loading 38 workload definitions…</p>
-        <div id="catalog-list" class="catalog-list"></div>
-        <noscript><p>JavaScript is required for the filterable view. <a href="/data/workloads.v1.json">Inspect all 38 machine-readable workload records</a>.</p></noscript>
-      </section>
-
-      <section aria-labelledby="rules-title">
-        <h2 id="rules-title">Rules for filling the catalog</h2>
-        <p>A fixture can move to <strong>frozen</strong> only after its rights, provenance, redistribution terms, and SHA-256 have been checked. When results arrive:</p>
-        <ul>
-          <li>algorithm-equivalent aggregates may contain only one declared algorithm family;</li>
-          <li>semantic product-choice comparisons stay separate from controlled algorithm comparisons;</li>
-          <li>load, transfer, compute, IO, rendering, memory, boundary, and end-to-end costs remain separate fields;</li>
-          <li>missing JavaScript, linear-Wasm, WasmGC, or hybrid cells retain a typed reason.</li>
-        </ul>
-        <p><a href="/data/workloads.v1.json">Download the catalog JSON</a> · <a href="/#workload-sum-u32">Run sum-u32 in the playground</a> · <a href="/evidence/">Check implementation evidence</a></p>
       </section>
     </main>
   </body>

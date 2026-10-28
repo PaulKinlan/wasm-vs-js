@@ -12,18 +12,28 @@
   <body>
     <a class="skip" href="#main">Skip to evidence</a>
     <header class="masthead">
-      <a class="brand" href="/">AI Focus</a>
-      <span>Wasm vs JavaScript benchmark</span>
-      <strong>evidence v1</strong>
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/results/">Results</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
     </header>
     <main id="main" class="dashboard">
       <section class="intro narrative">
-        <p class="eyebrow">M1 · implementation evidence</p>
+        <p class="eyebrow">Cryptographic provenance &amp; implementation evidence ledger</p>
         <h1>The code passed; no accepted performance corpus exists yet</h1>
-        <p>The controlled <code>sum-u32</code> pair passed reproducible-build, correctness, fixed-work, evidence-contract, storage, summary, and interface checks.</p>
+        <p>This evidence ledger publishes the immutable, machine-readable provenance records for the benchmark suite. It links git commit hashes, SHA-256 source file digests, toolchain versions, and compiled binary artifacts to prevent drift and ensure independent inspectability.</p>
         <p
           class="notice"><strong>Accepted performance corpus: none.</strong> M1 starts checking precision after 20 committed pairs in each stratum. A stratum can also finish inconclusive after its 60th planned attempt. The removed manual validation records cannot supply those pairs.</p>
-        <p><a class="button-link" href="/evidence/v1/acceptance.json">Open acceptance JSON</a> <a href="/artifacts/sum-u32/build-manifest.json">Open the build manifest</a> <a href="/artifacts/sum-u32/sum-u32.wasm">Download the 96-byte Wasm artifact</a> <a href="/benchmarks/#v2-inventory-title">Inspect the separate v2 proposal inventory</a></p>
+        <p class="nav-links">
+          <a class="button-link" href="/evidence/v1/acceptance.json">Open acceptance JSON</a>
+          <a class="button-link"
+            href="/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json">Multi-language kernel provenance</a>
+          <a class="button-link"
+            href="/data/base-implementation-status.v1.json">Base catalog implementation status</a>
+          <a class="button-link" href="/evidence/v2-proposals/">Audio v2 proposal records</a>
+        </p>
       </section>
 
       <section aria-labelledby="inspectability-title">
