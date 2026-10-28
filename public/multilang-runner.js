@@ -21,6 +21,8 @@
 // Per-workload call adapters live in KERNEL_ADAPTERS below (manifests are
 // data-only); each adapter exposes the timed callable for its kernel.
 
+import { barChartSvg, sizeVsSpeedChartSvg } from "./benchmark-report.js";
+
 /**
  * FNV-1a over a byte view. The shared digest for cross-engine agreement.
  */
@@ -7929,7 +7931,52 @@ function esc(s) {
   );
 }
 
-function renderTables(container, manifest, resultsByKernel, iterations, { heading = true } = {}) {
+function renderTables(
+  container,
+  manifest,
+  resultsByKernel,
+  iterations,
+  { heading = true, charts = true } = {},
+) {
+  let chartGridHtml = "";
+  if (charts) {
+    const primaryKernel = manifest.kernels?.[0];
+    const kResults = resultsByKernel[primaryKernel] ?? [];
+    if (kResults.length > 1) {
+      const barRows = kResults.map((r) => ({
+        label: r.label,
+        valueMs: r.medianMs,
+        lowMs: r.minMs,
+        highMs: r.maxMs,
+        kind: r.key === "js" ? "js" : "wasm",
+      }));
+      const scatterRows = kResults
+        .filter((r) => r.bytes > 0 && r.medianMs > 0)
+        .map((r) => ({
+          label: r.label,
+          bytes: r.bytes,
+          warmMs: r.medianMs,
+          kind: r.key === "js" ? "js" : "wasm",
+        }));
+      chartGridHtml = `<div class="wvj-chart-grid">` +
+        `<div class="wvj-chart-cell">${
+          barChartSvg(barRows, {
+            title: "Kernel warm execution by language",
+            caption: "Direct in-memory call timing. Whiskers show min to max range.",
+          })
+        }</div>` +
+        (scatterRows.length > 1
+          ? `<div class="wvj-chart-cell">${
+            sizeVsSpeedChartSvg(scatterRows, {
+              title: "Binary footprint vs warm execution",
+              caption: "Bottom-left is optimal (smallest binary and fastest runtime).",
+            })
+          }</div>`
+          : "") +
+        `</div>`;
+    }
+  }
+
   const tables = manifest.kernels.map((kernel) => {
     const results = resultsByKernel[kernel];
     const js = results.find((r) => r.key === "js");
@@ -8028,7 +8075,7 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
     </p>
   `;
 
-  container.innerHTML = headingHtml + contextBadgeHtml + tables.join("") +
+  container.innerHTML = headingHtml + contextBadgeHtml + chartGridHtml + tables.join("") +
     comparisonExplanationHtml;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`; // CSSOM — CSP style-src 'self'
@@ -8044,7 +8091,7 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
  * @param {string} manifestPath
  * @param {{ iterations?: number, onStatus?: (message: string) => void,
  *           shouldCancel?: () => boolean, reportingEl?: HTMLElement | null,
- *           engineFilter?: string | null, heading?: boolean }} [options]
+ *           engineFilter?: string | null, heading?: boolean, charts?: boolean }} [options]
  */
 export async function runMultilangComparison(manifestPath, {
   iterations = 30,
@@ -8055,6 +8102,7 @@ export async function runMultilangComparison(manifestPath, {
   engineFilter = null,
   // standalone pages emit their own heading; the composed runner supplies one
   heading = true,
+  charts = true,
 } = {}) {
   const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
   manifest._path = manifestPath;
@@ -8068,7 +8116,7 @@ export async function runMultilangComparison(manifestPath, {
   }
   if (reportingEl) {
     reportingEl.hidden = false;
-    renderTables(reportingEl, manifest, results, iterations, { heading });
+    renderTables(reportingEl, manifest, results, iterations, { heading, charts });
   }
   return results;
 }

@@ -94,12 +94,12 @@ export function barChartSvg(rows, { title = "", caption = "", scale = "auto" } =
     (scale === "auto" && rawMin > 0 && rawMax / rawMin >= 25);
   const max = useLog ? rawMax : niceMax(rawMax);
   const logMin = useLog ? 10 ** Math.floor(Math.log10(rawMin)) : 0;
-  const rowH = 30;
-  const labelW = 168;
-  const valueW = 96;
-  const padTop = 26;
-  const padBottom = 30;
-  const plotW = 420;
+  const rowH = 24;
+  const labelW = 148;
+  const valueW = 86;
+  const padTop = 20;
+  const padBottom = 24;
+  const plotW = 340;
   const width = labelW + plotW + valueW;
   const height = padTop + rows.length * rowH + padBottom;
   const x = (v) => {
@@ -123,7 +123,7 @@ export function barChartSvg(rows, { title = "", caption = "", scale = "auto" } =
     `x2="${x(t).toFixed(1)}" y2="${padTop + rows.length * rowH}"/>` +
     `<text class="wvj-axis-label" x="${x(t).toFixed(1)}" ` +
     `y="${padTop + rows.length * rowH + 16}" text-anchor="middle">${
-      t === 0 ? "0" : fmtMs(t, t < 10 ? 1 : 0)
+      t === 0 ? "0" : fmtMs(t, max < 0.1 ? 3 : max < 1 ? 2 : max < 10 ? 1 : 0)
     }</text>`
   ).join("");
 
@@ -138,7 +138,7 @@ export function barChartSvg(rows, { title = "", caption = "", scale = "auto" } =
         `dominant-baseline="middle">not measured</text>`;
     }
     const w = Math.max(1.5, x(r.valueMs) - labelW);
-    const barH = 15;
+    const barH = 13;
     const kind = r.kind ? ` wvj-bar-${r.kind}` : "";
     let whisker = "";
     if (typeof r.lowMs === "number" && typeof r.highMs === "number" && r.highMs > r.lowMs) {
@@ -213,8 +213,8 @@ export function amortizationChartSvg(series, {
   const maxY = niceMax(
     Math.max(...usable.map((s) => amortizedTotalMs(s.deliveryMs, s.perMs, n) ?? 0)),
   );
-  const padL = 66, padR = 132, padT = 24, padB = 40;
-  const plotW = 380, plotH = 220;
+  const padL = 58, padR = 114, padT = 18, padB = 34;
+  const plotW = 320, plotH = 165;
   const width = padL + plotW + padR;
   const height = padT + plotH + padB;
   const px = (i) => padL + (i / n) * plotW;
@@ -225,7 +225,9 @@ export function amortizationChartSvg(series, {
       py(t).toFixed(1)
     }"/>` +
     `<text class="wvj-axis-label" x="${padL - 8}" y="${py(t).toFixed(1)}" text-anchor="end" ` +
-    `dominant-baseline="middle">${t === 0 ? "0" : fmtMs(t, 0)}</text>`
+    `dominant-baseline="middle">${
+      t === 0 ? "0" : fmtMs(t, maxY < 1 ? 2 : maxY < 10 ? 1 : 0)
+    }</text>`
   ).join("");
 
   const gridX = [0, 0.25, 0.5, 0.75, 1].map((f) => {
@@ -300,8 +302,8 @@ export function trajectoryChartSvg(series, { title = "", caption = "" } = {}) {
   const rawMax = Math.max(...allVals);
   const maxY = niceMax(rawMax);
 
-  const padL = 66, padR = 132, padT = 24, padB = 40;
-  const plotW = 380, plotH = 200;
+  const padL = 58, padR = 114, padT = 18, padB = 34;
+  const plotW = 320, plotH = 165;
   const width = padL + plotW + padR;
   const height = padT + plotH + padB;
 
@@ -314,7 +316,9 @@ export function trajectoryChartSvg(series, { title = "", caption = "" } = {}) {
     }"/>` +
     `<text class="wvj-axis-label" x="${padL - 8}" y="${
       py(t).toFixed(1)
-    }" text-anchor="end" dominant-baseline="middle">${t === 0 ? "0" : fmtMs(t, 0)}</text>`
+    }" text-anchor="end" dominant-baseline="middle">${
+      t === 0 ? "0" : fmtMs(t, maxY < 1 ? 2 : maxY < 10 ? 1 : 0)
+    }</text>`
   ).join("");
 
   const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => {
@@ -373,8 +377,8 @@ export function sizeVsSpeedChartSvg(rows, { title = "", caption = "" } = {}) {
   const logMax = Math.max(10, 10 ** Math.ceil(Math.log10(maxBytes)));
   const logSpan = Math.max(1, Math.log10(logMax) - Math.log10(logMin));
 
-  const padL = 70, padR = 40, padT = 24, padB = 40;
-  const plotW = 420, plotH = 200;
+  const padL = 58, padR = 36, padT = 18, padB = 34;
+  const plotW = 340, plotH = 165;
   const width = padL + plotW + padR;
   const height = padT + plotH + padB;
 
@@ -390,7 +394,9 @@ export function sizeVsSpeedChartSvg(rows, { title = "", caption = "" } = {}) {
     }"/>` +
     `<text class="wvj-axis-label" x="${padL - 8}" y="${
       py(t).toFixed(1)
-    }" text-anchor="end" dominant-baseline="middle">${t === 0 ? "0" : fmtMs(t, 0)}</text>`
+    }" text-anchor="end" dominant-baseline="middle">${
+      t === 0 ? "0" : fmtMs(t, maxMs < 1 ? 2 : maxMs < 10 ? 1 : 0)
+    }</text>`
   ).join("");
 
   const xTicks = [];

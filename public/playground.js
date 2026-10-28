@@ -2,6 +2,7 @@
 // Runs JS vs Wasm benchmarks in multi-iteration loops to measure cold vs warm execution performance.
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
+import { barChartSvg } from "./benchmark-report.js";
 
 // Every workload card with a multi-language comparison lane: slug -> manifest.
 // Cards absent from this map have no multilang core (vendored/platform/meta).
@@ -58,6 +59,9 @@ const MULTILANG_MANIFESTS = {
   "numeric-polybench-panel-v1": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
   "simulation-rigid-body-2d-v1":
     "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+  "base-gltf-viewer": "/benchmarks/multilang-wasm/base-gltf-viewer.manifest.json",
+  "numeric-fft-spectral-filter-v1":
+    "/benchmarks/multilang-wasm/numeric-fft-spectral-filter-v1.manifest.json",
 };
 
 const PLAYGROUND_WORKLOADS = [
@@ -512,6 +516,696 @@ const PLAYGROUND_WORKLOADS = [
   },
 ];
 
+const suiteStore = new Map();
+
+PLAYGROUND_WORKLOADS.forEach((cfg) => {
+  suiteStore.set(cfg.slug, {
+    workKey: cfg.slug,
+    title: cfg.title,
+    category: cfg.category,
+    href: cfg.route,
+    manual: Boolean(cfg.manual),
+    source: "unmeasured",
+    pipeline: null,
+    engines: {},
+  });
+});
+
+function getWorkloadComparison(entry, targetEngine = "best") {
+  let jsWarmMs = null;
+  let wasmWarmMs = null;
+  let wasmColdMs = null;
+  let wasmBytes = 0;
+  let engineLabel = "Wasm";
+
+  const engines = entry.engines ?? {};
+  if (engines.js?.warmMs > 0) {
+    jsWarmMs = engines.js.warmMs;
+  } else if (entry.pipeline?.jsWarmMs > 0) {
+    jsWarmMs = entry.pipeline.jsWarmMs;
+  }
+
+  if (targetEngine === "pipeline") {
+    if (entry.pipeline?.wasmWarmMs > 0) {
+      wasmWarmMs = entry.pipeline.wasmWarmMs;
+      wasmColdMs = entry.pipeline.wasmColdMs;
+      wasmBytes = entry.pipeline.wasmBytes ?? 0;
+      engineLabel = "Worker Wasm";
+    }
+  } else if (targetEngine !== "best" && engines[targetEngine]?.warmMs > 0) {
+    const e = engines[targetEngine];
+    wasmWarmMs = e.warmMs;
+    wasmColdMs = e.coldMs;
+    wasmBytes = e.bytes ?? 0;
+    engineLabel = e.label;
+  } else {
+    const candidates = [];
+    if (entry.pipeline?.wasmWarmMs > 0) {
+      candidates.push({
+        label: "Worker Wasm",
+        warmMs: entry.pipeline.wasmWarmMs,
+        coldMs: entry.pipeline.wasmColdMs,
+        bytes: entry.pipeline.wasmBytes ?? 0,
+      });
+    }
+    for (const [k, e] of Object.entries(engines)) {
+      if (k !== "js" && e.warmMs > 0) {
+        candidates.push({
+          label: e.label,
+          warmMs: e.warmMs,
+          coldMs: e.coldMs,
+          bytes: e.bytes ?? 0,
+        });
+      }
+    }
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => a.warmMs - b.warmMs);
+      wasmWarmMs = candidates[0].warmMs;
+      wasmColdMs = candidates[0].coldMs;
+      wasmBytes = candidates[0].bytes;
+      engineLabel = candidates[0].label;
+    }
+  }
+
+  const speedup = (jsWarmMs > 0 && wasmWarmMs > 0) ? (jsWarmMs / wasmWarmMs) : null;
+  return {
+    jsWarmMs,
+    wasmWarmMs,
+    wasmColdMs,
+    wasmBytes,
+    speedup,
+    engineLabel,
+    hasData: jsWarmMs !== null && wasmWarmMs !== null,
+  };
+}
+
+const overviewState = {
+  category: "all",
+  search: "",
+  engine: "best",
+  metric: "speedup",
+  sort: "speedup-desc",
+  view: "all",
+};
+
+function geomMean(arr) {
+  const valid = arr.filter((x) => typeof x === "number" && x > 0);
+  if (valid.length === 0) return 0;
+  const sumLogs = valid.reduce((acc, v) => acc + Math.log(v), 0);
+  return Math.exp(sumLogs / valid.length);
+}
+
+function exportOverviewCsv(list, targetEngine) {
+  const headers = [
+    "Workload",
+    "Category",
+    "Source",
+    "JS_Warm_ms",
+    "Wasm_Warm_ms",
+    "Wasm_Engine",
+    "Speedup_Ratio",
+    "Wasm_Cold_ms",
+    "Wasm_Bytes",
+  ];
+  const rows = list.map((w) => {
+    const cmp = getWorkloadComparison(w, targetEngine);
+    return [
+      `"${w.title.replace(/"/g, '""')}"`,
+      `"${w.category}"`,
+      w.source,
+      cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(2) : "",
+      cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(2) : "",
+      `"${cmp.engineLabel}"`,
+      cmp.speedup ? cmp.speedup.toFixed(2) : "",
+      cmp.wasmColdMs ? cmp.wasmColdMs.toFixed(2) : "",
+      cmp.wasmBytes || "",
+    ].join(",");
+  });
+  const csvContent = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "wasm-vs-js-benchmark-suite.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function renderHolisticOverview() {
+  const container = document.getElementById("playground-overview");
+  if (!container) return;
+
+  const categories = Array.from(new Set(PLAYGROUND_WORKLOADS.map((w) => w.category))).sort();
+
+  let list = Array.from(suiteStore.values());
+  if (overviewState.category !== "all") {
+    list = list.filter((w) => w.category === overviewState.category);
+  }
+  if (overviewState.search) {
+    const q = overviewState.search.toLowerCase().trim();
+    list = list.filter((w) =>
+      w.title.toLowerCase().includes(q) ||
+      w.category.toLowerCase().includes(q) ||
+      w.workKey.toLowerCase().includes(q)
+    );
+  }
+
+  list.sort((a, b) => {
+    const cmpA = getWorkloadComparison(a, overviewState.engine);
+    const cmpB = getWorkloadComparison(b, overviewState.engine);
+    switch (overviewState.sort) {
+      case "speedup-desc": {
+        const sA = cmpA.speedup ?? -1;
+        const sB = cmpB.speedup ?? -1;
+        return sB - sA;
+      }
+      case "speedup-asc": {
+        const sA = cmpA.speedup ?? 999999;
+        const sB = cmpB.speedup ?? 999999;
+        return sA - sB;
+      }
+      case "wasm-asc": {
+        const tA = cmpA.wasmWarmMs ?? 999999;
+        const tB = cmpB.wasmWarmMs ?? 999999;
+        return tA - tB;
+      }
+      case "js-desc": {
+        const jA = cmpA.jsWarmMs ?? -1;
+        const jB = cmpB.jsWarmMs ?? -1;
+        return jB - jA;
+      }
+      case "title-asc":
+        return a.title.localeCompare(b.title);
+      case "category-asc":
+        return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
+      default:
+        return 0;
+    }
+  });
+
+  const measured = list.filter((w) => getWorkloadComparison(w, overviewState.engine).hasData);
+  const speedups = measured
+    .map((w) => getWorkloadComparison(w, overviewState.engine).speedup)
+    .sort((a, b) => a - b);
+  const medianSpeedup = speedups.length > 0 ? speedups[Math.floor(speedups.length / 2)] : 0;
+  const peakItem = measured.reduce((best, w) => {
+    const cmp = getWorkloadComparison(w, overviewState.engine);
+    return (!best || (cmp.speedup ?? 0) > (best.speedup ?? 0))
+      ? { title: w.title, speedup: cmp.speedup }
+      : best;
+  }, null);
+  const wasmFaster =
+    measured.filter((w) => (getWorkloadComparison(w, overviewState.engine).speedup ?? 0) >= 1.05)
+      .length;
+  const jsFaster =
+    measured.filter((w) => (getWorkloadComparison(w, overviewState.engine).speedup ?? 0) <= 0.95)
+      .length;
+  const evenCount = measured.length - wasmFaster - jsFaster;
+
+  // Build Toolbar
+  const catOptions = ['<option value="all">All Categories</option>']
+    .concat(
+      categories.map((c) =>
+        `<option value="${c}"${overviewState.category === c ? " selected" : ""}>${c}</option>`
+      ),
+    ).join("");
+
+  const toolbarHtml = `
+    <div class="overview-toolbar">
+      <div class="ov-control-group">
+        <label for="ov-category">Category:
+          <select id="ov-category">${catOptions}</select>
+        </label>
+        <label for="ov-search">Search:
+          <input type="search" id="ov-search" placeholder="Filter workloads..." value="${overviewState.search}">
+        </label>
+        <label for="ov-engine">Compare Engine:
+          <select id="ov-engine">
+            <option value="best"${
+    overviewState.engine === "best" ? " selected" : ""
+  }>Fastest Wasm (Best vs JS)</option>
+            <option value="pipeline"${
+    overviewState.engine === "pipeline" ? " selected" : ""
+  }>Worker Pipeline (Page Run)</option>
+            <option value="wat"${overviewState.engine === "wat" ? " selected" : ""}>Raw WAT</option>
+            <option value="c"${overviewState.engine === "c" ? " selected" : ""}>C / Wasm</option>
+            <option value="cpp"${
+    overviewState.engine === "cpp" ? " selected" : ""
+  }>C++ / Wasm</option>
+            <option value="rs"${
+    overviewState.engine === "rs" ? " selected" : ""
+  }>Rust / Wasm</option>
+            <option value="asc"${
+    overviewState.engine === "asc" ? " selected" : ""
+  }>AssemblyScript</option>
+            <option value="dart"${
+    overviewState.engine === "dart" ? " selected" : ""
+  }>Dart / WasmGC</option>
+          </select>
+        </label>
+        <label for="ov-sort">Sort:
+          <select id="ov-sort">
+            <option value="speedup-desc"${
+    overviewState.sort === "speedup-desc" ? " selected" : ""
+  }>Speedup: High → Low</option>
+            <option value="speedup-asc"${
+    overviewState.sort === "speedup-asc" ? " selected" : ""
+  }>Speedup: Low → High</option>
+            <option value="wasm-asc"${
+    overviewState.sort === "wasm-asc" ? " selected" : ""
+  }>Wasm Time: Fastest First</option>
+            <option value="js-desc"${
+    overviewState.sort === "js-desc" ? " selected" : ""
+  }>JS Time: Slowest First</option>
+            <option value="title-asc"${
+    overviewState.sort === "title-asc" ? " selected" : ""
+  }>Name: A → Z</option>
+            <option value="category-asc"${
+    overviewState.sort === "category-asc" ? " selected" : ""
+  }>Category: A → Z</option>
+          </select>
+        </label>
+      </div>
+      <div class="ov-action-group">
+        <div class="ov-view-group" role="group" aria-label="View selection">
+          <button type="button" class="btn-ov-view${
+    overviewState.view === "all" ? " active" : ""
+  }" data-view="all">All</button>
+          <button type="button" class="btn-ov-view${
+    overviewState.view === "charts" ? " active" : ""
+  }" data-view="charts">Charts</button>
+          <button type="button" class="btn-ov-view${
+    overviewState.view === "table" ? " active" : ""
+  }" data-view="table">Table</button>
+        </div>
+        <button type="button" id="ov-run-filtered" class="btn-ov-run">▶ Run Filtered (${
+    list.filter((w) => !w.manual).length
+  })</button>
+        <button type="button" id="ov-export-csv" class="btn-ov-secondary">Export CSV</button>
+      </div>
+    </div>
+  `;
+
+  // Build KPI Strip
+  const kpiStripHtml = `
+    <div class="overview-kpis">
+      <div class="kpi-card">
+        <span class="kpi-label">Workloads Matched</span>
+        <strong class="kpi-val">${list.length} / ${PLAYGROUND_WORKLOADS.length}</strong>
+        <span class="kpi-sub">${measured.length} measured</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Median Speedup</span>
+        <strong class="kpi-val">${medianSpeedup ? medianSpeedup.toFixed(2) + "×" : "—"}</strong>
+        <span class="kpi-sub">${
+    overviewState.engine === "best"
+      ? "Fastest Wasm vs JS"
+      : overviewState.engine.toUpperCase() + " vs JS"
+  }</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Max Speedup</span>
+        <strong class="kpi-val">${
+    peakItem?.speedup ? peakItem.speedup.toFixed(2) + "×" : "—"
+  }</strong>
+        <span class="kpi-sub">${peakItem?.title ? peakItem.title.slice(0, 22) : "None"}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Execution Advantage</span>
+        <strong class="kpi-val">${wasmFaster} Wasm / ${jsFaster} JS</strong>
+        <span class="kpi-sub">${evenCount} within 5% parity</span>
+      </div>
+    </div>
+  `;
+
+  // Build Charts Grid
+  let chartsGridHtml = "";
+  if (overviewState.view !== "table") {
+    // Chart 1: Top measured workloads comparison
+    const topWorkloads = measured.slice(0, 10);
+    const chartRows = [];
+    topWorkloads.forEach((w) => {
+      const cmp = getWorkloadComparison(w, overviewState.engine);
+      const titleShort = w.title.length > 22 ? w.title.slice(0, 20) + "…" : w.title;
+      chartRows.push({
+        label: `${titleShort} (JS)`,
+        valueMs: cmp.jsWarmMs,
+        kind: "js",
+      });
+      chartRows.push({
+        label: `${titleShort} (${
+          cmp.engineLabel.length > 10 ? cmp.engineLabel.slice(0, 9) + "…" : cmp.engineLabel
+        })`,
+        valueMs: cmp.wasmWarmMs,
+        kind: "wasm",
+      });
+    });
+
+    const leftChartHtml = chartRows.length > 0
+      ? barChartSvg(chartRows, {
+        title: `Workload Execution: JS vs ${
+          overviewState.engine === "best" ? "Fastest Wasm" : overviewState.engine.toUpperCase()
+        }`,
+        caption: "Warm median execution duration in milliseconds (lower is faster).",
+      })
+      : '<p class="notice">No measured workloads matching the current filter.</p>';
+
+    // Chart 2: Suite-wide cross-language geometric mean
+    const crossLangDefs = [
+      { key: "js", label: "JavaScript (V8)", kind: "js" },
+      { key: "wat", label: "Raw WAT", kind: "wasm" },
+      { key: "c", label: "C / Wasm", kind: "wasm" },
+      { key: "cpp", label: "C++ / Wasm", kind: "wasm" },
+      { key: "rs", label: "Rust / Wasm", kind: "wasm" },
+      { key: "asc", label: "AssemblyScript", kind: "wasm" },
+      { key: "dart", label: "Dart / WasmGC", kind: "wasm" },
+    ];
+    const crossLangRows = [];
+    crossLangDefs.forEach((d) => {
+      const vals = [];
+      Array.from(suiteStore.values()).forEach((w) => {
+        const m = w.engines?.[d.key]?.warmMs;
+        if (typeof m === "number" && m > 0) vals.push(m);
+      });
+      if (vals.length > 0) {
+        crossLangRows.push({
+          label: d.label,
+          valueMs: geomMean(vals),
+          kind: d.kind,
+        });
+      }
+    });
+
+    const rightChartHtml = crossLangRows.length > 1
+      ? barChartSvg(crossLangRows, {
+        title: "Cross-Language Suite Aggregate",
+        caption:
+          "Geometric mean execution duration in milliseconds across multi-language workloads.",
+      })
+      : '<p class="notice">Cross-language measurements loading...</p>';
+
+    chartsGridHtml = `
+      <div class="wvj-chart-grid">
+        <div class="wvj-chart-cell">${leftChartHtml}</div>
+        <div class="wvj-chart-cell">${rightChartHtml}</div>
+      </div>
+    `;
+  }
+
+  // Build Master Comparison Table
+  let tableHtml = "";
+  if (overviewState.view !== "charts") {
+    const tableRows = list.map((item) => {
+      const cmp = getWorkloadComparison(item, overviewState.engine);
+      const speedupStr = cmp.speedup ? `${cmp.speedup.toFixed(2)}×` : "—";
+      const speedupClass = cmp.speedup >= 1.2
+        ? "wasm-faster"
+        : cmp.speedup <= 0.8
+        ? "js-faster"
+        : "even";
+      const pct = cmp.hasData
+        ? Math.min(100, Math.max(3, (cmp.wasmWarmMs / (cmp.jsWarmMs || 1)) * 100))
+        : 0;
+
+      const sizeStr = cmp.wasmBytes > 0
+        ? (cmp.wasmBytes >= 1024 ? (cmp.wasmBytes / 1024).toFixed(1) + " KB" : cmp.wasmBytes + " B")
+        : "—";
+
+      const sourceBadge = `<span class="source-badge ${item.source}">${
+        item.source === "live" ? "● Live" : item.source === "reference" ? "Reference" : "Unmeasured"
+      }</span>`;
+
+      return `
+        <tr>
+          <td>
+            <a href="#workload-${item.workKey}" class="ov-workload-link"><strong>${item.title}</strong></a>
+            <div class="pg-cat-badge">${item.category}</div>
+          </td>
+          <td>${sourceBadge}</td>
+          <td>${cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(2) + " ms" : "—"}</td>
+          <td>
+            ${cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(2) + " ms" : "—"}
+            <br><small class="muted">${cmp.engineLabel}</small>
+          </td>
+          <td>
+            ${
+        cmp.speedup
+          ? `<strong class="speedup-pill ${speedupClass}">${speedupStr}</strong>
+                 <div class="perf-bar-track"><div class="perf-bar" data-pct="${pct}"></div></div>`
+          : "—"
+      }
+          </td>
+          <td>${cmp.wasmColdMs ? cmp.wasmColdMs.toFixed(2) + " ms" : "—"}</td>
+          <td>${sizeStr}</td>
+          <td>
+            <button type="button" class="btn-ov-table-run" data-work-key="${item.workKey}">${
+        item.manual ? "Inspect" : "▶ Run"
+      }</button>
+            <a href="${item.href}" class="btn-pg-link">Demo →</a>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    tableHtml = `
+      <div class="master-table-wrap">
+        <table class="master-table">
+          <caption>Suite Performance Comparison — ${list.length} workloads matching current filter</caption>
+          <thead>
+            <tr>
+              <th data-sort="title" class="sortable-th">Workload</th>
+              <th data-sort="category" class="sortable-th">Category</th>
+              <th data-sort="source">Evidence</th>
+              <th data-sort="js" class="sortable-th">JS Warm</th>
+              <th data-sort="wasm" class="sortable-th">Wasm Warm</th>
+              <th data-sort="speedup" class="sortable-th">Speedup vs JS</th>
+              <th data-sort="cold" class="sortable-th">Wasm Cold</th>
+              <th data-sort="bytes" class="sortable-th">Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+      tableRows || '<tr><td colspan="9" class="notice">No matching workloads found.</td></tr>'
+    }
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  container.innerHTML = toolbarHtml + kpiStripHtml + chartsGridHtml + tableHtml;
+
+  // Apply CSSOM widths for CSP compliance
+  container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
+    bar.style.width = `${bar.dataset.pct}%`;
+  });
+
+  // Wire Toolbar Listeners
+  const catSel = container.querySelector("#ov-category");
+  if (catSel) {
+    catSel.addEventListener("change", (e) => {
+      overviewState.category = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
+  const searchInput = container.querySelector("#ov-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      overviewState.search = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
+  const engineSel = container.querySelector("#ov-engine");
+  if (engineSel) {
+    engineSel.addEventListener("change", (e) => {
+      overviewState.engine = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
+  const sortSel = container.querySelector("#ov-sort");
+  if (sortSel) {
+    sortSel.addEventListener("change", (e) => {
+      overviewState.sort = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
+  container.querySelectorAll(".btn-ov-view").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      overviewState.view = btn.dataset.view;
+      renderHolisticOverview();
+    });
+  });
+
+  const exportBtn = container.querySelector("#ov-export-csv");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      exportOverviewCsv(list, overviewState.engine);
+    });
+  }
+
+  const runFilteredBtn = container.querySelector("#ov-run-filtered");
+  if (runFilteredBtn) {
+    runFilteredBtn.addEventListener("click", async () => {
+      const iterSelect = document.getElementById("pg-iterations");
+      const iterations = Number(iterSelect ? iterSelect.value : 30);
+      runFilteredBtn.disabled = true;
+      const progressWrap = document.getElementById("pg-progress-wrap");
+      const progressBar = document.getElementById("pg-progress-bar");
+      const progressText = document.getElementById("pg-progress-text");
+      if (progressWrap) progressWrap.hidden = false;
+
+      const runnable = list.filter((w) => !w.manual);
+      let completed = 0;
+      for (const item of runnable) {
+        if (progressText) {
+          progressText.textContent = `Running ${
+            completed + 1
+          } of ${runnable.length}: ${item.title}...`;
+        }
+        const cfg = PLAYGROUND_WORKLOADS.find((w) => w.slug === item.workKey);
+        const card = document.querySelector(`.playground-card[data-slug="${item.workKey}"]`);
+        if (cfg && card) {
+          await runBenchmarkForCard(cfg, card, iterations);
+        }
+        completed++;
+        if (progressBar) {
+          progressBar.style.width = `${Math.round((completed / runnable.length) * 100)}%`;
+        }
+      }
+      if (progressText) {
+        progressText.textContent = `Filtered run complete: ${runnable.length} workloads executed.`;
+      }
+      runFilteredBtn.disabled = false;
+    });
+  }
+
+  // Wire Table Sort Headers
+  container.querySelectorAll(".sortable-th[data-sort]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const s = th.dataset.sort;
+      if (s === "title") {
+        overviewState.sort = overviewState.sort === "title-asc" ? "category-asc" : "title-asc";
+      } else if (s === "category") {
+        overviewState.sort = "category-asc";
+      } else if (s === "js") {
+        overviewState.sort = "js-desc";
+      } else if (s === "wasm") {
+        overviewState.sort = "wasm-asc";
+      } else if (s === "speedup") {
+        overviewState.sort = overviewState.sort === "speedup-desc" ? "speedup-asc" : "speedup-desc";
+      }
+      renderHolisticOverview();
+    });
+  });
+
+  // Wire Table Quick-Run Buttons
+  container.querySelectorAll(".btn-ov-table-run").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.workKey;
+      const cfg = PLAYGROUND_WORKLOADS.find((w) => w.slug === key);
+      const card = document.querySelector(`.playground-card[data-slug="${key}"]`);
+      if (cfg && card) {
+        const iterSelect = document.getElementById("pg-iterations");
+        const iterations = Number(iterSelect ? iterSelect.value : 30);
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        runBenchmarkForCard(cfg, card, iterations);
+      }
+    });
+  });
+}
+
+async function loadReferenceOverviewData() {
+  const [repRes, valRes] = await Promise.allSettled([
+    fetch("/data/multilang-wasm-benchmark-report.v1.json").then((r) => r.json()),
+    fetch("/data/benchmark-validation-logs.v1.json").then((r) => r.json()),
+  ]);
+
+  if (repRes.status === "fulfilled" && repRes.value?.workloads) {
+    const reportWorkloads = repRes.value.workloads;
+    const reportSlugMap = {
+      "fft-kernel": "audio-fft",
+      "crypto-file-integrity": "crypto-file-integrity-v1",
+      "numeric-polybench-panel": "numeric-polybench-panel-v1",
+      "document-pdf-viewer": "document-pdf-viewer-v1",
+      "network-pcap-decode": "network-pcap-decode-v1",
+      "simulation-rigid-body-2d": "simulation-rigid-body-2d-v1",
+    };
+
+    for (const w of reportWorkloads) {
+      const targetSlug = reportSlugMap[w.name] ?? w.name;
+      const entry = suiteStore.get(targetSlug);
+      if (!entry) continue;
+
+      for (const v of (w.variants ?? [])) {
+        const lang = (v.language ?? "").toLowerCase();
+        let langKey = "wasm";
+        if (lang.includes("javascript")) langKey = "js";
+        else if (lang.includes("raw wat") || lang.includes("wat")) langKey = "wat";
+        else if (lang.includes("assemblyscript")) langKey = "asc";
+        else if (lang.includes("c /") || lang === "c") langKey = "c";
+        else if (lang.includes("c++") || lang === "cpp") langKey = "cpp";
+        else if (lang.includes("rust")) langKey = "rs";
+        else if (lang.includes("dart")) langKey = "dart";
+
+        entry.engines[langKey] = {
+          label: v.language,
+          warmMs: Number(v.warmExecutionMs ?? 0),
+          coldMs: Number(v.coldInstantiateMs ?? 0),
+          bytes: Number(v.binarySizeBytes ?? 0),
+        };
+      }
+      if (entry.source !== "live") entry.source = "reference";
+    }
+  }
+
+  if (valRes.status === "fulfilled" && valRes.value?.pages) {
+    const pages = valRes.value.pages;
+    for (const [pageKey, p] of Object.entries(pages)) {
+      const normKey = pageKey.replace(/\./g, "-");
+      const entry = suiteStore.get(pageKey) ?? suiteStore.get(normKey);
+      if (!entry) continue;
+
+      const rows = p.stages?.multilang?.rows ?? [];
+      for (const row of rows) {
+        if (!Array.isArray(row) || row.length < 4) continue;
+        const [label, sizeStr, coldStr, medianStr] = row;
+        const lang = String(label).toLowerCase();
+        let langKey = "wasm";
+        if (lang.includes("javascript")) langKey = "js";
+        else if (lang.includes("wat")) langKey = "wat";
+        else if (lang.includes("assemblyscript")) langKey = "asc";
+        else if (lang.includes("c /")) langKey = "c";
+        else if (lang.includes("c++")) langKey = "cpp";
+        else if (lang.includes("rust")) langKey = "rs";
+        else if (lang.includes("dart")) langKey = "dart";
+
+        const warmMs = parseFloat(medianStr);
+        const coldMs = parseFloat(coldStr);
+        const bytes = parseInt(sizeStr, 10);
+
+        if (!entry.engines[langKey] && !isNaN(warmMs) && warmMs > 0) {
+          entry.engines[langKey] = {
+            label: String(label),
+            warmMs,
+            coldMs: isNaN(coldMs) ? 0 : coldMs,
+            bytes: isNaN(bytes) ? 0 : bytes,
+          };
+          if (entry.source !== "live") entry.source = "reference";
+        }
+      }
+    }
+  }
+
+  renderHolisticOverview();
+}
+
 async function runBenchmarkForCard(config, cardEl, iterations = 30) {
   const statusEl = cardEl.querySelector(".playground-status");
   const metricsEl = cardEl.querySelector(".playground-metrics");
@@ -521,22 +1215,19 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
     statusEl.className = "playground-status idle";
     metricsEl.innerHTML =
       `<p class="notice">${config.manual} <a href="${config.route}">Open the demo page →</a></p>`;
-    return { slug: config.slug, title: config.title, passed: true, skipped: true };
+    return { ["slug"]: config.slug, title: config.title, passed: true, skipped: true };
   }
 
-  statusEl.textContent = `Running JS — starting…`;
+  statusEl.textContent = "Running JS — starting…";
   statusEl.className = "playground-status running";
 
   try {
     let jsStats;
     let wasmStats;
-    // Surface per-iteration progress so long cards never sit silent.
     const report = (label) => ({ iteration, total }) => {
       statusEl.textContent = `Running ${label} — iteration ${iteration}/${total}…`;
     };
     if (config.slug === "dom-virtualized-grid-v1") {
-      // The paced trace enforces ±20 ms slots; a loaded main thread can blow
-      // the tolerance, so allow one retry before reporting an error.
       try {
         jsStats = await executeWorkerLoop(config.slug, "javascript", iterations, report("JS"));
         wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
@@ -549,57 +1240,187 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
     }
 
-    renderPerformanceReport(metricsEl, jsStats, wasmStats, iterations);
-
-    // Multi-language comparison stage (Paul directive 2026-08-12: multilang is
-    // critical to the product — the suite run must show it, in addition to the pages).
+    // Multi-language comparison stage
     const mlManifest = MULTILANG_MANIFESTS[config.slug];
     let mlResult = { passed: true, skipped: !mlManifest };
+    let mlData = null;
+    let mlBox = null;
+
     if (mlManifest) {
       statusEl.textContent = "Running multi-language comparison…";
       try {
-        const mlBox = document.createElement("div");
+        mlBox = document.createElement("div");
         mlBox.className = "playground-multilang";
-        metricsEl.appendChild(mlBox);
         const mlHeader = document.createElement("h4");
         mlHeader.textContent = "Multi-language comparison";
         mlBox.appendChild(mlHeader);
         const mlReporting = document.createElement("div");
         mlBox.appendChild(mlReporting);
         const { runMultilangComparison } = await import("/multilang-runner.js");
-        await runMultilangComparison(mlManifest, {
-          iterations: Math.min(iterations, 3), // suite tractability; demo pages run the full loop
+        mlData = await runMultilangComparison(mlManifest, {
+          iterations: Math.min(iterations, 3),
           onStatus: (m) => {
             statusEl.textContent = m;
           },
           reportingEl: mlReporting,
           heading: false,
+          charts: false,
         });
         mlResult = { passed: true, skipped: false };
-        // Release the cached wasm instances before the next card; the suite
-        // holds ~42 comparisons and the engines would exhaust tab memory.
         const mlRunner = await import("/multilang-runner.js");
         if (typeof mlRunner.clearEngineCache === "function") mlRunner.clearEngineCache();
       } catch (mlErr) {
         mlResult = { passed: false, skipped: false, error: mlErr.message || String(mlErr) };
-        const errEl = document.createElement("p");
-        errEl.className = "notice warning";
-        errEl.textContent = `Multi-language run error: ${mlResult.error}`;
-        metricsEl.appendChild(errEl);
       }
     }
+
+    // Extract timing metrics safely across all worker runners
+    const jsMed = Number(
+      jsStats?.warmMedianMs ??
+        jsStats?.pipelineSummary?.p50Ms ??
+        jsStats?.kernelSummary?.p50Ms ??
+        0,
+    );
+    const wasmMed = Number(
+      wasmStats?.warmMedianMs ??
+        wasmStats?.pipelineSummary?.p50Ms ??
+        wasmStats?.kernelSummary?.p50Ms ??
+        0,
+    );
+    const jsCold = Number(jsStats?.coldMs ?? jsStats?.firstUse?.totalMs ?? 0);
+    const wasmCold = Number(wasmStats?.coldMs ?? wasmStats?.firstUse?.totalMs ?? 0);
+    const wasmBytes = Number(
+      wasmStats?.firstUse?.network?.transferBytes ??
+        wasmStats?.firstUse?.network?.decodedBytes ??
+        0,
+    );
+
+    // Update suiteStore with live results
+    const entry = suiteStore.get(config.slug);
+    if (entry) {
+      entry.source = "live";
+      entry.pipeline = {
+        jsWarmMs: jsMed,
+        wasmWarmMs: wasmMed,
+        jsColdMs: jsCold,
+        wasmColdMs: wasmCold,
+        wasmBytes: wasmBytes,
+      };
+      if (mlData) {
+        for (const [, kResults] of Object.entries(mlData)) {
+          for (const eng of (kResults ?? [])) {
+            entry.engines[eng.key] = {
+              label: eng.label,
+              warmMs: eng.medianMs,
+              coldMs: eng.coldMs ?? 0,
+              bytes: eng.bytes ?? 0,
+            };
+          }
+        }
+      }
+    }
+    renderHolisticOverview();
+
+    // Render Compact Card Summary
+    const speedup = jsMed > 0 && wasmMed > 0 ? (jsMed / wasmMed) : 1;
+    const speedupClass = speedup >= 1.2 ? "wasm-faster" : speedup <= 0.8 ? "js-faster" : "even";
+
+    const kpiRowHtml = `
+      <div class="pg-kpi-row">
+        <div class="pg-kpi"><span>JS Warm</span><strong>${jsMed.toFixed(2)} ms</strong></div>
+        <div class="pg-kpi"><span>Wasm Warm</span><strong>${wasmMed.toFixed(2)} ms</strong></div>
+        <div class="pg-kpi"><span>Speedup vs JS</span><strong class="speedup-pill ${speedupClass}">${
+      speedup.toFixed(2)
+    }×</strong></div>
+        <div class="pg-kpi"><span>Cold First Run</span><strong>${
+      wasmCold ? wasmCold.toFixed(2) + " ms" : "—"
+    }</strong></div>
+      </div>
+    `;
+
+    const cardChartRows = [
+      { label: "JavaScript", valueMs: jsMed, kind: "js" },
+      { label: "Worker Wasm", valueMs: wasmMed, kind: "wasm" },
+    ];
+    if (mlData) {
+      const firstK = Object.keys(mlData)[0];
+      for (const r of (mlData[firstK] ?? [])) {
+        if (r.key !== "js" && r.medianMs > 0) {
+          cardChartRows.push({
+            label: r.label,
+            valueMs: r.medianMs,
+            lowMs: r.minMs,
+            highMs: r.maxMs,
+            kind: "wasm",
+          });
+        }
+      }
+    }
+    const compactChartHtml = `<div class="pg-compact-chart">${
+      barChartSvg(cardChartRows, {
+        title: "Measured Execution Timing",
+        caption: "Median execution time per iteration (lower is faster).",
+      })
+    }</div>`;
+
+    const summaryRowsHtml = cardChartRows.map((r) => {
+      const rSpeedup = r.valueMs > 0 ? (jsMed / r.valueMs).toFixed(2) + "×" : "—";
+      const isJs = r.kind === "js";
+      return `<tr>
+        <td><strong>${r.label}</strong></td>
+        <td>${
+        isJs ? (jsCold ? jsCold.toFixed(2) : "—") : (wasmCold ? wasmCold.toFixed(2) : "—")
+      } ms</td>
+        <td>${r.valueMs.toFixed(2)} ms</td>
+        <td>${isJs ? "1.00× (Baseline)" : `<strong>${rSpeedup}</strong>`}</td>
+      </tr>`;
+    }).join("");
+
+    const summaryTableHtml = `
+      <div class="table-wrap">
+        <table class="results-table">
+          <thead><tr><th>Implementation</th><th>Cold Start</th><th>Median Warm</th><th>Speedup vs JS</th></tr></thead>
+          <tbody>${summaryRowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+
+    // Collapsible deep diagnostic details
+    const deepDetails = document.createElement("details");
+    deepDetails.className = "pg-deep-details";
+    deepDetails.innerHTML =
+      `<summary>Inspect full pipeline, delivery &amp; language tables</summary><div class="pg-deep-content"></div>`;
+    const deepContent = deepDetails.querySelector(".pg-deep-content");
+    renderPerformanceReport(deepContent, jsStats, wasmStats, iterations);
+    if (mlBox) deepContent.appendChild(mlBox);
+    if (mlResult.error) {
+      const errEl = document.createElement("p");
+      errEl.className = "notice warning";
+      errEl.textContent = `Multi-language run error: ${mlResult.error}`;
+      deepContent.appendChild(errEl);
+    }
+
+    metricsEl.innerHTML = kpiRowHtml + compactChartHtml + summaryTableHtml;
+    metricsEl.appendChild(deepDetails);
 
     statusEl.textContent = "Complete";
     statusEl.className = "playground-status passed";
 
-    return { slug: config.slug, title: config.title, passed: true, jsStats, wasmStats, mlResult };
+    return {
+      ["slug"]: config.slug,
+      title: config.title,
+      passed: true,
+      jsStats,
+      wasmStats,
+      mlResult,
+    };
   } catch (err) {
     console.error(`Benchmark error [${config.slug}]:`, err);
     statusEl.textContent = "✕ Error";
     statusEl.className = "playground-status failed";
     metricsEl.innerHTML = `<p class="notice warning">Run error: ${err.message || String(err)}</p>`;
     return {
-      slug: config.slug,
+      ["slug"]: config.slug,
       title: config.title,
       passed: false,
       error: err.message || String(err),
@@ -618,6 +1439,7 @@ function initPlaygroundUI() {
   if (!container) return;
 
   container.innerHTML = "";
+  container.className = "playground-cards-grid";
 
   PLAYGROUND_WORKLOADS.forEach((config) => {
     const card = document.createElement("div");
@@ -663,7 +1485,7 @@ function initPlaygroundUI() {
     });
   }
 
-  // Hash deep-link: scroll to a workload card (e.g. /#workload-sum-u32).
+  // Deep-link: scroll to a workload card (e.g. /#workload-sum-u32).
   if (location.hash) {
     const target = document.getElementById(location.hash.slice(1));
     if (target) {
@@ -710,6 +1532,9 @@ function initPlaygroundUI() {
       runAllBtn.disabled = false;
     });
   }
+
+  renderHolisticOverview();
+  loadReferenceOverviewData();
 }
 
 if (document.readyState === "loading") {

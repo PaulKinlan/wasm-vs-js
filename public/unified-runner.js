@@ -1576,8 +1576,12 @@ function renderUnifiedExplorer({
     "category error and the runner will not do it for you.";
   wrap.appendChild(intro);
 
+  const chartGrid = document.createElement("div");
+  chartGrid.className = "wvj-chart-grid";
+
   if (kernelRows.length > 1) {
     const chartHost = document.createElement("div");
+    chartHost.className = "wvj-chart-cell";
     chartHost.innerHTML = barChartSvg(
       kernelRows.map((r) => ({
         label: r.label,
@@ -1592,11 +1596,12 @@ function renderUnifiedExplorer({
           "Whiskers are 95% confidence intervals for the median.",
       },
     );
-    wrap.appendChild(chartHost);
+    chartGrid.appendChild(chartHost);
   }
 
   if (pipelineRows.length > 1) {
     const pipeHost = document.createElement("div");
+    pipeHost.className = "wvj-chart-cell";
     pipeHost.innerHTML = barChartSvg(
       pipelineRows.map((r) => ({
         label: r.label,
@@ -1612,12 +1617,13 @@ function renderUnifiedExplorer({
           "Whiskers are 95% confidence intervals for the median.",
       },
     );
-    wrap.appendChild(pipeHost);
+    chartGrid.appendChild(pipeHost);
   }
 
   const domRows = (byScope.domJourney ?? []).filter((r) => r.summary);
   if (domRows.length > 1) {
     const domHost = document.createElement("div");
+    domHost.className = "wvj-chart-cell";
     domHost.innerHTML = barChartSvg(
       domRows.map((r) => ({
         label: r.label,
@@ -1632,11 +1638,12 @@ function renderUnifiedExplorer({
           "Each engine drove the same rendered UI through real DOM APIs in the iframe above.",
       },
     );
-    wrap.appendChild(domHost);
+    chartGrid.appendChild(domHost);
   }
 
   if (jsKernel && bestWasmKernel) {
     const amortHost = document.createElement("div");
+    amortHost.className = "wvj-chart-cell";
     amortHost.innerHTML = amortizationChartSvg(
       [jsKernel, bestWasmKernel].map((r) => ({
         label: r.label,
@@ -1653,7 +1660,7 @@ function renderUnifiedExplorer({
           "compiling it. Left of that point, JavaScript finishes the work sooner.",
       },
     );
-    wrap.appendChild(amortHost);
+    chartGrid.appendChild(amortHost);
   }
 
   const displayRows = kernelRows.length > 1 ? kernelRows : pipelineRows;
@@ -1670,12 +1677,13 @@ function renderUnifiedExplorer({
       }));
     if (trajSeries.length > 1) {
       const trajHost = document.createElement("div");
+      trajHost.className = "wvj-chart-cell";
       trajHost.innerHTML = trajectoryChartSvg(trajSeries, {
         title: "Iteration trajectory — warm-up, JIT tier-up, and stability",
         caption:
           "Per-iteration execution timing across the run loop. Lower is faster; flat lines indicate steady-state performance.",
       });
-      wrap.appendChild(trajHost);
+      chartGrid.appendChild(trajHost);
     }
 
     const scatterRows = displayRows
@@ -1690,12 +1698,17 @@ function renderUnifiedExplorer({
       }));
     if (scatterRows.length > 1) {
       const scatterHost = document.createElement("div");
+      scatterHost.className = "wvj-chart-cell";
       scatterHost.innerHTML = sizeVsSpeedChartSvg(scatterRows, {
         title: "Payload footprint vs warm execution speed",
         caption: "Bottom-left is optimal (small binary and fast execution).",
       });
-      wrap.appendChild(scatterHost);
+      chartGrid.appendChild(scatterHost);
     }
+  }
+
+  if (chartGrid.childElementCount > 0) {
+    wrap.appendChild(chartGrid);
   }
 
   const tables = document.createElement("div");

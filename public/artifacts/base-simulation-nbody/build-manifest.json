@@ -67,8 +67,8 @@
       },
       {
         "path": "public/styles.css",
-        "bytes": 34911,
-        "sha256": "7f55c1e7701ca9f5cccad3b71cf8c73f65a41b9d450012fa6efe86b3f6796abf",
+        "bytes": 42045,
+        "sha256": "f2b4d948aca233c27a66ecf49ce51590ab3a6c9a72fb181a87b47165cc4a4821",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b476e3954165f899b7788fba03b6f05cb82a44f/public/styles.css"
       },
       {
