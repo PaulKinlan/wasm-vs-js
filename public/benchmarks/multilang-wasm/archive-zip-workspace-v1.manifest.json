@@ -13,7 +13,7 @@
       "key": "js",
       "kind": "js",
       "label": "JavaScript",
-      "source": "benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.ts"
+      "source": "benchmarks/v1/archive-zip-workspace/engine.js"
     },
     {
       "key": "wat",

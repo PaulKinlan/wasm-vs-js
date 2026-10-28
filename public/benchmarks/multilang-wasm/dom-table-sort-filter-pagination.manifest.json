@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.ts"
+      "source": "benchmarks/dom-table-sort-filter-pagination/engine.js"
     },
     {
       "key": "wat",

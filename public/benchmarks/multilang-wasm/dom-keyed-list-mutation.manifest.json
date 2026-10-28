@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.ts"
+      "source": "benchmarks/dom-keyed-list-mutation/engine.js"
     },
     {
       "key": "wat",

@@ -15,7 +15,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.ts"
+      "source": "benchmarks/image-demo-js-engine.js"
     },
     {
       "key": "wat",

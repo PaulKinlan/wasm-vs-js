@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.ts"
+      "source": "benchmarks/vdom-diff-patch-demo/engine.js"
     },
     {
       "key": "wat",

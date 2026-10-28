@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/audio-fir/fir.ts"
+      "source": "demo-assets/audio/benchmarks/audio-fir/workload.js"
     },
     {
       "key": "wat",

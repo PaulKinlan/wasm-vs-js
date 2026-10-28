@@ -7851,13 +7851,19 @@ const COMPILER_SOURCE_FALLBACKS = {
   "ml.keyword-spotting.v1:cpp": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.cpp",
   "ml.keyword-spotting.v1:rs": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.rs",
   "ml.keyword-spotting.v1:asc": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.ts",
-  "dom.todomvc-journey.v1:c": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.c",
-  "dom.todomvc-journey.v1:cpp": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.cpp",
-  "dom.todomvc-journey.v1:rs": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc.rs",
-  "image-editing:c": "benchmarks/multilang-wasm/image-editing/img_edit.c",
-  "image-editing:cpp": "benchmarks/multilang-wasm/image-editing/img_edit.cpp",
-  "image-editing:rs": "benchmarks/multilang-wasm/image-editing/img_edit.rs",
-  "image-editing:asc": "benchmarks/multilang-wasm/image-editing/img_edit.ts",
+  "dom.todomvc-journey.v1:c": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+  "dom.todomvc-journey.v1:cpp":
+    "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp",
+  "dom.todomvc-journey.v1:rs":
+    "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs",
+  "image-editing.v1:c": "benchmarks/multilang-wasm/image-editing/image_kernels.c",
+  "image-editing.v1:cpp": "benchmarks/multilang-wasm/image-editing/image_kernels.cpp",
+  "image-editing.v1:rs": "benchmarks/multilang-wasm/image-editing/image_kernels.rs",
+  "image-editing.v1:asc": "benchmarks/multilang-wasm/image-editing/image_kernels.ts",
+  "image-editing:c": "benchmarks/multilang-wasm/image-editing/image_kernels.c",
+  "image-editing:cpp": "benchmarks/multilang-wasm/image-editing/image_kernels.cpp",
+  "image-editing:rs": "benchmarks/multilang-wasm/image-editing/image_kernels.rs",
+  "image-editing:asc": "benchmarks/multilang-wasm/image-editing/image_kernels.ts",
   "document.pdf-viewer.v1:c": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
 };
 
@@ -7870,7 +7876,7 @@ export function resolveEngineSource(manifest, engine, kernel) {
   }
   const wid = manifest?.workloadId ?? "";
   if (wid === "multilang-wasm") {
-    const stem = kernel === "fft" ? "fft_kernel" : "sum_kernel";
+    const stem = kernel === "fft" ? "fft_kernel" : "sum_u32";
     const extMap = { asc: "ts", c: "c", cpp: "cpp", rs: "rs" };
     if (extMap[engine.key]) return `benchmarks/multilang-wasm/${stem}.${extMap[engine.key]}`;
   }
@@ -7886,7 +7892,9 @@ async function kernelSourceBytes(manifest, _kernel, lang, explicitSource) {
   void lang;
   if (!explicitSource || explicitSource === "") return 0;
   const clean = explicitSource.replace(/^\//, "");
-  const candidates = [clean.startsWith("benchmarks/") ? `/${clean}` : `/benchmarks/${clean}`];
+  const candidates = clean.startsWith("benchmarks/") || clean.startsWith("demo-assets/")
+    ? [`/${clean}`]
+    : [`/${clean}`, `/benchmarks/${clean}`];
   for (const path of candidates) {
     if (sourceSizeCache.has(path)) {
       const n = sourceSizeCache.get(path);

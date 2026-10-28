@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.ts"
+      "source": "benchmarks/dom-dependent-form-validation/engine.js"
     },
     {
       "key": "wat",

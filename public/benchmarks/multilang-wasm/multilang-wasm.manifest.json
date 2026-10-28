@@ -11,7 +11,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/fft_kernel.ts"
+      "source": "demo-assets/audio/benchmarks/audio-fft/workload.js"
     },
     {
       "key": "wat",

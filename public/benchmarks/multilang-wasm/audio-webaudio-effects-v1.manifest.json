@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.ts"
+      "source": "benchmarks/base/audio-webaudio-effects/workload.js"
     },
     {
       "key": "wat",

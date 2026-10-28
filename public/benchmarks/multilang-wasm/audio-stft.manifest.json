@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/audio-stft/stft.ts"
+      "source": "demo-assets/audio/benchmarks/audio-stft/workload.js"
     },
     {
       "key": "wat",

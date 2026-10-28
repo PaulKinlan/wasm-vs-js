@@ -13,7 +13,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.ts"
+      "source": "benchmarks/dom-nested-tree-mutation/engine.js"
     },
     {
       "key": "wat",

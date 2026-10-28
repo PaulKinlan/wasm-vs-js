@@ -15,7 +15,7 @@
       "files": {
         "kws_run": ""
       },
-      "source": "base/ml-keyword-spotting/engine.js",
+      "source": "benchmarks/base/ml-keyword-spotting/engine.js",
       "label": "JavaScript"
     },
     {
