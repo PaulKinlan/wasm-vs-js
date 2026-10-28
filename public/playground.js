@@ -3,6 +3,7 @@
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
 import { barChartSvg } from "./benchmark-report.js";
+import { fmtBytes, fmtMs } from "./measurement-model.js";
 
 // Every workload card with a multi-language comparison lane: slug -> manifest.
 // Cards absent from this map have no multilang core (vendored/platform/meta).
@@ -691,13 +692,49 @@ function renderHolisticOverview() {
         const tB = cmpB.wasmWarmMs ?? 999999;
         return tA - tB;
       }
+      case "wasm-desc": {
+        const tA = cmpA.wasmWarmMs ?? -1;
+        const tB = cmpB.wasmWarmMs ?? -1;
+        return tB - tA;
+      }
+      case "js-asc": {
+        const jA = cmpA.jsWarmMs ?? 999999;
+        const jB = cmpB.jsWarmMs ?? 999999;
+        return jA - jB;
+      }
       case "js-desc": {
         const jA = cmpA.jsWarmMs ?? -1;
         const jB = cmpB.jsWarmMs ?? -1;
         return jB - jA;
       }
+      case "cold-asc": {
+        const cA = cmpA.wasmColdMs ?? 999999;
+        const cB = cmpB.wasmColdMs ?? 999999;
+        return cA - cB;
+      }
+      case "cold-desc": {
+        const cA = cmpA.wasmColdMs ?? -1;
+        const cB = cmpB.wasmColdMs ?? -1;
+        return cB - cA;
+      }
+      case "bytes-asc": {
+        const bA = cmpA.wasmBytes || 999999999;
+        const bB = cmpB.wasmBytes || 999999999;
+        return bA - bB;
+      }
+      case "bytes-desc": {
+        const bA = cmpA.wasmBytes || -1;
+        const bB = cmpB.wasmBytes || -1;
+        return bB - bA;
+      }
+      case "source-live": {
+        const score = (s) => (s === "live" ? 2 : s === "reference" ? 1 : 0);
+        return score(b.source) - score(a.source) || a.title.localeCompare(b.title);
+      }
       case "title-asc":
         return a.title.localeCompare(b.title);
+      case "title-desc":
+        return b.title.localeCompare(a.title);
       case "category-asc":
         return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
       default:
@@ -925,13 +962,8 @@ function renderHolisticOverview() {
         : cmp.speedup <= 0.8
         ? "js-faster"
         : "even";
-      const pct = cmp.hasData
-        ? Math.min(100, Math.max(3, (cmp.wasmWarmMs / (cmp.jsWarmMs || 1)) * 100))
-        : 0;
 
-      const sizeStr = cmp.wasmBytes > 0
-        ? (cmp.wasmBytes >= 1024 ? (cmp.wasmBytes / 1024).toFixed(1) + " KB" : cmp.wasmBytes + " B")
-        : "—";
+      const sizeStr = cmp.wasmBytes > 0 ? fmtBytes(cmp.wasmBytes) : "—";
 
       const sourceBadge = `<span class="source-badge ${item.source}">${
         item.source === "live" ? "● Live" : item.source === "reference" ? "Reference" : "Unmeasured"
@@ -941,23 +973,20 @@ function renderHolisticOverview() {
         <tr>
           <td>
             <a href="#workload-${item.workKey}" class="ov-workload-link"><strong>${item.title}</strong></a>
-            <div class="pg-cat-badge">${item.category}</div>
           </td>
+          <td><span class="pg-cat-badge">${item.category}</span></td>
           <td>${sourceBadge}</td>
-          <td>${cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(2) + " ms" : "—"}</td>
+          <td>${cmp.jsWarmMs > 0 ? fmtMs(cmp.jsWarmMs) : "—"}</td>
           <td>
-            ${cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(2) + " ms" : "—"}
+            ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
             <br><small class="muted">${cmp.engineLabel}</small>
           </td>
           <td>
             ${
-        cmp.speedup
-          ? `<strong class="speedup-pill ${speedupClass}">${speedupStr}</strong>
-                 <div class="perf-bar-track"><div class="perf-bar" data-pct="${pct}"></div></div>`
-          : "—"
+        cmp.speedup ? `<strong class="speedup-pill ${speedupClass}">${speedupStr}</strong>` : "—"
       }
           </td>
-          <td>${cmp.wasmColdMs ? cmp.wasmColdMs.toFixed(2) + " ms" : "—"}</td>
+          <td>${cmp.wasmColdMs > 0 ? fmtMs(cmp.wasmColdMs) : "—"}</td>
           <td>${sizeStr}</td>
           <td>
             <button type="button" class="btn-ov-table-run" data-work-key="${item.workKey}">${
@@ -977,7 +1006,7 @@ function renderHolisticOverview() {
             <tr>
               <th data-sort="title" class="sortable-th">Workload</th>
               <th data-sort="category" class="sortable-th">Category</th>
-              <th data-sort="source">Evidence</th>
+              <th data-sort="source" class="sortable-th">Evidence</th>
               <th data-sort="js" class="sortable-th">JS Warm</th>
               <th data-sort="wasm" class="sortable-th">Wasm Warm</th>
               <th data-sort="speedup" class="sortable-th">Speedup vs JS</th>
@@ -997,11 +1026,6 @@ function renderHolisticOverview() {
   }
 
   container.innerHTML = toolbarHtml + kpiStripHtml + chartsGridHtml + tableHtml;
-
-  // Apply CSSOM widths for CSP compliance
-  container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
-    bar.style.width = `${bar.dataset.pct}%`;
-  });
 
   // Wire Toolbar Listeners
   const catSel = container.querySelector("#ov-category");
@@ -1091,15 +1115,21 @@ function renderHolisticOverview() {
     th.addEventListener("click", () => {
       const s = th.dataset.sort;
       if (s === "title") {
-        overviewState.sort = overviewState.sort === "title-asc" ? "category-asc" : "title-asc";
+        overviewState.sort = overviewState.sort === "title-asc" ? "title-desc" : "title-asc";
       } else if (s === "category") {
-        overviewState.sort = "category-asc";
+        overviewState.sort = overviewState.sort === "category-asc" ? "title-asc" : "category-asc";
+      } else if (s === "source") {
+        overviewState.sort = overviewState.sort === "source-live" ? "title-asc" : "source-live";
       } else if (s === "js") {
-        overviewState.sort = "js-desc";
+        overviewState.sort = overviewState.sort === "js-desc" ? "js-asc" : "js-desc";
       } else if (s === "wasm") {
-        overviewState.sort = "wasm-asc";
+        overviewState.sort = overviewState.sort === "wasm-asc" ? "wasm-desc" : "wasm-asc";
       } else if (s === "speedup") {
         overviewState.sort = overviewState.sort === "speedup-desc" ? "speedup-asc" : "speedup-desc";
+      } else if (s === "cold") {
+        overviewState.sort = overviewState.sort === "cold-asc" ? "cold-desc" : "cold-asc";
+      } else if (s === "bytes") {
+        overviewState.sort = overviewState.sort === "bytes-asc" ? "bytes-desc" : "bytes-asc";
       }
       renderHolisticOverview();
     });
@@ -1327,13 +1357,13 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
 
     const kpiRowHtml = `
       <div class="pg-kpi-row">
-        <div class="pg-kpi"><span>JS Warm</span><strong>${jsMed.toFixed(2)} ms</strong></div>
-        <div class="pg-kpi"><span>Wasm Warm</span><strong>${wasmMed.toFixed(2)} ms</strong></div>
+        <div class="pg-kpi"><span>JS Warm</span><strong>${fmtMs(jsMed)}</strong></div>
+        <div class="pg-kpi"><span>Wasm Warm</span><strong>${fmtMs(wasmMed)}</strong></div>
         <div class="pg-kpi"><span>Speedup vs JS</span><strong class="speedup-pill ${speedupClass}">${
       speedup.toFixed(2)
     }×</strong></div>
         <div class="pg-kpi"><span>Cold First Run</span><strong>${
-      wasmCold ? wasmCold.toFixed(2) + " ms" : "—"
+      wasmCold > 0 ? fmtMs(wasmCold) : "—"
     }</strong></div>
       </div>
     `;
@@ -1369,9 +1399,9 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       return `<tr>
         <td><strong>${r.label}</strong></td>
         <td>${
-        isJs ? (jsCold ? jsCold.toFixed(2) : "—") : (wasmCold ? wasmCold.toFixed(2) : "—")
-      } ms</td>
-        <td>${r.valueMs.toFixed(2)} ms</td>
+        isJs ? (jsCold > 0 ? fmtMs(jsCold) : "—") : (wasmCold > 0 ? fmtMs(wasmCold) : "—")
+      }</td>
+        <td>${fmtMs(r.valueMs)}</td>
         <td>${isJs ? "1.00× (Baseline)" : `<strong>${rSpeedup}</strong>`}</td>
       </tr>`;
     }).join("");
