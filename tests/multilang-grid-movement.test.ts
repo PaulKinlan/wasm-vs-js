@@ -124,3 +124,14 @@ Deno.test("multilang grid-movement: AssemblyScript kernel matches the JS oracle 
   );
   assert(r.finalPosSum === ORACLE.finalPosSum, `AS sum ${r.finalPosSum} != ${ORACLE.finalPosSum}`);
 });
+
+Deno.test("multilang grid-movement: WAT kernel matches the JS oracle exactly", async () => {
+  const instance = await load("grid_kernel_wat.wasm");
+  const r = runKernel(instance);
+  assert(r.moves === ORACLE.moves, `WAT moves ${r.moves} != ${ORACLE.moves}`);
+  assert(
+    r.collisions === ORACLE.collisions,
+    `WAT collisions ${r.collisions} != ${ORACLE.collisions}`,
+  );
+  assert(r.finalPosSum === ORACLE.finalPosSum, `WAT sum ${r.finalPosSum} != ${ORACLE.finalPosSum}`);
+});

@@ -28,6 +28,7 @@
       "title": "Radix-2 complex FFT demo",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -190,12 +191,23 @@
       "title": "DOM Grid Movement Engine",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc"
       ],
-      "variants": []
+      "variants": [
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Replaces array of entity coordinate objects with flat Int32Array coordinates, eliminating object allocation and pointer dereferences.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
     },
     {
       "workloadId": "dom.keyed-list-mutation.v1",
@@ -546,6 +558,24 @@
           "maxUlpDeviation": null,
           "maxRelativeDeviation": null,
           "declaredTolerance": null
+        },
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "wat-simd",
+          "baseline": "wat",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Handwritten WebAssembly v128 f32x4 SIMD vectorization in i/k/j loop order. Accumulates 4 independent output columns simultaneously with zero horizontal reduction, bit-identical to the IEEE-754 single-precision oracle.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
         }
       ]
     },
@@ -622,7 +652,26 @@
         "rs",
         "dart"
       ],
-      "variants": []
+      "variants": [
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "4-way loop unrolling over Uint32Array with explicit 32-bit integer modulo accumulation, eliminating loop index branch overhead.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "wat-simd",
+          "baseline": "wat",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Handwritten WebAssembly v128 i32x4.add SIMD vectorization summing 4 32-bit integers per instruction.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
     },
     {
       "workloadId": "network.pcap-decode.v1",
@@ -829,11 +878,11 @@
   ],
   "summary": {
     "workloads": 45,
-    "baselineEngineRows": 250,
-    "variantRows": 18,
-    "workloadsWithVariants": 2,
-    "workloadsWithoutVariants": 43,
-    "bitIdenticalVariants": 17,
+    "baselineEngineRows": 252,
+    "variantRows": 23,
+    "workloadsWithVariants": 4,
+    "workloadsWithoutVariants": 41,
+    "bitIdenticalVariants": 22,
     "reassociatedVariants": 1,
     "workloadsWithoutRoute": 1
   }

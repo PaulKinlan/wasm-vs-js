@@ -1,8 +1,8 @@
 {
   "workloadId": "dom.grid-movement.v1",
-  "kernelLabel": "Grid movement trace \u2014 128 entities \u00d7 3,600 moves (integer-only)",
+  "kernelLabel": "Grid movement trace — 128 entities × 3,600 moves (integer-only)",
   "kernelLabels": {
-    "grid_trace": "Grid movement \u2014 128 entities, 3,600 frozen moves on a 64\u00d764 board"
+    "grid_trace": "Grid movement — 128 entities, 3,600 frozen moves on a 64×64 board"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -14,6 +14,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.ts"
+    },
+    {
+      "key": "wat",
+      "initialMemoryBytes": 65536,
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_kernel_wat.wasm"
+      },
+      "source": "benchmarks/dom-grid-movement/dom-grid-movement.wat"
     },
     {
       "key": "c",
@@ -62,6 +74,15 @@
         "grid_trace": "grid_kernel_asc.wasm"
       },
       "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.ts"
+    },
+    {
+      "key": "js-opt",
+      "label": "JavaScript Flat Coordinates (Optimized)",
+      "kind": "js",
+      "track": "B",
+      "baseline": "js",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Replaces array of entity coordinate objects with flat Int32Array coordinates, eliminating object allocation and pointer dereferences."
     }
   ]
 }

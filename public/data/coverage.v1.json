@@ -44,15 +44,14 @@
       "title": "Radix-2 complex FFT demo",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
       "domHost": null,
       "scopes": [
@@ -456,13 +455,13 @@
       "title": "DOM Grid Movement Engine",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc"
       ],
       "missingEngines": [
-        "wat",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
@@ -1331,7 +1330,7 @@
     "pages": 51,
     "withMultilang": 45,
     "withoutMultilang": 6,
-    "fullyCovered": 9,
+    "fullyCovered": 10,
     "withDomStage": 11,
     "duplicates": 0,
     "unmeasuredPages": 1,

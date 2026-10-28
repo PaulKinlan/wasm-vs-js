@@ -283,6 +283,156 @@ export function amortizationChartSvg(series, {
     `</figure>`;
 }
 
+/**
+ * Iteration trajectory line chart: plotting duration (ms) across iteration index (1..N)
+ * for each engine so warmup, JIT compilation, and steady-state stability are inspectable.
+ *
+ * @param {{ label: string, samples: number[], kind?: string }[]} series
+ * @param {{ title?: string, caption?: string }} [opts]
+ */
+export function trajectoryChartSvg(series, { title = "", caption = "" } = {}) {
+  const usable = series.filter((s) => Array.isArray(s.samples) && s.samples.length > 1);
+  if (usable.length === 0) return "";
+
+  const maxLen = Math.max(...usable.map((s) => s.samples.length));
+  const allVals = usable.flatMap((s) => s.samples.filter((v) => typeof v === "number" && v > 0));
+  if (allVals.length === 0) return "";
+  const rawMax = Math.max(...allVals);
+  const maxY = niceMax(rawMax);
+
+  const padL = 66, padR = 132, padT = 24, padB = 40;
+  const plotW = 380, plotH = 200;
+  const width = padL + plotW + padR;
+  const height = padT + plotH + padB;
+
+  const px = (i) => padL + (i / Math.max(1, maxLen - 1)) * plotW;
+  const py = (v) => padT + plotH - (Math.min(v, maxY) / maxY) * plotH;
+
+  const gridY = axisTicks(maxY).map((t) =>
+    `<line class="wvj-grid" x1="${padL}" y1="${py(t).toFixed(1)}" x2="${padL + plotW}" y2="${
+      py(t).toFixed(1)
+    }"/>` +
+    `<text class="wvj-axis-label" x="${padL - 8}" y="${
+      py(t).toFixed(1)
+    }" text-anchor="end" dominant-baseline="middle">${t === 0 ? "0" : fmtMs(t, 0)}</text>`
+  ).join("");
+
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => {
+    const idx = Math.round((maxLen - 1) * f);
+    return `<line class="wvj-grid" x1="${px(idx).toFixed(1)}" y1="${padT}" x2="${
+      px(idx).toFixed(1)
+    }" y2="${padT + plotH}"/>` +
+      `<text class="wvj-axis-label" x="${px(idx).toFixed(1)}" y="${
+        padT + plotH + 16
+      }" text-anchor="middle">${idx + 1}</text>`;
+  }).join("");
+
+  const polylines = usable.map((s, idx) => {
+    const points = s.samples.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(" ");
+    const lastY = py(s.samples[s.samples.length - 1] ?? 0);
+    const cls = `wvj-line wvj-series-${idx % 7}${s.kind === "js" ? " wvj-line-base" : ""}`;
+    const label = `<text class="wvj-series-label wvj-series-text-${idx % 7}" x="${
+      padL + plotW + 8
+    }" y="${lastY.toFixed(1)}" dominant-baseline="middle">${esc(s.label)}</text>`;
+    return `<polyline class="${cls}" fill="none" stroke-width="2" points="${points}"><title>${
+      esc(s.label)
+    }</title></polyline>` + label;
+  }).join("");
+
+  return `<figure class="wvj-chart wvj-chart-wide">` +
+    (title ? `<figcaption class="wvj-chart-title">${esc(title)}</figcaption>` : "") +
+    `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${
+      esc(title || "trajectory chart")
+    }" preserveAspectRatio="xMinYMin meet">` +
+    gridY + xTicks + polylines +
+    `<text class="wvj-axis-title" x="${padL + plotW / 2}" y="${
+      height - 6
+    }" text-anchor="middle">iteration index</text>` +
+    `</svg>` +
+    (caption ? `<p class="wvj-chart-caption">${esc(caption)}</p>` : "") +
+    `</figure>`;
+}
+
+/**
+ * Size vs speed 2D scatter plot: binary payload size (bytes) vs warm execution median (ms).
+ *
+ * @param {{ label: string, bytes: number|null, valueMs: number|null, kind?: string }[]} rows
+ * @param {{ title?: string, caption?: string }} [opts]
+ */
+export function sizeVsSpeedChartSvg(rows, { title = "", caption = "" } = {}) {
+  const usable = rows.filter((r) =>
+    typeof r.bytes === "number" && r.bytes > 0 && typeof r.valueMs === "number" && r.valueMs > 0
+  );
+  if (usable.length === 0) return "";
+
+  const minBytes = Math.min(...usable.map((r) => r.bytes));
+  const maxBytes = Math.max(...usable.map((r) => r.bytes));
+  const maxMs = niceMax(Math.max(...usable.map((r) => r.valueMs)));
+
+  const logMin = Math.max(1, 10 ** Math.floor(Math.log10(minBytes)));
+  const logMax = Math.max(10, 10 ** Math.ceil(Math.log10(maxBytes)));
+  const logSpan = Math.max(1, Math.log10(logMax) - Math.log10(logMin));
+
+  const padL = 70, padR = 40, padT = 24, padB = 40;
+  const plotW = 420, plotH = 200;
+  const width = padL + plotW + padR;
+  const height = padT + plotH + padB;
+
+  const px = (b) => {
+    const clamped = Math.max(b, logMin);
+    return padL + ((Math.log10(clamped) - Math.log10(logMin)) / logSpan) * plotW;
+  };
+  const py = (v) => padT + plotH - (Math.min(v, maxMs) / maxMs) * plotH;
+
+  const gridY = axisTicks(maxMs).map((t) =>
+    `<line class="wvj-grid" x1="${padL}" y1="${py(t).toFixed(1)}" x2="${padL + plotW}" y2="${
+      py(t).toFixed(1)
+    }"/>` +
+    `<text class="wvj-axis-label" x="${padL - 8}" y="${
+      py(t).toFixed(1)
+    }" text-anchor="end" dominant-baseline="middle">${t === 0 ? "0" : fmtMs(t, 0)}</text>`
+  ).join("");
+
+  const xTicks = [];
+  for (let t = logMin; t <= logMax * 1.0001; t *= 10) {
+    xTicks.push(
+      `<line class="wvj-grid" x1="${px(t).toFixed(1)}" y1="${padT}" x2="${px(t).toFixed(1)}" y2="${
+        padT + plotH
+      }"/>` +
+        `<text class="wvj-axis-label" x="${px(t).toFixed(1)}" y="${
+          padT + plotH + 16
+        }" text-anchor="middle">${fmtBytes(t)}</text>`,
+    );
+  }
+
+  const points = usable.map((r, idx) => {
+    const cx = px(r.bytes).toFixed(1);
+    const cy = py(r.valueMs).toFixed(1);
+    const cls = `wvj-series-text-${idx % 7}`;
+    return `<g class="wvj-scatter-point">` +
+      `<circle cx="${cx}" cy="${cy}" r="5" class="wvj-crossing"><title>${esc(r.label)}: ${
+        fmtBytes(r.bytes)
+      }, ${fmtMs(r.valueMs)}</title></circle>` +
+      `<text class="wvj-series-label ${cls}" x="${(Number(cx) + 8).toFixed(1)}" y="${
+        (Number(cy) - 4).toFixed(1)
+      }">${esc(r.label)}</text>` +
+      `</g>`;
+  }).join("");
+
+  return `<figure class="wvj-chart wvj-chart-wide">` +
+    (title ? `<figcaption class="wvj-chart-title">${esc(title)}</figcaption>` : "") +
+    `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${
+      esc(title || "size vs speed chart")
+    }" preserveAspectRatio="xMinYMin meet">` +
+    gridY + xTicks.join("") + points +
+    `<text class="wvj-axis-title" x="${padL + plotW / 2}" y="${
+      height - 6
+    }" text-anchor="middle">binary payload footprint (log bytes)</text>` +
+    `</svg>` +
+    (caption ? `<p class="wvj-chart-caption">${esc(caption)}</p>` : "") +
+    `</figure>`;
+}
+
 // ── Tables ────────────────────────────────────────────────────────────────
 
 function ciCell(summary) {

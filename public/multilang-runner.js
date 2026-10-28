@@ -343,7 +343,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.render.instance;
         const run = () => {
@@ -527,7 +527,7 @@ export const KERNEL_ADAPTERS = {
       const oracle = runRigidBodyJavaScript(bytes, { timesteps: STEPS, checkpointEvery: EVERY });
       const oracleDigest = digest(oracle.checkpoints);
       const callables = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.rigid_engine.instance;
         const mem = inst.exports.memory;
@@ -1973,7 +1973,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
         const inst = mods.engines[key].instances.fft.instance;
@@ -2046,7 +2046,7 @@ export const KERNEL_ADAPTERS = {
       // The manifest declares Rust as well; the adapter only ran C and C++, so
       // Rust appeared in the comparison's engine list and was silently skipped
       // by runWorkload's missing-callable branch.
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.bracket.instance;
         const run = () => {
@@ -2497,7 +2497,7 @@ export const KERNEL_ADAPTERS = {
 
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.olap.instance;
         const mem = inst.exports.memory;
@@ -2613,7 +2613,7 @@ export const KERNEL_ADAPTERS = {
       const OUT_LEN = SAMPLES + TAPS - 1;
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.fir.instance;
         const mem = inst.exports.memory;
@@ -2800,7 +2800,7 @@ export const KERNEL_ADAPTERS = {
       }
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.stft.instance;
         const mem = inst.exports.memory;
@@ -2932,7 +2932,7 @@ export const KERNEL_ADAPTERS = {
       const callables = {};
       const sumProbes = {};
       const fftProbes = {};
-      for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
+      for (const key of ["wat", "wat-simd", "asc", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
         if (!cfg) continue;
@@ -2991,6 +2991,25 @@ export const KERNEL_ADAPTERS = {
         fftButterflyF32(real, imag, LEN);
         return spectrumDigest(real, imag);
       };
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        callables["js-opt"] = {
+          sum: () => {
+            const values = sumInput();
+            let s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            const n = COUNT & ~3;
+            for (let i = 0; i < n; i += 4) {
+              s0 = (s0 + values[i]) >>> 0;
+              s1 = (s1 + values[i + 1]) >>> 0;
+              s2 = (s2 + values[i + 2]) >>> 0;
+              s3 = (s3 + values[i + 3]) >>> 0;
+            }
+            let total = (((s0 + s1) >>> 0) + ((s2 + s3) >>> 0)) >>> 0;
+            for (let i = n; i < COUNT; i++) total = (total + values[i]) >>> 0;
+            return total;
+          },
+        };
+        sumProbes["js-opt"] = () => callables["js-opt"].sum() >>> 0;
+      }
       if (mods.engines.dart) {
         const dartCall = {};
         if (kernels.sum_u32) {
@@ -3070,7 +3089,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.myers_diff.instance;
         const mem = inst.exports.memory;
@@ -3712,7 +3731,7 @@ export const KERNEL_ADAPTERS = {
       // discarded, so both engines were reported as extremely fast while
       // parsing nothing. Rust survived only because its layout differs.
       const INPUT_BASE = 262144;
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.telemetry.instance;
         const run = () => {
@@ -3859,7 +3878,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.nbody_step.instance;
         const mem = inst.exports.memory;
@@ -4288,7 +4307,7 @@ export const KERNEL_ADAPTERS = {
       }
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.mlp_forward.instance;
         const mem = inst.exports.memory;
@@ -4739,6 +4758,53 @@ export const KERNEL_ADAPTERS = {
             if (sum !== 33583) {
               throw new Error(`grid_trace ${key} finalPosSum drifted from the frozen oracle`);
             }
+          },
+        };
+      }
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        const xs = new Int32Array(128);
+        const ys = new Int32Array(128);
+        callables["js-opt"] = {
+          grid_trace: () => {
+            let seed = 0xc001d00d >>> 0;
+            for (let i = 0; i < 128; i++) {
+              const p = i * 3;
+              xs[i] = p & 63;
+              ys[i] = p >> 6;
+            }
+            for (let i = 0; i < 3600; i++) {
+              seed = (seed ^ (seed << 13)) >>> 0;
+              seed = (seed ^ (seed >>> 17)) >>> 0;
+              seed = (seed ^ (seed << 5)) >>> 0;
+              const entityId = Math.floor((seed / 4294967296) * 128);
+              seed = (seed ^ (seed << 13)) >>> 0;
+              seed = (seed ^ (seed >>> 17)) >>> 0;
+              seed = (seed ^ (seed << 5)) >>> 0;
+              const dir = Math.floor((seed / 4294967296) * 4);
+              let nx = xs[entityId];
+              let ny = ys[entityId];
+              if (dir === 0) ny = ny > 0 ? ny - 1 : 0;
+              else if (dir === 1) ny = ny < 63 ? ny + 1 : 63;
+              else if (dir === 2) nx = nx > 0 ? nx - 1 : 0;
+              else nx = nx < 63 ? nx + 1 : 63;
+              let occupied = false;
+              for (let j = 0; j < 128; j++) {
+                if (j !== entityId && xs[j] === nx && ys[j] === ny) {
+                  occupied = true;
+                  break;
+                }
+              }
+              if (!occupied) {
+                xs[entityId] = nx;
+                ys[entityId] = ny;
+              }
+            }
+            let sum = 0;
+            for (let i = 0; i < 128; i++) sum += xs[i] + (ys[i] << 6);
+            if (sum !== 33583) {
+              throw new Error(`grid_trace js-opt finalPosSum drifted: ${sum}`);
+            }
+            return sum;
           },
         };
       }
@@ -5760,7 +5826,7 @@ export const KERNEL_ADAPTERS = {
       // on five bytes out of 22 MB and agree on every pixel.
       probes.js = () =>
         fnv1aBytes(normalizeControlledOutput(runJavaScript(mesh, texture, animation, DECODER)));
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.viewer.instance;
         const run = () => {
@@ -6079,6 +6145,7 @@ export const KERNEL_ADAPTERS = {
       // Track A engines plus Track B optimization variants of c, cpp, rs, and asc.
       for (
         const key of [
+          "wat-simd",
           "c",
           "c-ikj",
           "c-tiled",
@@ -6154,6 +6221,33 @@ export const KERNEL_ADAPTERS = {
         jsGemm(a, b, c0, out);
         return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
       };
+      const jsOptGemm = (a, b, c0, out) => {
+        out.set(c0);
+        for (let i = 0; i < M; i++) {
+          const iOff = i * N;
+          for (let k = 0; k < K; k++) {
+            const aik = a[i * K + k];
+            const kOff = k * N;
+            for (let j = 0; j < N; j++) {
+              out[iOff + j] = Math.fround(out[iOff + j] + Math.fround(aik * b[kOff + j]));
+            }
+          }
+        }
+      };
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        callables["js-opt"] = {
+          gemm: () => {
+            const { a, b, c0 } = inputs();
+            jsOptGemm(a, b, c0, new Float32Array(M * N));
+          },
+        };
+        probes["js-opt"] = () => {
+          const { a, b, c0 } = inputs();
+          const out = new Float32Array(M * N);
+          jsOptGemm(a, b, c0, out);
+          return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+        };
+      }
       // Every dart-kind engine, not just the -O1 baseline: the Track B
       // optimization-level variants (dart-o2/-o3/-o4) share this kernel
       // signature, so they run and get agreement-checked here too.
@@ -6373,7 +6467,7 @@ export const KERNEL_ADAPTERS = {
         return Math.ceil((digestPtr + 64) / 65536) * 65536;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.sha256.instance;
         const mem = inst.exports.memory;
@@ -6811,7 +6905,7 @@ export const KERNEL_ADAPTERS = {
 
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.numeric.instance;
         const exports = inst.exports;
@@ -6971,7 +7065,7 @@ export const KERNEL_ADAPTERS = {
       // would still have been timed, and timed as the fastest.
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.crypto.instance;
         const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
@@ -7635,14 +7729,14 @@ export async function loadEngines(manifest) {
       const bytes = engine.url
         ? new Uint8Array(await (await fetch(engine.url, { cache: "no-store" })).arrayBuffer())
         : await fetchBytes(base, file);
-      // Some AssemblyScript kernels emit an env.abort import (bounds-check
-      // safety). Pass a benign import object so they instantiate; abort is
-      // never invoked by a correct kernel.
+      const t0 = performance.now();
+      const mod = new WebAssembly.Module(bytes);
       const instance = new WebAssembly.Instance(
-        new WebAssembly.Module(bytes),
+        mod,
         { env: { abort: () => {} } },
       );
-      byKernel[engine.key][kernel] = { instance, bytes };
+      const initMs = performance.now() - t0;
+      byKernel[engine.key][kernel] = { instance, bytes, initMs };
     }
   }
   for (const engine of linear) {
@@ -7650,6 +7744,7 @@ export async function loadEngines(manifest) {
       cfg: engine,
       instances: byKernel[engine.key],
       bytes: byKernel[engine.key][manifest.kernels[0]].bytes,
+      initMs: byKernel[engine.key][manifest.kernels[0]].initMs ?? 0,
     };
   }
 
@@ -7658,12 +7753,14 @@ export async function loadEngines(manifest) {
     const glueText = await (await fetch(`${base}/${engine.glue}`, { cache: "no-store" })).text();
     const url = URL.createObjectURL(new Blob([glueText], { type: "text/javascript" }));
     const glue = await import(url);
+    const t0 = performance.now();
     const app = await glue.compile(bytes);
     const inst = await app.instantiate({});
     inst.invokeMain();
+    const initMs = performance.now() - t0;
     const kernels = globalThis.dartKernels;
     if (!kernels) throw new Error(`${engine.label}: dartKernels not published`);
-    out.engines[engine.key] = { cfg: engine, kernels, bytes };
+    out.engines[engine.key] = { cfg: engine, kernels, bytes, initMs };
   }
 
   cache.set(manifest.workloadId, out);
@@ -7718,11 +7815,17 @@ async function benchmarkOne(fn, iterations) {
     await runOnce(fn);
     samples.push(performance.now() - t0);
   }
+  const sorted = [...samples].sort((a, b) => a - b);
+  const p25 = sorted[Math.floor(sorted.length * 0.25)] ?? sorted[0] ?? 0;
+  const p75 = sorted[Math.floor(sorted.length * 0.75)] ?? sorted[sorted.length - 1] ?? 0;
+  const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ?? 0;
   return {
     coldMs,
     medianMs: median(samples),
     minMs: Math.min(...samples),
     maxMs: Math.max(...samples),
+    p95Ms: p95,
+    iqrMs: Math.max(0, p75 - p25),
     warmupRuns,
     // Retained so the report can compute a confidence interval rather than
     // presenting a bare median as if it were exact.
@@ -7792,6 +7895,10 @@ export async function runWorkload(
     results.push({
       key: engine.key,
       label: engine.label,
+      track: engine.track ?? "A",
+      baseline: engine.baseline ?? "js",
+      optimizationLog: engine.optimizationLog ?? null,
+      initMs: mods.engines[engine.key]?.initMs ?? 0,
       bytes,
       sourceBytes,
       ...stats,
@@ -7812,6 +7919,13 @@ export const TOOLCHAIN_COMMANDS = {
   dart: "dart compile wasm (dart2wasm, WasmGC)",
   kt: "kotlinc-native / wasm (WasmGC)",
 };
+
+function esc(s) {
+  return String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+}
 
 function renderTables(container, manifest, resultsByKernel, iterations, { heading = true } = {}) {
   const tables = manifest.kernels.map((kernel) => {
@@ -7839,16 +7953,33 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
         } else if (r.key === "js") {
           sourceHtml = `<span class="muted">JS baseline</span>`;
         }
+        const isTrackB = r.track === "B" || engineCfg?.track === "B";
+        const trackBadge = isTrackB
+          ? `<div><span class="badge" title="${
+            esc(r.optimizationLog ?? "Track B")
+          }">Track B (Optimized)</span></div>`
+          : "";
         return `
-        <tr>
-          <td><strong>${r.label}</strong></td>
+        <tr${isTrackB ? ' class="track-b-row"' : ""}>
+          <td><strong>${r.label}</strong>${trackBadge}</td>
           <td>
             ${sourceHtml ? `<div>${sourceHtml}</div>` : ""}
             <div><small><code>${toolchain}</code></small></div>
+            ${
+          r.optimizationLog
+            ? `<div><small class="muted">${esc(r.optimizationLog)}</small></div>`
+            : ""
+        }
           </td>
           <td>${size}</td>
-          <td>${typeof r.coldMs === "number" ? r.coldMs.toFixed(2) : "—"} ms</td>
-          <td>${r.medianMs.toFixed(2)} ms</td>
+          <td>${typeof r.coldMs === "number" ? r.coldMs.toFixed(2) : "—"} ms${
+          r.initMs ? `<br><small class="muted">Init: ${r.initMs.toFixed(2)} ms</small>` : ""
+        }</td>
+          <td>${r.medianMs.toFixed(2)} ms${
+          typeof r.iqrMs === "number" && r.iqrMs > 0
+            ? `<br><small class="muted">IQR: ${r.iqrMs.toFixed(2)} ms</small>`
+            : ""
+        }</td>
           <td>${r.minMs.toFixed(2)} ms</td>
           <td>${r.maxMs.toFixed(2)} ms</td>
           <td>${

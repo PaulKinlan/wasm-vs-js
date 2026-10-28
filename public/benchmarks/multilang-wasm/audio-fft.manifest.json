@@ -1,6 +1,6 @@
 {
   "workloadId": "audio.fft.v1",
-  "kernelLabel": "Radix-2 FFT butterfly \u2014 512 floats",
+  "kernelLabel": "Radix-2 FFT butterfly — 512 floats",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "fft"
@@ -11,6 +11,17 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "fft": "fft_wat.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/fft_kernel.wat"
     },
     {
       "key": "c",

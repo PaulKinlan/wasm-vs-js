@@ -48,8 +48,10 @@ function builtEngines(
   for (const m of segment.matchAll(/for\s*\(\s*const key of \[([^\]]+)\]\s*\)/g)) {
     for (const k of m[1].matchAll(/"([a-z0-9-]+)"/g)) built.add(ALIAS[k[1]] ?? k[1]);
   }
-  for (const m of segment.matchAll(/callables\.([a-z]+)\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);
-  for (const m of segment.matchAll(/callables\["([a-z]+)"\]\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);
+  for (const m of segment.matchAll(/callables\.([a-z0-9_-]+)\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);
+  for (const m of segment.matchAll(/callables\["([a-z0-9_-]+)"\]\s*=/g)) {
+    built.add(ALIAS[m[1]] ?? m[1]);
+  }
   // An adapter may also walk the loaded engine map filtered by kind, e.g.
   //   for (const [key, loaded] of Object.entries(mods.engines)) {
   //     if (loaded?.cfg?.kind !== "dart") continue;

@@ -94,6 +94,10 @@ function scanPages(): Array<readonly [string, string, string, boolean?]> {
       }
     }
   }
+  if (fileExists(join(PUBLIC, "methodology", "index.html"))) {
+    routes.push(["/methodology", "public/methodology/index.html", "text/html; charset=utf-8"]);
+    routes.push(["/methodology/", "public/methodology/index.html", "text/html; charset=utf-8"]);
+  }
   return routes;
 }
 
@@ -157,6 +161,13 @@ const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
   // Linear Wasm coverage completions (C on ml.numeric-kernels.v1, Rust on network.pcap-decode.v1).
   "artifacts/multilang-wasm-benchmark/numeric_kernels_c.wasm",
   "artifacts/multilang-wasm-benchmark/pcap_decode_rs.wasm",
+  // Canonical catalog
+  "data/benchmarks.json",
+  // Wasm kernels and SIMD variants
+  "artifacts/multilang-wasm-benchmark/fft_wat.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_wat_simd.wasm",
+  "artifacts/multilang-wasm-benchmark/grid_kernel_wat.wasm",
+  "artifacts/multilang-wasm-benchmark/sum_wat_simd.wasm",
 ];
 
 function assetRoutes(): Array<readonly [string, string, string]> {

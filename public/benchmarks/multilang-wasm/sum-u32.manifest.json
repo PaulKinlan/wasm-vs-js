@@ -1,6 +1,6 @@
 {
   "workloadId": "multilang-wasm",
-  "kernelLabel": "Modulo-2\u00b3\u00b2 integer sum \u2014 1M values",
+  "kernelLabel": "Modulo-2³² integer sum — 1M values",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "sum"
@@ -66,6 +66,33 @@
       "file": "fft_dart.wasm",
       "glue": "fft_dart.mjs",
       "source": "benchmarks/multilang-wasm/fft_kernel.dart"
+    },
+    {
+      "key": "js-opt",
+      "label": "JavaScript 4-Way Unrolled (Optimized)",
+      "kind": "js",
+      "track": "B",
+      "baseline": "js",
+      "equivalence": "bit-identical",
+      "optimizationLog": "4-way loop unrolling over Uint32Array with explicit 32-bit integer modulo accumulation, eliminating loop index branch overhead."
+    },
+    {
+      "key": "wat-simd",
+      "label": "Raw WAT v128 SIMD",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "sum": "sum_wat_simd.wasm"
+      },
+      "source": "",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "wat",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Handwritten WebAssembly v128 i32x4.add SIMD vectorization summing 4 32-bit integers per instruction."
     }
   ]
 }

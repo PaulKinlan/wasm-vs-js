@@ -1,0 +1,629 @@
+[
+  {
+    "slug": "sum-u32",
+    "id": "multilang-wasm",
+    "title": "Modulo-2³² Integer Sum",
+    "category": "Numeric & Math",
+    "pageType": "compute",
+    "summary": "Sums 1,000,000 32-bit unsigned integers in a tight accumulation loop.",
+    "whatItDoes": "Linear array traversal and unsigned 32-bit integer addition with modulo overflow.",
+    "whyCompare": "Direct measurement of JIT loop tiering and integer overflow vs raw WebAssembly i32 arithmetic.",
+    "manifest": "/benchmarks/multilang-wasm/sum-u32.manifest.json",
+    "kernels": [
+      "sum"
+    ]
+  },
+  {
+    "slug": "numeric-polybench-panel",
+    "id": "numeric.polybench-panel.v1",
+    "title": "PolyBench 9-Kernel Numerical Panel",
+    "category": "Numeric & Math",
+    "pageType": "compute",
+    "summary": "Executes 9 double-precision (f64) linear algebra and stencil computation kernels.",
+    "whatItDoes": "Matrix multiplication (2mm, 3mm), matrix-vector products (gemver, gesummv), and stencil sweeps (jacobi-1d, seidel-2d).",
+    "whyCompare": "Tests CPU cache blocking, SIMD vectorization, and bounds checking on multidimensional array indexing in f64.",
+    "manifest": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+    "kernels": [
+      "polybench"
+    ]
+  },
+  {
+    "slug": "numeric-fft-spectral-filter",
+    "id": "numeric.fft-spectral-filter.v1",
+    "title": "FFT Spectral Filter",
+    "category": "Numeric & Math",
+    "pageType": "compute",
+    "summary": "Performs forward FFT, frequency-domain notch attenuation, and inverse FFT in single-precision floating point.",
+    "whatItDoes": "Cooley-Tukey radix-2 butterfly with twiddle factors followed by complex spectral masking.",
+    "whyCompare": "Heavy floating-point arithmetic with non-sequential butterfly memory access patterns.",
+    "manifest": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+    "kernels": [
+      "fft"
+    ]
+  },
+  {
+    "slug": "audio-fft",
+    "id": "audio.fft.v1",
+    "title": "Radix-2 Complex FFT Butterfly",
+    "category": "Audio & DSP",
+    "pageType": "compute",
+    "summary": "Calculates a 512-point complex Fast Fourier Transform using f32 trigonometric Taylor approximations.",
+    "whatItDoes": "Interleaved real and imaginary butterfly operations over power-of-two frequency bins.",
+    "whyCompare": "Isolates pure DSP butterfly efficiency across language compilers without standard library math dependencies.",
+    "manifest": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+    "kernels": [
+      "fft"
+    ]
+  },
+  {
+    "slug": "audio-fir",
+    "id": "audio.fir.v1",
+    "title": "FIR Direct-Form Convolution",
+    "category": "Audio & DSP",
+    "pageType": "compute",
+    "summary": "Convolves 16,384 audio samples against a 256-tap Finite Impulse Response filter in f32.",
+    "whatItDoes": "Inner product accumulation across a sliding sample window with circular buffer mechanics.",
+    "whyCompare": "Linear memory streaming and fused multiply-accumulate performance critical for digital audio effects.",
+    "manifest": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
+    "kernels": [
+      "fir"
+    ]
+  },
+  {
+    "slug": "audio-stft",
+    "id": "audio.stft.v1",
+    "title": "Short-Time Fourier Transform (STFT)",
+    "category": "Audio & DSP",
+    "pageType": "compute",
+    "summary": "Computes STFT spectrograms across 8,192 audio samples using 1,024-point frames and 256-sample hops.",
+    "whatItDoes": "Windowing, overlapping frame extraction, and FFT butterfly transforms across time-frequency bins.",
+    "whyCompare": "Exposes multi-frame memory reuse and buffer layout impact between garbage-collected and linear heaps.",
+    "manifest": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
+    "kernels": [
+      "stft"
+    ]
+  },
+  {
+    "slug": "audio-webaudio-effects",
+    "id": "audio.webaudio-effects.v1",
+    "title": "WebAudio Stereo DSP Effects Rack",
+    "category": "Audio & DSP",
+    "pageType": "compute",
+    "summary": "Processes 48,000 stereo audio frames through a chained biquad filter, soft-knee compressor, and 16-tap convolution.",
+    "whatItDoes": "Cascaded IIR biquad filtering, nonlinear envelope dynamics, and impulse response convolution in strict f32.",
+    "whyCompare": "Simulates high-throughput AudioWorklet audio processing where dropouts cause perceptible audio glitches.",
+    "manifest": "/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json",
+    "kernels": [
+      "audio_dsp"
+    ]
+  },
+  {
+    "slug": "ml-gemm",
+    "id": "ml.gemm.v1",
+    "title": "Strict-f32 GEMM Matrix Multiplication",
+    "category": "Machine Learning",
+    "pageType": "compute",
+    "summary": "Multiplies 128×128 floating-point matrices in strict f32 IEEE-754 precision.",
+    "whatItDoes": "Computes C = C₀ + A·B over 2,097,152 floating-point multiply-accumulate operations in frozen order.",
+    "whyCompare": "The fundamental arithmetic primitive of modern neural networks, testing auto-vectorization, loop tiling, and SIMD.",
+    "manifest": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
+    "kernels": [
+      "gemm"
+    ]
+  },
+  {
+    "slug": "ml-dense-mlp",
+    "id": "ml.dense-mlp.v1",
+    "title": "Dense Multi-Layer Perceptron (MLP) Forward Pass",
+    "category": "Machine Learning",
+    "pageType": "compute",
+    "summary": "Runs inference forward pass across 4 dense hidden layers plus output projection (16×128 dimensions).",
+    "whatItDoes": "Layer-by-layer matrix multiplication, bias addition, and GELU activation function in single precision.",
+    "whyCompare": "Measures small-batch neural network inference efficiency without external WebGPU or runtime frameworks.",
+    "manifest": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
+    "kernels": [
+      "mlp_forward"
+    ]
+  },
+  {
+    "slug": "ml-numeric-kernels",
+    "id": "ml.numeric-kernels.v1",
+    "title": "ML Numeric Primitive Kernels",
+    "category": "Machine Learning",
+    "pageType": "compute",
+    "summary": "Evaluates batched 2D convolution, max pooling, and numerical softmax across image tensor dimensions.",
+    "whatItDoes": "Strided spatial convolution filtering, downsampling reductions, and exponent normalization.",
+    "whyCompare": "Tests strided tensor access patterns and transcendental mathematical operations across compilers.",
+    "manifest": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
+    "kernels": [
+      "numeric"
+    ]
+  },
+  {
+    "slug": "ml-keyword-spotting",
+    "id": "ml.keyword-spotting.v1",
+    "title": "Keyword Spotting Audio Classifier",
+    "category": "Machine Learning",
+    "pageType": "compute",
+    "summary": "Classifies 300 audio spectrogram hops using an 8-bit quantized depthwise separable CNN model.",
+    "whatItDoes": "Fixed-point int8 matrix-vector arithmetic, depthwise convolution, and probabilistic class logit evaluation.",
+    "whyCompare": "Compares low-bitwidth integer arithmetic and quantized neural inference in browser environments.",
+    "manifest": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
+    "kernels": [
+      "kws_run"
+    ]
+  },
+  {
+    "slug": "image-editing",
+    "id": "image-editing.v1",
+    "title": "Image Box Blur & Gaussian Filter",
+    "category": "Image, Graphics & CAD",
+    "pageType": "compute",
+    "summary": "Applies multi-pass separable box and Gaussian blur filters over 2D pixel buffers.",
+    "whatItDoes": "Horizontal and vertical 1D kernel sweeps with edge clamping and integer accumulator normalization.",
+    "whyCompare": "Classic image processing benchmark isolating spatial memory locality and vectorized pixel blending.",
+    "manifest": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+    "kernels": [
+      "luma_gaussian_pipeline"
+    ]
+  },
+  {
+    "slug": "image-flood-fill",
+    "id": "image-editing.v1",
+    "title": "Scanline Queue Flood Fill",
+    "category": "Image, Graphics & CAD",
+    "pageType": "compute",
+    "summary": "Executes deterministic scanline queue flood fills over indexed image canvas bitmaps.",
+    "whatItDoes": "Breadth-first spatial search, boundary coordinate checking, and continuous segment color replacement.",
+    "whyCompare": "Dynamic worklist queue manipulation and pointer-free memory mutations across language engines.",
+    "manifest": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+    "kernels": [
+      "flood_fill"
+    ]
+  },
+  {
+    "slug": "graphics-cpu-path-tracer",
+    "id": "graphics-cpu-path-tracer.v1",
+    "title": "Monte Carlo CPU Path Tracer",
+    "category": "Image, Graphics & CAD",
+    "pageType": "compute",
+    "summary": "Traces ray paths through a 3D scene with diffuse, specular, and refractive dielectric materials.",
+    "whatItDoes": "Ray-sphere intersection tests, Fresnel reflectance calculations, and pseudo-random light scatter sampling.",
+    "whyCompare": "Heavy recursive branching and vector 3D linear algebra (cross products, dot products, vector normalization).",
+    "manifest": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
+    "kernels": [
+      "path_trace"
+    ]
+  },
+  {
+    "slug": "cad-mesh-repair",
+    "id": "cad.mesh-repair.v1",
+    "title": "STL 3D Mesh Topology Repair",
+    "category": "Image, Graphics & CAD",
+    "pageType": "compute",
+    "summary": "Repairs raw 3D polygon meshes: vertex quantization, duplicate welding, normal orientation, and face simplification.",
+    "whatItDoes": "Spatial hash grid vertex deduplication, edge manifold verification, and normal vector reconciliation.",
+    "whyCompare": "Unstructured 3D geometric processing with irregular memory access and spatial dictionary lookups.",
+    "manifest": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
+    "kernels": [
+      "mesh_repair"
+    ]
+  },
+  {
+    "slug": "cad-parametric-bracket",
+    "id": "cad.parametric-bracket.v1",
+    "title": "Parametric Bracket B-Rep & Tessellation",
+    "category": "Image, Graphics & CAD",
+    "pageType": "compute",
+    "summary": "Generates boundary representation (B-Rep) geometry and scan-band triangle tessellation for parametric CAD parts.",
+    "whatItDoes": "Analytic curve discretization, edge loop polygon triangulation, and vertex buffer generation.",
+    "whyCompare": "Demanding constructive solid geometry math requiring robust geometric predicates and float precision.",
+    "manifest": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
+    "kernels": [
+      "bracket"
+    ]
+  },
+  {
+    "slug": "text-diff-patch",
+    "id": "text.diff-patch.v1",
+    "title": "Myers O(ND) Diff & Patch Algorithm",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Calculates shortest edit script (SES) diff and patch generation across 512-line source texts.",
+    "whatItDoes": "Greedy graph diagonal search, snake tracking, and edit script generation.",
+    "whyCompare": "Core algorithmic building block of version control systems, code editors, and collaborative documents.",
+    "manifest": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+    "kernels": [
+      "myers_diff"
+    ]
+  },
+  {
+    "slug": "text-markdown-cms",
+    "id": "text.markdown-cms.v1",
+    "title": "Markdown CMS Pipeline",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Parses, transforms, sanitizes, and renders 500 CommonMark documents into HTML strings.",
+    "whatItDoes": "Block structure lexical analysis, inline emphasis scanning, HTML escaping, and link reference resolution.",
+    "whyCompare": "String parsing, tokenization, and dynamic text buffer generation under heavy iteration loops.",
+    "manifest": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
+    "kernels": [
+      "markdown_cms_render"
+    ]
+  },
+  {
+    "slug": "text-regex-log-scan",
+    "id": "text.regex-log-scan.v1",
+    "title": "Structured Log Scan Regex Matcher",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Scans 640 log entries matching timestamps, IP addresses, HTTP status codes, and user agents.",
+    "whatItDoes": "Deterministic finite automaton (DFA) state transitions over byte streams.",
+    "whyCompare": "Measures byte scanning and branching throughput without engine-specific regex compiler optimizations.",
+    "manifest": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+    "kernels": [
+      "scan_log"
+    ]
+  },
+  {
+    "slug": "regex-automata-duel",
+    "id": "regex-automata-duel-demo",
+    "title": "Thompson NFA to DFA Regex Duel",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Executes 20 precompiled Thompson NFA and DFA automata over 1 MiB text corpus.",
+    "whatItDoes": "Epsilon closure tracking, state set bitmasks, and linear scan match verification.",
+    "whyCompare": "State machine representation efficiency and memory layout comparisons between JS objects and Wasm arrays.",
+    "manifest": "/benchmarks/multilang-wasm/regex-automata-duel-demo.manifest.json",
+    "kernels": [
+      "regex_scan"
+    ]
+  },
+  {
+    "slug": "text-gc-document-edit",
+    "id": "text.gc-document-edit.v1",
+    "title": "GC-Rich Document Tree Mutation",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Mutates a 256-node document tree across 10,000 structural insertions, deletions, and link traversals.",
+    "whatItDoes": "Parent-child node tree re-parenting, text node concatenation, and subtree deletion allocations.",
+    "whyCompare": "Specifically compares managed heap garbage collection (WasmGC vs JS V8) against linear-memory slot arrays.",
+    "manifest": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
+    "kernels": [
+      "gc_document_edit_trace"
+    ]
+  },
+  {
+    "slug": "document-pdf-viewer",
+    "id": "document.pdf-viewer.v1",
+    "title": "PDF Document Structure Parser",
+    "category": "Text, Parsing & Document",
+    "pageType": "compute",
+    "summary": "Parses PDF trailer cross-reference tables, object streams, font encodings, and content operator streams.",
+    "whatItDoes": "Binary lexing, dictionary object resolution, stream decompression, and layout command interpretation.",
+    "whyCompare": "Realistic document parsing workload mixing binary data, nested dictionaries, and vector layout commands.",
+    "manifest": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
+    "kernels": [
+      "pdf_parse"
+    ]
+  },
+  {
+    "slug": "crypto-file-integrity",
+    "id": "crypto.file-integrity.v1",
+    "title": "SHA-256 Cryptographic Hash",
+    "category": "Crypto, Archives & Serialization",
+    "pageType": "compute",
+    "summary": "Computes SHA-256 message digests across 1 MiB seeded binary data in 64 KiB blocks.",
+    "whatItDoes": "32-bit logical operations (Ch, Maj, Sigma), circular right rotations, and big-endian block compression.",
+    "whyCompare": "Bitwise integer arithmetic without allocations, a classic benchmark of instruction-level compiler efficiency.",
+    "manifest": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+    "kernels": [
+      "sha256"
+    ]
+  },
+  {
+    "slug": "crypto-authenticated-stream",
+    "id": "crypto.authenticated-stream.v1",
+    "title": "ChaCha20-Poly1305 AEAD Cipher",
+    "category": "Crypto, Archives & Serialization",
+    "pageType": "compute",
+    "summary": "Encrypts and authenticates streamed network data frames using ChaCha20 quarter-rounds and Poly1305 MAC.",
+    "whatItDoes": "Quarter-round 32-bit rotation, state matrix permutation, and 130-bit polynomial field multiplication.",
+    "whyCompare": "Symmetric cryptographic throughput and SIMD vectorization potential in client-side encryption.",
+    "manifest": "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+    "kernels": [
+      "crypto"
+    ]
+  },
+  {
+    "slug": "archive-zip-workspace",
+    "id": "archive.zip-workspace.v1",
+    "title": "ZIP Archive Build & Deflate Compression",
+    "category": "Crypto, Archives & Serialization",
+    "pageType": "compute",
+    "summary": "Packs and compresses files into standard ZIP archives using Deflate Huffman coding and LZ77 sliding window.",
+    "whatItDoes": "LZ77 string matching hash tables, dynamic Huffman prefix trees, and binary central directory assembly.",
+    "whyCompare": "Memory-intensive compression algorithms with dynamic dictionary lookups and bit-packing operations.",
+    "manifest": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
+    "kernels": [
+      "zip_build"
+    ]
+  },
+  {
+    "slug": "serialization-json-telemetry",
+    "id": "serialization.json-telemetry.v1",
+    "title": "JSON Telemetry Batch Parsing",
+    "category": "Crypto, Archives & Serialization",
+    "pageType": "compute",
+    "summary": "Parses batches of 1,000 structured JSON telemetry records with nested metrics and string identifiers.",
+    "whatItDoes": "Recursive descent JSON token parsing, number conversion, and typed object schema validation.",
+    "whyCompare": "Pits browser-native JSON.parse and V8 object shape caches against compiled Wasm custom parsers.",
+    "manifest": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
+    "kernels": [
+      "telemetry"
+    ]
+  },
+  {
+    "slug": "serialization-protobuf-gateway",
+    "id": "serialization.protobuf-gateway.v1",
+    "title": "Protobuf Binary Wire Decode & Filter",
+    "category": "Crypto, Archives & Serialization",
+    "pageType": "compute",
+    "summary": "Decodes 10,000 Protocol Buffer wire messages, applying field filtering and aggregation rules.",
+    "whatItDoes": "Varint decoding, zigzag integer unwrapping, tag-wire field dispatch, and binary length-delimited slicing.",
+    "whyCompare": "Evaluates low-level binary protocol decoding performance for microservices and RPC gateways.",
+    "manifest": "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
+    "kernels": [
+      "protobuf_gateway"
+    ]
+  },
+  {
+    "slug": "simulation-nbody-cloth",
+    "id": "simulation.nbody-cloth.v1",
+    "title": "N-Body Gravitational & Spring Simulation",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Simulates 128 gravitational bodies and mass-spring cloth grid over 30 physical timesteps.",
+    "whatItDoes": "O(N²) pairwise distance calculation, gravitational force accumulation, and Verlet velocity integration.",
+    "whyCompare": "Cache utilization in all-pairs particle simulations, testing loop interchange and vector registers.",
+    "manifest": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+    "kernels": [
+      "nbody_step"
+    ]
+  },
+  {
+    "slug": "simulation-rigid-body-2d",
+    "id": "simulation.rigid-body-2d.v1",
+    "title": "2D Rigid Body Physics Engine",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Simulates 500 convex 2D rigid bodies with Separating Axis Theorem (SAT) collision, constraint joints, and torque.",
+    "whatItDoes": "Broadphase bounding box pruning, narrowphase SAT polygon overlap, impulse contact resolution, and integration.",
+    "whyCompare": "Complex physical simulation mixing linear algebra, contact manifolds, and constraint solver iterations.",
+    "manifest": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+    "kernels": [
+      "rigid_engine"
+    ]
+  },
+  {
+    "slug": "database-olap-chart",
+    "id": "database.olap-chart.v1",
+    "title": "Columnar OLAP Query Aggregation",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Executes 5 analytical SQL-style queries (group by, filter, sum, average) over 10,000 columnar data rows.",
+    "whatItDoes": "Column vector scanning, hash table grouping, predicate filtering, and multi-column sorted projections.",
+    "whyCompare": "Evaluates analytical database operations across in-memory columnar layouts in JS and Wasm linear memory.",
+    "manifest": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
+    "kernels": [
+      "olap"
+    ]
+  },
+  {
+    "slug": "network-pcap-decode",
+    "id": "network.pcap-decode.v1",
+    "title": "Network PCAP Packet Decoder",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Parses 1,000 network packet frames: Ethernet headers, IPv4/IPv6 headers, TCP/UDP ports, and payload offsets.",
+    "whatItDoes": "Bitfield network byte order unpack, checksum verification, protocol classification, and flow tracking.",
+    "whyCompare": "Network telemetry decoding performance requiring unaligned binary buffer reads and bitmasking.",
+    "manifest": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
+    "kernels": [
+      "pcap_decode"
+    ]
+  },
+  {
+    "slug": "server-ssr-template",
+    "id": "server.ssr-template.v1",
+    "title": "Server-Side Template Engine & SSR",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Renders 1,000 catalog product records through a templating pipeline into escaped HTML strings.",
+    "whatItDoes": "Template expression substitution, conditional loops, HTML entity escaping, and string buffer assembly.",
+    "whyCompare": "Serverless and Edge compute rendering throughput, comparing V8 template strings against Wasm template engines.",
+    "manifest": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
+    "kernels": [
+      "ssr_render"
+    ]
+  },
+  {
+    "slug": "game-ecs-frame-update",
+    "id": "game.ecs-frame-update.v1",
+    "title": "Entity Component System (ECS) Frame Update",
+    "category": "Simulation, Data & Systems",
+    "pageType": "compute",
+    "summary": "Updates 4,096 game entities through movement, physics, life-cycle, and collision ECS systems.",
+    "whatItDoes": "Contiguous component array traversal, entity query filtering, and position transform updates.",
+    "whyCompare": "Data-oriented architecture (Structure of Arrays vs Array of Structures) in browser game development.",
+    "manifest": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
+    "kernels": [
+      "ecs_update"
+    ]
+  },
+  {
+    "slug": "dom-todomvc-journey",
+    "id": "dom.todomvc-journey.v1",
+    "title": "TodoMVC Reactive State Machine & DOM",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-todomvc-journey.js",
+    "summary": "Executes a 150-action user journey (create, toggle, edit, filter, clear) with real DOM updates.",
+    "whatItDoes": "Computes UI state transitions and drives live DOM creation, deletion, class changes, and text updates.",
+    "whyCompare": "Tests whether Wasm state computation outperforms JS when coupled with real browser DOM mutation boundaries.",
+    "manifest": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+    "kernels": [
+      "todomvc_engine"
+    ]
+  },
+  {
+    "slug": "dom-grid-movement",
+    "id": "dom.grid-movement.v1",
+    "title": "64×64 Entity Grid Movement",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-grid-movement.js",
+    "summary": "Updates 128 entities across 3,600 directional moves with real DOM element repositioning.",
+    "whatItDoes": "Computes grid boundaries and collisions, applying style.left, style.top, and textContent to live DOM nodes.",
+    "whyCompare": "Directly measures the boundary crossing cost: Wasm state calculation vs real DOM manipulation in an iframe.",
+    "manifest": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
+    "kernels": [
+      "grid_trace"
+    ]
+  },
+  {
+    "slug": "dom-keyed-list-mutation",
+    "id": "dom.keyed-list-mutation.v1",
+    "title": "Keyed List Mutation & Reordering",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-keyed-list-mutation.js",
+    "summary": "Applies 2,000 frozen list operations (insert, remove, swap, reverse) over 1,000 keyed items in the DOM.",
+    "whatItDoes": "Keyed node reconciliation, insertBefore moves, and DOM list reordering.",
+    "whyCompare": "The core benchmark of UI framework reconciliation algorithms (React, Vue, Svelte, Preact).",
+    "manifest": "/benchmarks/multilang-wasm/dom-keyed-list-mutation.manifest.json",
+    "kernels": [
+      "keyed_list_trace"
+    ]
+  },
+  {
+    "slug": "dom-nested-tree-mutation",
+    "id": "dom.nested-tree-mutation.v1",
+    "title": "Nested DOM Tree Hierarchy Mutation",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-nested-tree-mutation.js",
+    "summary": "Executes 1,200 hierarchical insertion, movement, and deletion operations across a 500-node DOM tree.",
+    "whatItDoes": "Hierarchical parent-child DOM tree traversal, subtree detachment, and re-attachment.",
+    "whyCompare": "Tests recursive DOM operations and memory overhead in complex hierarchical web applications.",
+    "manifest": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
+    "kernels": [
+      "nested_tree_trace"
+    ]
+  },
+  {
+    "slug": "dom-table-sort-filter-pagination",
+    "id": "dom.table-sort-filter-pagination.v1",
+    "title": "Data Table Sort, Filter & Pagination",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-table-sort-filter-pagination.js",
+    "summary": "Performs 120 multi-column sorting, text filtering, cell editing, and page switches across a 5,000-row table.",
+    "whatItDoes": "Column index sorting, row visibility toggles, and table cell text updates in live HTML table elements.",
+    "whyCompare": "Measures real-world enterprise data grid rendering latency and DOM layout recalculations.",
+    "manifest": "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
+    "kernels": [
+      "table_sort_trace"
+    ]
+  },
+  {
+    "slug": "dom-dependent-form-validation",
+    "id": "dom.dependent-form-validation.v1",
+    "title": "Complex Dependent Form Validation",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-dependent-form-validation.js",
+    "summary": "Validates 10 interdependent form fields across 240 user input and blur interaction events.",
+    "whatItDoes": "Multi-field dependency rules, regex checking, error state calculations, and aria-invalid DOM updates.",
+    "whyCompare": "Interactive form UX response time, assessing whether compiled validation logic improves input latency.",
+    "manifest": "/benchmarks/multilang-wasm/dom-dependent-form-validation.manifest.json",
+    "kernels": [
+      "form_validate_trace"
+    ]
+  },
+  {
+    "slug": "dom-virtualized-grid",
+    "id": "dom.virtualized-grid.v1",
+    "title": "100,000-Row Virtualized Grid",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-virtualized-grid.js",
+    "summary": "Virtualizes 100,000 rows across a 300-event scroll trace, recycling visible DOM cell elements.",
+    "whatItDoes": "Scroll delta calculations, active window index slicing, and recycled row recycling with DOM translate transforms.",
+    "whyCompare": "Smooth scrolling and frame-budget efficiency in high-density data visualization.",
+    "manifest": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
+    "kernels": [
+      "grid_trace"
+    ]
+  },
+  {
+    "slug": "vdom-diff-patch",
+    "id": "dom.vdom-diff-patch.v1",
+    "title": "Virtual DOM Tree Diff & Patch Engine",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-vdom-diff-patch.js",
+    "summary": "Diffs 1,000 virtual DOM nodes across 250 structural edits and applies minimum patch operations to live DOM.",
+    "whatItDoes": "Generates virtual tree edits and applies typed DOM patch commands (replace, insert, remove, setAttr).",
+    "whyCompare": "Can a WebAssembly Virtual DOM diff engine outperform JavaScript when DOM mutations are required?",
+    "manifest": "/benchmarks/multilang-wasm/vdom-diff-patch.manifest.json",
+    "kernels": [
+      "vdom_diff_trace"
+    ]
+  },
+  {
+    "slug": "game-dom-tactics-grid",
+    "id": "game.dom-tactics-grid.v1",
+    "title": "Tactics Grid Game Loop in DOM",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-game-dom-tactics-grid.js",
+    "summary": "Drives turn-based tactical combat turns across an interactive DOM board with unit stat badges.",
+    "whatItDoes": "Path range flood, unit movement, attack calculation, and health bar DOM updates.",
+    "whyCompare": "Simulates board games and DOM-rendered 2D UI game logic under continuous frame updates.",
+    "manifest": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+    "kernels": [
+      "tactics_trace"
+    ]
+  },
+  {
+    "slug": "game-canvas-arcade",
+    "id": "game.canvas-arcade.v1",
+    "title": "2D Arcade Game Simulation & Canvas",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-game-canvas-arcade.js",
+    "summary": "Simulates 3,600 frames of arcade physics (projectiles, enemies, score, collisions) with canvas rendering.",
+    "whatItDoes": "Deterministic game state loop, circle-box collision detection, and HTML5 2D Canvas rendering commands.",
+    "whyCompare": "Compares game loop simulation speed and canvas draw call throughput between JS and Wasm.",
+    "manifest": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+    "kernels": [
+      "arcade_trace"
+    ]
+  },
+  {
+    "slug": "game-canvas-entity-pathfinding",
+    "id": "game.canvas-entity-pathfinding.v1",
+    "title": "A* Pathfinding & Canvas Swarm Entities",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-game-canvas-entity-pathfinding.js",
+    "summary": "Runs 128 simultaneous A* pathfinding searches across a 64×64 obstacle grid and renders 4,096 swarm entities.",
+    "whatItDoes": "Priority queue A* path computation, obstacle map queries, and batched canvas entity rendering.",
+    "whyCompare": "Heavy algorithmic pathfinding combined with immediate-mode graphical canvas presentation.",
+    "manifest": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+    "kernels": [
+      "pathfinding_trace"
+    ]
+  }
+]

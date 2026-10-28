@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Measurement methodology, 3-stage benchmark progression, and honest performance reporting model.">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'">
+    <title>Methodology · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/methodology/">Methodology</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main">
+      <section class="hero catalog-hero">
+        <p class="eyebrow">Benchmark Principles</p>
+        <h1>Measurement Methodology &amp; 3-Stage Progression</h1>
+        <p class="lede">
+          Comparing JavaScript and WebAssembly requires strict isolation between delivery overhead, initiation cost, and raw computational throughput.
+        </p>
+      </section>
+
+      <section class="proposal-inventory">
+        <p class="eyebrow">Progression Pipeline</p>
+        <h2>The 3-Stage Evaluation Architecture</h2>
+        <p>Every benchmark progresses through three strictly isolated stages:</p>
+        <ol>
+          <li>
+            <strong>Stage 1 — Core Baseline (JS vs Handwritten WAT):</strong>
+            First-principles baseline comparing handwritten JavaScript against handwritten WebAssembly text format (WAT). This comparison runs first and establishes the algorithmic foundation.
+          </li>
+          <li>
+            <strong>Stage 2 — Multi-Language Comparison (Track A Controlled):</strong>
+            Identical algorithms implemented across compiled language toolchains (C, C++, Rust, AssemblyScript, and Dart with WasmGC or flat typed memory) targeting WebAssembly.
+          </li>
+          <li>
+            <strong>Stage 3 — Idiomatic &amp; SIMD Optimizations (Track B):</strong>
+            Specialized optimizations such as 128-bit SIMD vectorization and cache-blocking transforms, evaluated directly against each target's own Stage 1 or Stage 2 baseline.
+          </li>
+        </ol>
+      </section>
+
+      <section class="proposal-inventory">
+        <p class="eyebrow">Measurement Disciplines</p>
+        <h2>Three-Part Honest Reporting Model</h2>
+        <p>
+          Single aggregate numbers conceal crucial trade-offs. The suite separates measurements into three distinct components:
+        </p>
+        <ul>
+          <li>
+            <strong>Static Payload Footprint:</strong>
+            Pre-fetched binary and source byte counts, separated from in-browser execution latency so network fluctuations do not corrupt timing data.
+          </li>
+          <li>
+            <strong>Initiation Time:</strong>
+            Compilation, module instantiation, and cold execution recorded separately from sustained loop samples.
+          </li>
+          <li>
+            <strong>Warm Execution Distribution:</strong>
+            Median, minimum, maximum, 95th percentile, and interquartile range (IQR) calculated across sustained execution trajectories.
+          </li>
+        </ul>
+      </section>
+
+      <section class="proposal-inventory">
+        <p class="eyebrow">Visual Evidence</p>
+        <h2>Four Standard Performance Visualizations</h2>
+        <p>Every benchmark execution renders four distinct SVG visualizations:</p>
+        <ul>
+          <li><strong>Execution Time Bar Chart:</strong> Proportional horizontal comparison with 95% confidence interval whiskers.</li>
+          <li><strong>Initiation vs Execution Amortization Chart:</strong> Explicit break-even crossing point indicating where compiled throughput offsets startup overhead.</li>
+          <li><strong>Iteration Trajectory Chart:</strong> Sequential iteration plot showing warm-up, JIT tier-up, and steady-state stability.</li>
+          <li><strong>Size vs Speed Scatter Plot:</strong> Two-dimensional plot correlating binary footprint against warm execution median.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

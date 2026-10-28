@@ -249,7 +249,10 @@ export async function planBuilds(
     }
     for (const engine of manifest.engines ?? []) {
       const key = engine.key ?? "";
-      if (key === "js" || key === "wat" || key === "kt") continue;
+      if (
+        key === "js" || key === "wat" || key === "kt" ||
+        engine.kind === "js" || engine.lang === "wat"
+      ) continue;
       // Dart is skipped unless asked for. The committed dart2wasm glue is
       // lint-clean; a newer SDK emits `var` and unused helpers, so
       // regenerating it fails the gate's lint stage while changing nothing

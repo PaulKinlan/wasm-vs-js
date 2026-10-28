@@ -27,7 +27,9 @@ import {
   icon,
   scopeLegendHtml,
   scopeTableHtml,
+  sizeVsSpeedChartSvg,
   toCsv,
+  trajectoryChartSvg,
 } from "./benchmark-report.js";
 
 export const WORKLOAD_CONFIGS = {
@@ -1652,6 +1654,48 @@ function renderUnifiedExplorer({
       },
     );
     wrap.appendChild(amortHost);
+  }
+
+  const displayRows = kernelRows.length > 1 ? kernelRows : pipelineRows;
+  if (displayRows.length > 1) {
+    const trajSeries = displayRows
+      .filter((r) =>
+        Array.isArray(r.samples ?? r.summary?.samples) &&
+        (r.samples ?? r.summary?.samples).length > 1
+      )
+      .map((r) => ({
+        label: r.label,
+        samples: r.samples ?? r.summary?.samples,
+        kind: r.key === "js" ? "js" : "wasm",
+      }));
+    if (trajSeries.length > 1) {
+      const trajHost = document.createElement("div");
+      trajHost.innerHTML = trajectoryChartSvg(trajSeries, {
+        title: "Iteration trajectory — warm-up, JIT tier-up, and stability",
+        caption:
+          "Per-iteration execution timing across the run loop. Lower is faster; flat lines indicate steady-state performance.",
+      });
+      wrap.appendChild(trajHost);
+    }
+
+    const scatterRows = displayRows
+      .filter((r) =>
+        typeof r.bytes === "number" && r.bytes > 0 && typeof r.summary?.p50Ms === "number"
+      )
+      .map((r) => ({
+        label: r.label,
+        bytes: r.bytes,
+        valueMs: r.summary.p50Ms,
+        kind: r.key === "js" ? "js" : "wasm",
+      }));
+    if (scatterRows.length > 1) {
+      const scatterHost = document.createElement("div");
+      scatterHost.innerHTML = sizeVsSpeedChartSvg(scatterRows, {
+        title: "Payload footprint vs warm execution speed",
+        caption: "Bottom-left is optimal (small binary and fast execution).",
+      });
+      wrap.appendChild(scatterHost);
+    }
   }
 
   const tables = document.createElement("div");

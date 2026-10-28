@@ -1,6 +1,6 @@
 {
   "workloadId": "ml.gemm.v1",
-  "kernelLabel": "strict-f32 GEMM \u2014 128\u00d7128\u00d7128 product (frozen i/j/k order)",
+  "kernelLabel": "strict-f32 GEMM — 128×128×128 product (frozen i/j/k order)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "gemm"
@@ -248,7 +248,7 @@
       "track": "B",
       "baseline": "asc",
       "equivalence": "bit-identical",
-      "optimizationLog": "Loop interchange i/j/k -> i/k/j. The baseline reads B down a column in the innermost loop, touching a separate 64-byte line per iteration; interchanging streams B along a row instead, so lines are fully used and the prefetcher can work. Costs the register accumulator \u2014 the running sum lives in OUT, so each inner step is a load/store pair. Bit-identical: for any fixed (i,j) the terms are still added in ascending t with f32 rounding after each add, so no accumulation order changes. Measured 1.28x over the asc baseline (Deno, arm64 macOS, 128^3, 200 iterations).",
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j. The baseline reads B down a column in the innermost loop, touching a separate 64-byte line per iteration; interchanging streams B along a row instead, so lines are fully used and the prefetcher can work. Costs the register accumulator — the running sum lives in OUT, so each inner step is a load/store pair. Bit-identical: for any fixed (i,j) the terms are still added in ascending t with f32 rounding after each add, so no accumulation order changes. Measured 1.28x over the asc baseline (Deno, arm64 macOS, 128^3, 200 iterations).",
       "initialMemoryBytes": 1048576
     },
     {
@@ -264,7 +264,7 @@
       "track": "B",
       "baseline": "asc",
       "equivalence": "bit-identical",
-      "optimizationLog": "Classic i/j cache blocking into 32x32 panels; the k loop is deliberately left unblocked so no accumulation order changes. Per-panel working set is 16 KiB of A plus 16 KiB of B against 64 KiB for the whole of B untiled. Measured 1.02x \u2014 effectively neutral. At 128^3 the entire B matrix is 64 KiB and already fits in this machine's L1d, so there is no capacity miss for blocking to remove. The tile size is tuned to one machine and this result should not be generalised to larger shapes.",
+      "optimizationLog": "Classic i/j cache blocking into 32x32 panels; the k loop is deliberately left unblocked so no accumulation order changes. Per-panel working set is 16 KiB of A plus 16 KiB of B against 64 KiB for the whole of B untiled. Measured 1.02x — effectively neutral. At 128^3 the entire B matrix is 64 KiB and already fits in this machine's L1d, so there is no capacity miss for blocking to remove. The tile size is tuned to one machine and this result should not be generalised to larger shapes.",
       "initialMemoryBytes": 1048576
     },
     {
@@ -313,6 +313,34 @@
       "equivalence": "bit-identical",
       "optimizationLog": "-O4: more aggressive than -O3 under the same assumptions, input-data sensitive. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle.",
       "optimizationLevel": "4"
+    },
+    {
+      "key": "js-opt",
+      "label": "JavaScript i/k/j (Optimized)",
+      "kind": "js",
+      "track": "B",
+      "baseline": "js",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns."
+    },
+    {
+      "key": "wat-simd",
+      "initialMemoryBytes": 1048576,
+      "label": "Raw WAT i/k/j + SIMD128",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_wat_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_wat_simd.wat",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "wat",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Handwritten WebAssembly v128 f32x4 SIMD vectorization in i/k/j loop order. Accumulates 4 independent output columns simultaneously with zero horizontal reduction, bit-identical to the IEEE-754 single-precision oracle."
     }
   ]
 }
