@@ -642,7 +642,6 @@ function exportOverviewCsv(list, targetEngine) {
   const headers = [
     "Workload",
     "Category",
-    "Source",
     "JS_Warm_ms",
     "Wasm_Warm_ms",
     "Wasm_Engine",
@@ -655,7 +654,6 @@ function exportOverviewCsv(list, targetEngine) {
     return [
       `"${w.title.replace(/"/g, '""')}"`,
       `"${w.category}"`,
-      w.source,
       cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(2) : "",
       cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(2) : "",
       `"${cmp.engineLabel}"`,
@@ -748,10 +746,6 @@ function renderHolisticOverview() {
         const bA = cmpA.wasmBytes || -1;
         const bB = cmpB.wasmBytes || -1;
         return bB - bA;
-      }
-      case "source-live": {
-        const score = (s) => (s === "live" ? 2 : s === "reference" ? 1 : 0);
-        return score(b.source) - score(a.source) || a.title.localeCompare(b.title);
       }
       case "title-asc":
         return a.title.localeCompare(b.title);
@@ -922,75 +916,85 @@ function renderHolisticOverview() {
   // Build Charts Grid
   let chartsGridHtml = "";
   if (overviewState.view !== "table") {
-    // Chart 1: Top measured workloads comparison
-    const topWorkloads = measured.slice(0, 10);
-    const chartRows = [];
-    topWorkloads.forEach((w) => {
-      const cmp = getWorkloadComparison(w, overviewState.engine);
-      const titleShort = w.title.length > 22 ? w.title.slice(0, 20) + "…" : w.title;
-      chartRows.push({
-        label: `${titleShort} (JS)`,
-        valueMs: cmp.jsWarmMs,
-        kind: "js",
-      });
-      chartRows.push({
-        label: `${titleShort} (${
-          cmp.engineLabel.length > 10 ? cmp.engineLabel.slice(0, 9) + "…" : cmp.engineLabel
-        })`,
-        valueMs: cmp.wasmWarmMs,
-        kind: "wasm",
-      });
-    });
-
-    const leftChartHtml = chartRows.length > 0
-      ? barChartSvg(chartRows, {
-        title: `Workload Execution: JS vs ${
-          overviewState.engine === "best" ? "Fastest Wasm" : overviewState.engine.toUpperCase()
-        }`,
-        caption: "Warm median execution duration in milliseconds (lower is faster).",
-      })
-      : '<p class="notice">No measured workloads matching the current filter.</p>';
-
-    // Chart 2: Suite-wide cross-language geometric mean
-    const crossLangDefs = [
-      { key: "js", label: "JavaScript (V8)", kind: "js" },
-      { key: "wat", label: "Raw WAT", kind: "wasm" },
-      { key: "c", label: "C / Wasm", kind: "wasm" },
-      { key: "cpp", label: "C++ / Wasm", kind: "wasm" },
-      { key: "rs", label: "Rust / Wasm", kind: "wasm" },
-      { key: "asc", label: "AssemblyScript", kind: "wasm" },
-      { key: "dart", label: "Dart / WasmGC", kind: "wasm" },
-    ];
-    const crossLangRows = [];
-    crossLangDefs.forEach((d) => {
-      const vals = [];
-      Array.from(suiteStore.values()).forEach((w) => {
-        const m = w.engines?.[d.key]?.warmMs;
-        if (typeof m === "number" && m > 0) vals.push(m);
-      });
-      if (vals.length > 0) {
-        crossLangRows.push({
-          label: d.label,
-          valueMs: geomMean(vals),
-          kind: d.kind,
-        });
+    if (measured.length === 0) {
+      if (overviewState.view === "charts") {
+        chartsGridHtml = `
+          <div class="notice">
+            No live runs recorded yet. Click <strong>▶ Run Filtered</strong> above or <strong>▶ Run</strong> on any workload below to benchmark in this browser.
+          </div>
+        `;
       }
-    });
+    } else {
+      // Chart 1: Top measured workloads comparison
+      const topWorkloads = measured.slice(0, 10);
+      const chartRows = [];
+      topWorkloads.forEach((w) => {
+        const cmp = getWorkloadComparison(w, overviewState.engine);
+        const titleShort = w.title.length > 22 ? w.title.slice(0, 20) + "…" : w.title;
+        chartRows.push({
+          label: `${titleShort} (JS)`,
+          valueMs: cmp.jsWarmMs,
+          kind: "js",
+        });
+        chartRows.push({
+          label: `${titleShort} (${
+            cmp.engineLabel.length > 10 ? cmp.engineLabel.slice(0, 9) + "…" : cmp.engineLabel
+          })`,
+          valueMs: cmp.wasmWarmMs,
+          kind: "wasm",
+        });
+      });
 
-    const rightChartHtml = crossLangRows.length > 1
-      ? barChartSvg(crossLangRows, {
-        title: "Cross-Language Suite Aggregate",
-        caption:
-          "Geometric mean execution duration in milliseconds across multi-language workloads.",
-      })
-      : '<p class="notice">Cross-language measurements loading...</p>';
+      const leftChartHtml = chartRows.length > 0
+        ? barChartSvg(chartRows, {
+          title: `Workload Execution: JS vs ${
+            overviewState.engine === "best" ? "Fastest Wasm" : overviewState.engine.toUpperCase()
+          }`,
+          caption: "Warm median execution duration in milliseconds (lower is faster).",
+        })
+        : '<p class="notice">No measured workloads matching the current filter.</p>';
 
-    chartsGridHtml = `
-      <div class="wvj-chart-grid">
-        <div class="wvj-chart-cell">${leftChartHtml}</div>
-        <div class="wvj-chart-cell">${rightChartHtml}</div>
-      </div>
-    `;
+      // Chart 2: Suite-wide cross-language geometric mean
+      const crossLangDefs = [
+        { key: "js", label: "JavaScript (V8)", kind: "js" },
+        { key: "wat", label: "Raw WAT", kind: "wasm" },
+        { key: "c", label: "C / Wasm", kind: "wasm" },
+        { key: "cpp", label: "C++ / Wasm", kind: "wasm" },
+        { key: "rs", label: "Rust / Wasm", kind: "wasm" },
+        { key: "asc", label: "AssemblyScript", kind: "wasm" },
+        { key: "dart", label: "Dart / WasmGC", kind: "wasm" },
+      ];
+      const crossLangRows = [];
+      crossLangDefs.forEach((d) => {
+        const vals = [];
+        Array.from(suiteStore.values()).forEach((w) => {
+          const m = w.engines?.[d.key]?.warmMs;
+          if (typeof m === "number" && m > 0) vals.push(m);
+        });
+        if (vals.length > 0) {
+          crossLangRows.push({
+            label: d.label,
+            valueMs: geomMean(vals),
+            kind: d.kind,
+          });
+        }
+      });
+
+      const rightChartHtml = crossLangRows.length > 1
+        ? barChartSvg(crossLangRows, {
+          title: "Cross-Language Suite Aggregate",
+          caption:
+            "Geometric mean execution duration in milliseconds across multi-language workloads.",
+        })
+        : '<p class="notice">Cross-language measurements loading...</p>';
+
+      chartsGridHtml = `
+        <div class="wvj-chart-grid">
+          <div class="wvj-chart-cell">${leftChartHtml}</div>
+          <div class="wvj-chart-cell">${rightChartHtml}</div>
+        </div>
+      `;
+    }
   }
 
   // Build Master Comparison Table
@@ -1007,17 +1011,12 @@ function renderHolisticOverview() {
 
       const sizeStr = cmp.wasmBytes > 0 ? fmtBytes(cmp.wasmBytes) : "—";
 
-      const sourceBadge = `<span class="source-badge ${item.source}">${
-        item.source === "live" ? "● Live" : item.source === "reference" ? "Reference" : "Unmeasured"
-      }</span>`;
-
       return `
         <tr>
           <td>
             <a href="#workload-${item.workKey}" class="ov-workload-link"><strong>${item.title}</strong></a>
           </td>
           <td><span class="pg-cat-badge">${item.category}</span></td>
-          <td>${sourceBadge}</td>
           <td>${cmp.jsWarmMs > 0 ? fmtMs(cmp.jsWarmMs) : "—"}</td>
           <td>
             ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
@@ -1048,7 +1047,6 @@ function renderHolisticOverview() {
             <tr>
               <th data-sort="title" class="sortable-th">Workload</th>
               <th data-sort="category" class="sortable-th">Category</th>
-              <th data-sort="source" class="sortable-th">Evidence</th>
               <th data-sort="js" class="sortable-th">JS Warm</th>
               <th data-sort="wasm" class="sortable-th">Wasm Warm</th>
               <th data-sort="speedup" class="sortable-th">Speedup vs JS</th>
@@ -1059,7 +1057,7 @@ function renderHolisticOverview() {
           </thead>
           <tbody>
             ${
-      tableRows || '<tr><td colspan="9" class="notice">No matching workloads found.</td></tr>'
+      tableRows || '<tr><td colspan="8" class="notice">No matching workloads found.</td></tr>'
     }
           </tbody>
         </table>
@@ -1160,8 +1158,6 @@ function renderHolisticOverview() {
         overviewState.sort = overviewState.sort === "title-asc" ? "title-desc" : "title-asc";
       } else if (s === "category") {
         overviewState.sort = overviewState.sort === "category-asc" ? "title-asc" : "category-asc";
-      } else if (s === "source") {
-        overviewState.sort = overviewState.sort === "source-live" ? "title-asc" : "source-live";
       } else if (s === "js") {
         overviewState.sort = overviewState.sort === "js-desc" ? "js-asc" : "js-desc";
       } else if (s === "wasm") {
@@ -1200,99 +1196,6 @@ function isTrackBVariant(label, track) {
     l.includes("-opt") || l.includes("-o2") || l.includes("-o3") || l.includes("-o4") ||
     l.includes("track b") || l.includes("simd") || l.includes("optimized") ||
     l.includes("reassociated") || l.includes("i/k/j") || l.includes("tiled");
-}
-
-async function loadReferenceOverviewData() {
-  const [repRes, valRes] = await Promise.allSettled([
-    fetch("/data/multilang-wasm-benchmark-report.v1.json").then((r) => r.json()),
-    fetch("/data/benchmark-validation-logs.v1.json").then((r) => r.json()),
-  ]);
-
-  if (repRes.status === "fulfilled" && repRes.value?.workloads) {
-    const reportWorkloads = repRes.value.workloads;
-    const reportSlugMap = {
-      "fft-kernel": "audio-fft",
-      "crypto-file-integrity": "crypto-file-integrity-v1",
-      "numeric-polybench-panel": "numeric-polybench-panel-v1",
-      "document-pdf-viewer": "document-pdf-viewer-v1",
-      "network-pcap-decode": "network-pcap-decode-v1",
-      "simulation-rigid-body-2d": "simulation-rigid-body-2d-v1",
-    };
-
-    for (const w of reportWorkloads) {
-      const targetSlug = reportSlugMap[w.name] ?? w.name;
-      const entry = suiteStore.get(targetSlug);
-      if (!entry) continue;
-
-      for (const v of (w.variants ?? [])) {
-        const lang = (v.language ?? "").toLowerCase();
-        let langKey = "wasm";
-        if (lang.includes("javascript")) langKey = "js";
-        else if (lang.includes("raw wat") || lang.includes("wat")) langKey = "wat";
-        else if (lang.includes("assemblyscript")) langKey = "asc";
-        else if (lang.includes("c /") || lang === "c") langKey = "c";
-        else if (lang.includes("c++") || lang === "cpp") langKey = "cpp";
-        else if (lang.includes("rust")) langKey = "rs";
-        else if (lang.includes("dart")) langKey = "dart";
-
-        const isOpt = isTrackBVariant(v.language, v.track);
-        const finalKey = isOpt ? `${langKey}-opt` : langKey;
-
-        entry.engines[finalKey] = {
-          label: v.language,
-          warmMs: Number(v.warmExecutionMs ?? 0),
-          coldMs: Number(v.coldInstantiateMs ?? 0),
-          bytes: Number(v.binarySizeBytes ?? 0),
-          track: isOpt ? "B" : "A",
-        };
-      }
-      if (entry.source !== "live") entry.source = "reference";
-    }
-  }
-
-  if (valRes.status === "fulfilled" && valRes.value?.pages) {
-    const pages = valRes.value.pages;
-    for (const [pageKey, p] of Object.entries(pages)) {
-      const normKey = pageKey.replace(/\./g, "-");
-      const entry = suiteStore.get(pageKey) ?? suiteStore.get(normKey);
-      if (!entry) continue;
-
-      const rows = p.stages?.multilang?.rows ?? [];
-      for (const row of rows) {
-        if (!Array.isArray(row) || row.length < 4) continue;
-        const [label, sizeStr, coldStr, medianStr] = row;
-        const lang = String(label).toLowerCase();
-        let langKey = "wasm";
-        if (lang.includes("javascript")) langKey = "js";
-        else if (lang.includes("wat")) langKey = "wat";
-        else if (lang.includes("assemblyscript")) langKey = "asc";
-        else if (lang.includes("c /")) langKey = "c";
-        else if (lang.includes("c++")) langKey = "cpp";
-        else if (lang.includes("rust")) langKey = "rs";
-        else if (lang.includes("dart")) langKey = "dart";
-
-        const isOpt = isTrackBVariant(label);
-        const finalKey = isOpt ? `${langKey}-opt` : langKey;
-
-        const warmMs = parseFloat(medianStr);
-        const coldMs = parseFloat(coldStr);
-        const bytes = parseInt(sizeStr, 10);
-
-        if (!entry.engines[finalKey] && !isNaN(warmMs) && warmMs > 0) {
-          entry.engines[finalKey] = {
-            label: String(label),
-            warmMs,
-            coldMs: isNaN(coldMs) ? 0 : coldMs,
-            bytes: isNaN(bytes) ? 0 : bytes,
-            track: isOpt ? "B" : "A",
-          };
-          if (entry.source !== "live") entry.source = "reference";
-        }
-      }
-    }
-  }
-
-  renderHolisticOverview();
 }
 
 async function runBenchmarkForCard(config, cardEl, iterations = 30) {
@@ -1398,11 +1301,14 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       if (mlData) {
         for (const [, kResults] of Object.entries(mlData)) {
           for (const eng of (kResults ?? [])) {
-            entry.engines[eng.key] = {
+            const isOpt = isTrackBVariant(eng.label, eng.track);
+            const k = isOpt ? `${eng.key}-opt` : eng.key;
+            entry.engines[k] = {
               label: eng.label,
               warmMs: eng.medianMs,
               coldMs: eng.coldMs ?? 0,
               bytes: eng.bytes ?? 0,
+              track: isOpt ? "B" : "A",
             };
           }
         }
@@ -1623,7 +1529,6 @@ function initPlaygroundUI() {
   }
 
   renderHolisticOverview();
-  loadReferenceOverviewData();
 }
 
 if (document.readyState === "loading") {

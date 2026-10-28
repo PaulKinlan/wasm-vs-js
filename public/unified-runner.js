@@ -2128,23 +2128,6 @@ function initComposedRunner() {
   if (!document.body) return;
   document.body.dataset.unifiedRunnerActive = "1";
   initUnifiedRunner();
-
-  const mlManifest = document.body.dataset?.multilangManifest;
-  if (mlManifest) {
-    const flowEl = /** @type {HTMLElement | null} */ (
-      document.querySelector("#perf-reporting") ?? document.querySelector("#main")
-    );
-    if (flowEl) {
-      flowEl.hidden = false;
-      renderReportedComparison(flowEl, mlManifest).catch(() => {});
-    }
-  }
-
-  const trackBRoot = document.querySelector("#track-b-root") ??
-    document.querySelector("#trackb-root");
-  if (trackBRoot && document.body.dataset?.workload) {
-    renderReportedTrackB(trackBRoot, document.body.dataset.workload).catch(() => {});
-  }
 }
 
 if (typeof document !== "undefined") {
@@ -2155,4 +2138,9 @@ if (typeof document !== "undefined") {
   }
 }
 
-export { executeWorkerLoop, renderPerformanceReport };
+export {
+  executeWorkerLoop,
+  renderPerformanceReport,
+  renderReportedComparison,
+  renderReportedTrackB,
+};
