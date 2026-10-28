@@ -2131,8 +2131,8 @@ html.js .js-only[hidden] {
   }
 }
 .playground-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 35rem), 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
   margin-top: 1.5rem;
 }
@@ -2140,7 +2140,7 @@ html.js .js-only[hidden] {
   margin: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 100%;
 }
 .playground-cards-grid .playground-card h3 {
   margin-top: 0.5rem;
@@ -2195,4 +2195,128 @@ html.js .js-only[hidden] {
 }
 .pg-deep-content {
   margin-top: 0.75rem;
+}
+
+body[data-workload] main,
+body[data-demo] main,
+body[data-multilang-manifest] main {
+  max-width: var(--dashboard);
+  width: 100%;
+}
+
+.benchmark-group-section {
+  margin: 2rem 0;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+.benchmark-group-section .group-title {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.autoresearch-panel {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: var(--surface-secondary, #faf9f6);
+  border: 1px solid var(--accent, #b35900);
+  border-radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .autoresearch-panel {
+    background: #1e1e1e;
+    border-color: #d97706;
+  }
+}
+.autoresearch-header h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.autoresearch-header p {
+  margin: 0 0 1rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.autoresearch-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.probe-option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-run-autoresearch {
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--accent, #b35900);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn-run-autoresearch:hover {
+  opacity: 0.9;
+}
+.btn-run-autoresearch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.autoresearch-status {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0.5rem 0 1rem 0;
+}
+.autoresearch-verdict-card {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  .autoresearch-verdict-card {
+    background: #052e16;
+    border-color: #166534;
+  }
+}
+.autoresearch-verdict-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #166534;
+  margin-bottom: 0.4rem;
+}
+@media (prefers-color-scheme: dark) {
+  .autoresearch-verdict-title {
+    color: #4ade80;
+  }
+}
+.autoresearch-verdict-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.badge-pass {
+  background: #2e7d32;
+  color: #fff;
+}
+.badge-neutral {
+  background: #757575;
+  color: #fff;
+}
+.badge-info {
+  background: #1976d2;
+  color: #fff;
 }

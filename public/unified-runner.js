@@ -987,29 +987,29 @@ async function renderReportedComparison(flowEl, manifestPath) {
   const wrap = document.createElement("section");
   wrap.dataset.stage = "multilang";
   wrap.className = "stage-result";
-  const h = document.createElement("h3");
-  h.textContent = "Multi-language comparison (committed measured results)";
-  wrap.appendChild(h);
-  const note = document.createElement("p");
-  note.className = "notice";
-  // The committed report and the in-page run do not always use the same input
-  // size — audio-fir's report measures 131,072 samples where the page adapter
-  // runs 16,384, and audio-stft's 96,000 against 8,192. Same engine, same
-  // algorithm, numbers an order of magnitude apart, previously with nothing on
-  // the page to say why. State the report's own description of what it timed.
-  note.textContent = entry.description
-    ? `Committed report, measured on the project's reference machine. Input: ${entry.description} ` +
-      "Click Run to re-measure in this browser — the in-page run may use a smaller input, so " +
-      "compare the shapes rather than the absolute numbers."
-    : "Committed report, measured on the project's reference machine. Click Run to re-measure " +
-      "in this browser — the in-page run may use a different input size, so compare the shapes " +
-      "rather than the absolute numbers.";
-  wrap.appendChild(note);
-  const table = document.createElement("table");
-  table.className = "mlr-table";
-  table.innerHTML =
-    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Source &amp; Toolchain</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th></tr></thead><tbody>" +
-    variants.map((v) => {
+
+  const isTrackB = (v) => {
+    if (!v) return false;
+    if (v.track === "B") return true;
+    const l = String(v.language || "").toLowerCase();
+    return l.includes("-ikj") || l.includes("-tiled") || l.includes("-simd") ||
+      l.includes("-opt") || l.includes("-o2") || l.includes("-o3") || l.includes("-o4") ||
+      l.includes("track b") || l.includes("simd") || l.includes("optimized") ||
+      l.includes("reassociated") || l.includes("i/k/j") || l.includes("tiled");
+  };
+
+  const g1Variants = variants.filter((v) => {
+    const l = String(v.language || "").toLowerCase();
+    return l.includes("javascript") || l.includes("wat");
+  });
+  const g2Variants = variants.filter((v) => !isTrackB(v));
+  const g3Variants = variants.filter((v) => isTrackB(v));
+
+  const jsV = variants.find((v) => String(v.language || "").toLowerCase().includes("javascript"));
+  const jsWarmMs = jsV?.warmExecutionMs ?? 1;
+
+  const renderTableRows = (vList) =>
+    vList.map((v) => {
       const engine = manifest.engines?.find((e) =>
         e.label === v.language ||
         e.key === v.language.toLowerCase().split("/")[0].trim() ||
@@ -1026,19 +1026,124 @@ async function renderReportedComparison(flowEl, manifestPath) {
         srcLink =
           `<a class="commit-link" href="/${engine.source}" target="_blank" rel="noopener">${name}</a>`;
       }
-      return `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
-        `<td class="mlr-th">${srcLink ? `<div>${srcLink}</div>` : ""}<div><small><code>${
-          v.toolchain ?? "—"
-        }</code></small></div></td>` +
-        `<td class="mlr-th">${
-          typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
-        }</td>` +
-        `<td class="mlr-th">${
-          v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() + " B" : "—"
-        }</td></tr>`;
-    }).join("") + "</tbody>";
-  wrap.appendChild(table);
+      const speedup = (typeof v.warmExecutionMs === "number" && v.warmExecutionMs > 0)
+        ? (jsWarmMs / v.warmExecutionMs).toFixed(2) + "×"
+        : "—";
+      return `<tr>
+      <td class="mlr-th"><strong>${v.language}</strong></td>
+      <td class="mlr-th">${srcLink ? `<div>${srcLink}</div>` : ""}<div><small><code>${
+        v.toolchain ?? "—"
+      }</code></small></div></td>
+      <td class="mlr-th">${
+        typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
+      }</td>
+      <td class="mlr-th">${
+        v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() + " B" : "—"
+      }</td>
+      <td class="mlr-th"><strong>${speedup}</strong></td>
+    </tr>`;
+    }).join("");
+
+  const g1BarRows = g1Variants.map((v) => ({
+    label: v.language,
+    valueMs: v.warmExecutionMs,
+    lowMs: v.warmExecutionMs,
+    highMs: v.warmExecutionMs,
+    kind: v.language.toLowerCase().includes("javascript") ? "js" : "wasm",
+  }));
+  const g1ChartHtml = g1BarRows.length > 0
+    ? `<div class="wvj-chart-grid"><div class="wvj-chart-cell">${
+      barChartSvg(g1BarRows, {
+        title: "Core Baseline: JavaScript vs Raw WAT (Reference)",
+        caption: "Committed reference measurement. Click Start to re-measure in this browser.",
+      })
+    }</div></div>`
+    : "";
+
+  const g2BarRows = g2Variants.map((v) => ({
+    label: v.language,
+    valueMs: v.warmExecutionMs,
+    lowMs: v.warmExecutionMs,
+    highMs: v.warmExecutionMs,
+    kind: v.language.toLowerCase().includes("javascript") ? "js" : "wasm",
+  }));
+  const g2ScatterRows = g2Variants
+    .filter((v) => v.binarySizeBytes > 0 && v.warmExecutionMs > 0)
+    .map((v) => ({
+      label: v.language,
+      bytes: v.binarySizeBytes,
+      warmMs: v.warmExecutionMs,
+      kind: v.language.toLowerCase().includes("javascript") ? "js" : "wasm",
+    }));
+  const g2ChartHtml = g2BarRows.length > 0
+    ? `<div class="wvj-chart-grid">
+        <div class="wvj-chart-cell">${
+      barChartSvg(g2BarRows, {
+        title: "Kernel Execution Across Languages (Track A Reference)",
+        caption: "Committed reference measurement. Direct in-memory timing.",
+      })
+    }</div>
+        ${
+      g2ScatterRows.length > 1
+        ? `<div class="wvj-chart-cell">${
+          sizeVsSpeedChartSvg(g2ScatterRows, {
+            title: "Binary Size vs Execution Duration",
+            caption: "Bottom-left is optimal.",
+          })
+        }</div>`
+        : ""
+    }
+      </div>`
+    : "";
+
+  const note = `<p class="notice">
+    ${entry.description ? `Committed reference report: ${entry.description}. ` : ""}
+    Click <strong>Start Benchmark Suite</strong> to re-measure on your machine.
+  </p>`;
+
+  let g3SectionHtml = "";
+  if (g3Variants.length > 0) {
+    g3SectionHtml = `
+      <section class="benchmark-group-section">
+        <h4>Group 3: Idiomatic &amp; Hardware Optimizations (Track B Reference)</h4>
+        <div class="table-wrap">
+          <table class="mlr-table">
+            <thead><tr><th>Engine</th><th>Source &amp; Toolchain</th><th>Warm Median</th><th>Binary Size</th><th>Speedup vs JS</th></tr></thead>
+            <tbody>${renderTableRows(g3Variants)}</tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
+  wrap.innerHTML = `
+    <h3>Benchmark Suite Matrix (Committed Reference)</h3>
+    ${note}
+    <section class="benchmark-group-section">
+      <h4>Group 1: Core Baseline — JavaScript vs Raw WebAssembly (WAT)</h4>
+      ${g1ChartHtml}
+      <div class="table-wrap">
+        <table class="mlr-table">
+          <thead><tr><th>Engine</th><th>Source &amp; Toolchain</th><th>Warm Median</th><th>Binary Size</th><th>Speedup vs JS</th></tr></thead>
+          <tbody>${renderTableRows(g1Variants)}</tbody>
+        </table>
+      </div>
+    </section>
+    <section class="benchmark-group-section">
+      <h4>Group 2: Multi-Language Comparison (Track A — Controlled Compilers)</h4>
+      ${g2ChartHtml}
+      <div class="table-wrap">
+        <table class="mlr-table">
+          <thead><tr><th>Engine</th><th>Source &amp; Toolchain</th><th>Warm Median</th><th>Binary Size</th><th>Speedup vs JS</th></tr></thead>
+          <tbody>${renderTableRows(g2Variants)}</tbody>
+        </table>
+      </div>
+    </section>
+    ${g3SectionHtml}
+  `;
+
   targetHost.appendChild(wrap);
+  if (flowEl) flowEl.hidden = false;
 }
 
 // Static Track B pre-render: pages with a track-b section show the committed
@@ -2019,34 +2124,34 @@ function initUnifiedRunner() {
   startBtn.disabled = false;
 }
 
-if (typeof document !== "undefined") {
-  // Marker for the unified composed flow: multilang-runner.js skips its own
-  // auto-bind when this flag is present, so the primary run control sequences
-  // every stage (primary + multilang + Track B). Set before DOMContentLoaded so
-  // other deferred module scripts can read it (module scripts run in order
-  // before DOMContentLoaded fires).
-  if (document.body) {
-    document.body.dataset.unifiedRunnerActive = "1";
-  } else {
-    document.addEventListener("DOMContentLoaded", () => {
-      const mlManifest = document.body?.dataset?.multilangManifest;
-      if (mlManifest) {
-        const flowEl = document.querySelector("#perf-reporting") ?? document.querySelector("#main");
-        if (flowEl) renderReportedComparison(flowEl, mlManifest).catch(() => {});
-      }
-      const trackBRoot = document.querySelector("#track-b-root") ??
-        document.querySelector("#trackb-root");
-      if (trackBRoot && document.body?.dataset?.workload) {
-        renderReportedTrackB(trackBRoot, document.body.dataset.workload).catch(() => {});
-      }
-      document.body.dataset.unifiedRunnerActive = "1";
-    }, { once: true });
+function initComposedRunner() {
+  if (!document.body) return;
+  document.body.dataset.unifiedRunnerActive = "1";
+  initUnifiedRunner();
+
+  const mlManifest = document.body.dataset?.multilangManifest;
+  if (mlManifest) {
+    const flowEl = /** @type {HTMLElement | null} */ (
+      document.querySelector("#perf-reporting") ?? document.querySelector("#main")
+    );
+    if (flowEl) {
+      flowEl.hidden = false;
+      renderReportedComparison(flowEl, mlManifest).catch(() => {});
+    }
   }
 
+  const trackBRoot = document.querySelector("#track-b-root") ??
+    document.querySelector("#trackb-root");
+  if (trackBRoot && document.body.dataset?.workload) {
+    renderReportedTrackB(trackBRoot, document.body.dataset.workload).catch(() => {});
+  }
+}
+
+if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initUnifiedRunner);
+    document.addEventListener("DOMContentLoaded", initComposedRunner, { once: true });
   } else {
-    initUnifiedRunner();
+    initComposedRunner();
   }
 }
 

@@ -553,6 +553,27 @@ function getWorkloadComparison(entry, targetEngine = "best") {
       wasmBytes = entry.pipeline.wasmBytes ?? 0;
       engineLabel = "Worker Wasm";
     }
+  } else if (targetEngine === "best-opt") {
+    const optCandidates = [];
+    for (const [k, e] of Object.entries(engines)) {
+      if (k !== "js" && (e.track === "B" || k.endsWith("-opt")) && e.warmMs > 0) {
+        optCandidates.push({
+          label: e.label,
+          warmMs: e.warmMs,
+          coldMs: e.coldMs,
+          bytes: e.bytes ?? 0,
+        });
+      }
+    }
+    if (optCandidates.length > 0) {
+      optCandidates.sort((a, b) => a.warmMs - b.warmMs);
+      wasmWarmMs = optCandidates[0].warmMs;
+      wasmColdMs = optCandidates[0].coldMs;
+      wasmBytes = optCandidates[0].bytes;
+      engineLabel = optCandidates[0].label;
+    } else {
+      return getWorkloadComparison(entry, "best");
+    }
   } else if (targetEngine !== "best" && engines[targetEngine]?.warmMs > 0) {
     const e = engines[targetEngine];
     wasmWarmMs = e.warmMs;
@@ -560,6 +581,7 @@ function getWorkloadComparison(entry, targetEngine = "best") {
     wasmBytes = e.bytes ?? 0;
     engineLabel = e.label;
   } else {
+    // targetEngine === "best": Only Track A baseline candidates
     const candidates = [];
     if (entry.pipeline?.wasmWarmMs > 0) {
       candidates.push({
@@ -570,7 +592,7 @@ function getWorkloadComparison(entry, targetEngine = "best") {
       });
     }
     for (const [k, e] of Object.entries(engines)) {
-      if (k !== "js" && e.warmMs > 0) {
+      if (k !== "js" && e.track !== "B" && !k.endsWith("-opt") && e.warmMs > 0) {
         candidates.push({
           label: e.label,
           warmMs: e.warmMs,
@@ -780,26 +802,46 @@ function renderHolisticOverview() {
         </label>
         <label for="ov-engine">Compare Engine:
           <select id="ov-engine">
-            <option value="best"${
+            <optgroup label="Group 1: Core Baseline (JS vs Raw WAT)">
+              <option value="wat"${
+    overviewState.engine === "wat" ? " selected" : ""
+  }>Raw WAT (Handwritten Bytecode)</option>
+            </optgroup>
+            <optgroup label="Group 2: Multi-Language (Track A — Controlled Compilers)">
+              <option value="best"${
     overviewState.engine === "best" ? " selected" : ""
-  }>Fastest Wasm (Best vs JS)</option>
-            <option value="pipeline"${
+  }>Fastest Track A Compiler Baseline</option>
+              <option value="pipeline"${
     overviewState.engine === "pipeline" ? " selected" : ""
   }>Worker Pipeline (Page Run)</option>
-            <option value="wat"${overviewState.engine === "wat" ? " selected" : ""}>Raw WAT</option>
-            <option value="c"${overviewState.engine === "c" ? " selected" : ""}>C / Wasm</option>
-            <option value="cpp"${
+              <option value="c"${overviewState.engine === "c" ? " selected" : ""}>C / Wasm</option>
+              <option value="cpp"${
     overviewState.engine === "cpp" ? " selected" : ""
   }>C++ / Wasm</option>
-            <option value="rs"${
+              <option value="rs"${
     overviewState.engine === "rs" ? " selected" : ""
   }>Rust / Wasm</option>
-            <option value="asc"${
+              <option value="asc"${
     overviewState.engine === "asc" ? " selected" : ""
   }>AssemblyScript</option>
-            <option value="dart"${
+              <option value="dart"${
     overviewState.engine === "dart" ? " selected" : ""
   }>Dart / WasmGC</option>
+            </optgroup>
+            <optgroup label="Group 3: Idiomatic &amp; Hardware Optimizations (Track B)">
+              <option value="best-opt"${
+    overviewState.engine === "best-opt" ? " selected" : ""
+  }>Fastest Track B (SIMD / Tiled / Hardware)</option>
+              <option value="rs-opt"${
+    overviewState.engine === "rs-opt" ? " selected" : ""
+  }>Rust Track B (SIMD / Tuned)</option>
+              <option value="c-opt"${
+    overviewState.engine === "c-opt" ? " selected" : ""
+  }>C Track B (SIMD / Tuned)</option>
+              <option value="cpp-opt"${
+    overviewState.engine === "cpp-opt" ? " selected" : ""
+  }>C++ Track B (SIMD / Tuned)</option>
+            </optgroup>
           </select>
         </label>
         <label for="ov-sort">Sort:
@@ -1151,6 +1193,15 @@ function renderHolisticOverview() {
   });
 }
 
+function isTrackBVariant(label, track) {
+  if (track === "B") return true;
+  const l = String(label || "").toLowerCase();
+  return l.includes("-ikj") || l.includes("-tiled") || l.includes("-simd") ||
+    l.includes("-opt") || l.includes("-o2") || l.includes("-o3") || l.includes("-o4") ||
+    l.includes("track b") || l.includes("simd") || l.includes("optimized") ||
+    l.includes("reassociated") || l.includes("i/k/j") || l.includes("tiled");
+}
+
 async function loadReferenceOverviewData() {
   const [repRes, valRes] = await Promise.allSettled([
     fetch("/data/multilang-wasm-benchmark-report.v1.json").then((r) => r.json()),
@@ -1184,11 +1235,15 @@ async function loadReferenceOverviewData() {
         else if (lang.includes("rust")) langKey = "rs";
         else if (lang.includes("dart")) langKey = "dart";
 
-        entry.engines[langKey] = {
+        const isOpt = isTrackBVariant(v.language, v.track);
+        const finalKey = isOpt ? `${langKey}-opt` : langKey;
+
+        entry.engines[finalKey] = {
           label: v.language,
           warmMs: Number(v.warmExecutionMs ?? 0),
           coldMs: Number(v.coldInstantiateMs ?? 0),
           bytes: Number(v.binarySizeBytes ?? 0),
+          track: isOpt ? "B" : "A",
         };
       }
       if (entry.source !== "live") entry.source = "reference";
@@ -1216,16 +1271,20 @@ async function loadReferenceOverviewData() {
         else if (lang.includes("rust")) langKey = "rs";
         else if (lang.includes("dart")) langKey = "dart";
 
+        const isOpt = isTrackBVariant(label);
+        const finalKey = isOpt ? `${langKey}-opt` : langKey;
+
         const warmMs = parseFloat(medianStr);
         const coldMs = parseFloat(coldStr);
         const bytes = parseInt(sizeStr, 10);
 
-        if (!entry.engines[langKey] && !isNaN(warmMs) && warmMs > 0) {
-          entry.engines[langKey] = {
+        if (!entry.engines[finalKey] && !isNaN(warmMs) && warmMs > 0) {
+          entry.engines[finalKey] = {
             label: String(label),
             warmMs,
             coldMs: isNaN(coldMs) ? 0 : coldMs,
             bytes: isNaN(bytes) ? 0 : bytes,
+            track: isOpt ? "B" : "A",
           };
           if (entry.source !== "live") entry.source = "reference";
         }
