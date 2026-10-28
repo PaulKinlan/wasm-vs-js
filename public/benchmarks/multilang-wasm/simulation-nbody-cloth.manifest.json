@@ -1,6 +1,6 @@
 {
   "workloadId": "simulation.nbody-cloth.v1",
-  "kernelLabel": "N-body gravitational step \u2014 128 bodies \u00d7 30 timesteps",
+  "kernelLabel": "N-body gravitational step — 128 bodies × 30 timesteps",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "nbody_step"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "nbody_step": "nbody_step_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "c",

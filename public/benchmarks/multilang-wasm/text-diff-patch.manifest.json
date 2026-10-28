@@ -1,6 +1,6 @@
 {
   "workloadId": "text.diff-patch.v1",
-  "kernelLabel": "Myers O(ND) diff \u2014 512-line base, 30 interleaved edits",
+  "kernelLabel": "Myers O(ND) diff — 512-line base, 30 interleaved edits",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "myers_diff"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "myers_diff": "myers_diff_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "c",

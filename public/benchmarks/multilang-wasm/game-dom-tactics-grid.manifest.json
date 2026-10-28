@@ -1,8 +1,8 @@
 {
   "workloadId": "game.dom-tactics-grid.v1",
-  "kernelLabel": "DOM tactics grid \u2014 60 turns \u00d7 240 actions on 64\u00d764 map (game-dom-tactics-grid-v1.bin)",
+  "kernelLabel": "DOM tactics grid — 60 turns × 240 actions on 64×64 map (game-dom-tactics-grid-v1.bin)",
   "kernelLabels": {
-    "tactics_trace": "DOM tactics grid \u2014 60-turn 240-action loop with BFS movement + LOS attacks on 64\u00d764 map"
+    "tactics_trace": "DOM tactics grid — 60-turn 240-action loop with BFS movement + LOS attacks on 64×64 map"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -14,6 +14,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": "benchmarks/v2/game-family/engine.js"
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "tactics_trace": "tactics_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 4194304
     },
     {
       "key": "c",

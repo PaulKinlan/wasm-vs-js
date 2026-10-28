@@ -1,8 +1,8 @@
 {
   "workloadId": "server.ssr-template.v1",
-  "kernelLabel": "1,000-record catalog SSR \u2014 parse + render every response body (server-ssr-template-v1-multilang/fixture.bin)",
+  "kernelLabel": "1,000-record catalog SSR — parse + render every response body (server-ssr-template-v1-multilang/fixture.bin)",
   "kernelLabels": {
-    "ssr_render": "Server SSR \u2014 1,000-record catalog parse + render with text/attribute/URL escaping"
+    "ssr_render": "Server SSR — 1,000-record catalog parse + render with text/attribute/URL escaping"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -14,6 +14,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": "benchmarks/v1/server-ssr-template/workload.js"
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "ssr_render": "server_ssr_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 5242880
     },
     {
       "key": "c",

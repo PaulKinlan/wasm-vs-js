@@ -1895,7 +1895,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.pdf_parse.instance;
         const mem = inst.exports.memory;
@@ -2310,7 +2310,8 @@ export const KERNEL_ADAPTERS = {
         return words;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.mesh_repair.instance;
         const mem = inst.exports.memory;
         callables[key] = {
@@ -3354,7 +3355,7 @@ export const KERNEL_ADAPTERS = {
         view.setUint32(count * 12 + 12, tailCmp, true);
         return fnv1aBytes(bytes);
       };
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.scan_log.instance;
         const mem = inst.exports.memory;
@@ -4192,7 +4193,8 @@ export const KERNEL_ADAPTERS = {
       const expected = keyOf(runEcs());
 
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.ecs_frame_update.instance;
         const mem = inst.exports.memory;
         callables[key] = {
@@ -6808,7 +6810,7 @@ export const KERNEL_ADAPTERS = {
       };
       const callables = {};
       const probes = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.todomvc_engine.instance;
         const mem = inst.exports.memory;
@@ -7663,7 +7665,7 @@ export const KERNEL_ADAPTERS = {
       };
       probes.js = () => fnv1aBytes(runPcapJavaScript(fixture).bytes);
 
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["wat", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.pcap_decode.instance;
         const exports = inst.exports;

@@ -1,6 +1,6 @@
 {
   "workloadId": "game.ecs-frame-update.v1",
-  "kernelLabel": "ECS frame update \u2014 1,024 entities, 300 frames (grid collision + FNV-1a digests)",
+  "kernelLabel": "ECS frame update — 1,024 entities, 300 frames (grid collision + FNV-1a digests)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "ecs_frame_update"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "ecs_frame_update": "ecs_frame_update_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "c",

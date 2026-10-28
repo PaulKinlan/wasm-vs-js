@@ -1,6 +1,6 @@
 {
   "workloadId": "network.pcap-decode.v1",
-  "kernelLabel": "pcap packet decode \u2014 1,000 packets",
+  "kernelLabel": "pcap packet decode — 1,000 packets",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "pcap_decode"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "pcap_decode": "pcap_decode_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 1048576
     },
     {
       "key": "c",

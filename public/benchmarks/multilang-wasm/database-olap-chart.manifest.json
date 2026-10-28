@@ -1,6 +1,6 @@
 {
   "workloadId": "database.olap-chart.v1",
-  "kernelLabel": "OLAP chart aggregation \u2014 5 queries over 10,000 rows",
+  "kernelLabel": "OLAP chart aggregation — 5 queries over 10,000 rows",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "olap"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "olap": "olap_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 1048576
     },
     {
       "key": "c",

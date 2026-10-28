@@ -13,6 +13,18 @@
       "source": ""
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "bracket": "bracket_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 8388608
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 8388608,
       "label": "C / Wasm",

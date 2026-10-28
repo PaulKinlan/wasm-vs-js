@@ -1,6 +1,6 @@
 {
   "workloadId": "dom.todomvc-journey.v1",
-  "kernelLabel": "TodoMVC 100-item state machine \u2014 frozen 150-action trace",
+  "kernelLabel": "TodoMVC 100-item state machine — frozen 150-action trace",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "todomvc_engine"
@@ -10,6 +10,17 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "todomvc_engine": "todomvc_engine_wat.wasm"
+      },
       "source": ""
     },
     {

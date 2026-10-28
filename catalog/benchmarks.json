@@ -36,7 +36,7 @@
     "summary": "Performs forward FFT, frequency-domain notch attenuation, and inverse FFT in single-precision floating point.",
     "whatItDoes": "Cooley-Tukey radix-2 butterfly with twiddle factors followed by complex spectral masking.",
     "whyCompare": "Heavy floating-point arithmetic with non-sequential butterfly memory access patterns.",
-    "manifest": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+    "manifest": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
     "kernels": [
       "fft"
     ]
@@ -624,6 +624,63 @@
     "manifest": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
     "kernels": [
       "pathfinding_trace"
+    ]
+  },
+  {
+    "slug": "graphics-gltf-viewer",
+    "id": "graphics.gltf-viewer.v1",
+    "title": "glTF 3D Scene Model Loader & Parser",
+    "category": "Graphics & 3D",
+    "pageType": "compute",
+    "summary": "Parses glTF 2.0 binary chunks, decodes accessor buffers, and validates mesh primitives.",
+    "whatItDoes": "Binary buffer decoding, matrix transforms, and glTF mesh asset validation.",
+    "whyCompare": "Measures structured binary parsing and vertex layout decoding speed.",
+    "manifest": "/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json",
+    "kernels": [
+      "viewer"
+    ]
+  },
+  {
+    "slug": "network-http2-quic-state",
+    "id": "network.http2-quic-state.v1",
+    "title": "HTTP/2 & QUIC Frame State Machine",
+    "category": "Networking & Wire Protocols",
+    "pageType": "compute",
+    "summary": "Processes binary network frame headers, stream transitions, and sliding window flow control.",
+    "whatItDoes": "High-throughput protocol state machine simulation across multiplexed network streams.",
+    "whyCompare": "Evaluates integer bit-packing, transition tables, and ring buffer management.",
+    "manifest": "/benchmarks/v1/network-http2-quic-state/benchmark.json",
+    "kernels": [
+      "quic_state"
+    ]
+  },
+  {
+    "slug": "dom-virtualized-scrolling",
+    "id": "dom.virtualized-scrolling.v1",
+    "title": "Virtualized Infinite Window Scrolling",
+    "category": "DOM & Interactive UI",
+    "pageType": "dom",
+    "domHost": "/dom-hosts/base-dom-virtualized-scrolling.js",
+    "summary": "Calculates slice boundaries, item recycling offsets, and DOM mutations for a 100,000-item list.",
+    "whatItDoes": "Viewport intersection arithmetic and batch DOM element node reuse.",
+    "whyCompare": "Compares binary search viewport slicing speed and real DOM update throughput.",
+    "manifest": "/benchmarks/dom-virtualized-scrolling/benchmark.json",
+    "kernels": [
+      "dom_vscroll"
+    ]
+  },
+  {
+    "slug": "tooling-c-to-wasm-compile",
+    "id": "tooling.c-to-wasm-compile.v1",
+    "title": "In-Browser C-to-Wasm Compiler",
+    "category": "Tooling & Compilers",
+    "pageType": "compute",
+    "summary": "Compiles ANSI C subset source code directly into valid WebAssembly binary bytecode.",
+    "whatItDoes": "Lexical analysis, recursive-descent parsing, AST generation, and binary Wasm encoding.",
+    "whyCompare": "Complex compiler workloads testing memory management, tree traversal, and byte generation.",
+    "manifest": "/benchmarks/base/tooling-c-to-wasm-compile/benchmark.json",
+    "kernels": [
+      "compile_c_to_wasm"
     ]
   }
 ]

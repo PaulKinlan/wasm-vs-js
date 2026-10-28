@@ -16,6 +16,18 @@
       "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.ts"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "audio_dsp": "audio_dsp_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 3670016
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 3670016,
       "label": "C / Wasm",

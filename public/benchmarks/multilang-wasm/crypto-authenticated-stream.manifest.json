@@ -1,6 +1,6 @@
 {
   "workloadId": "crypto.authenticated-stream.v1",
-  "kernelLabel": "ChaCha20-Poly1305 authenticated stream \u2014 seal + open",
+  "kernelLabel": "ChaCha20-Poly1305 authenticated stream — seal + open",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "crypto"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 4096,
+      "files": {
+        "crypto": "crypto_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "c",

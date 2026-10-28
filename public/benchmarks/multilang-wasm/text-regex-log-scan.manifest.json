@@ -1,6 +1,6 @@
 {
   "workloadId": "text.regex-log-scan.v1",
-  "kernelLabel": "log-scan pattern matcher \u2014 640 records, 64 events",
+  "kernelLabel": "log-scan pattern matcher — 640 records, 64 events",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "scan_log"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "scan_log": "scan_log_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 4194304
     },
     {
       "key": "c",

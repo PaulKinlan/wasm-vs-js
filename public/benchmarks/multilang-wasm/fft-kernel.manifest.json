@@ -1,6 +1,6 @@
 {
   "workloadId": "multilang-wasm",
-  "kernelLabel": "Radix-2 FFT \u2014 512 floats (7 engines)",
+  "kernelLabel": "Radix-2 FFT — 512 floats (7 engines)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "fft"
@@ -11,6 +11,17 @@
       "label": "JavaScript",
       "kind": "js",
       "source": "benchmarks/multilang-wasm/fft_kernel.ts"
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "fft": "fft_wat.wasm"
+      },
+      "source": ""
     },
     {
       "key": "asc",

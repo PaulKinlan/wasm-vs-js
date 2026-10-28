@@ -16,6 +16,18 @@
       "source": "benchmarks/v1/text-gc-document-edit/workload.js"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "gc_document_edit_trace": "gc_document_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 655360
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 655360,
       "label": "C / Wasm",

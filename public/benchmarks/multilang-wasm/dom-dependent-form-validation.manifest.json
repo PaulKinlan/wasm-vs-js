@@ -1,8 +1,8 @@
 {
   "workloadId": "dom.dependent-form-validation.v1",
-  "kernelLabel": "Dependent form validation trace \u2014 10 fields \u00d7 240 frozen input/blur ops (per-rule validation)",
+  "kernelLabel": "Dependent form validation trace — 10 fields × 240 frozen input/blur ops (per-rule validation)",
   "kernelLabels": {
-    "form_validate_trace": "Dependent form validation \u2014 10 fields, 240 frozen input/blur ops, 5 per-rule checks (email/password/confirm/age/terms)"
+    "form_validate_trace": "Dependent form validation — 10 fields, 240 frozen input/blur ops, 5 per-rule checks (email/password/confirm/age/terms)"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -14,6 +14,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.ts"
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "form_validate_trace": "form_validate_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 65536
     },
     {
       "key": "c",

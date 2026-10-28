@@ -1,6 +1,6 @@
 {
   "workloadId": "document.pdf-viewer.v1",
-  "kernelLabel": "PDF parser \u2014 100-page report (object table, font/ToUnicode, content, raster)",
+  "kernelLabel": "PDF parser — 100-page report (object table, font/ToUnicode, content, raster)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "pdf_parse"
@@ -10,6 +10,17 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "pdf_parse": "pdf_engine_wat.wasm"
+      },
       "source": ""
     },
     {

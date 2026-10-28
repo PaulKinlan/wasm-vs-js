@@ -16,6 +16,18 @@
       "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.ts"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "vdom_diff_trace": "vdom_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 131072
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 131072,
       "label": "C / Wasm",

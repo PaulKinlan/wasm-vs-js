@@ -19,6 +19,17 @@
       "label": "JavaScript"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "kws_run": "kws_kernel_wat.wasm"
+      },
+      "source": ""
+    },
+    {
       "key": "c",
       "kind": "linear",
       "lang": "C (Clang)",

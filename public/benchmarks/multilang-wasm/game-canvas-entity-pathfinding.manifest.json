@@ -16,6 +16,18 @@
       "source": "benchmarks/v2/game-family/engine.js"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "pathfinding_trace": "pathfinding_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 3407872
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 3407872,
       "label": "C / Wasm",

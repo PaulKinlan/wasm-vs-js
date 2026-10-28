@@ -16,6 +16,18 @@
       "source": "benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.ts"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "zip_build": "zip_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 7340032
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 7340032,
       "kind": "linear",

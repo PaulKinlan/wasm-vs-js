@@ -1,6 +1,6 @@
 {
   "workloadId": "ml.numeric-kernels.v1",
-  "kernelLabel": "ML numeric kernels \u2014 GEMM/Conv/Softmax f32+i8 (frozen shapes)",
+  "kernelLabel": "ML numeric kernels — GEMM/Conv/Softmax f32+i8 (frozen shapes)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "numeric"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 1024,
+      "files": {
+        "numeric": "numeric_kernels_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 1048576
     },
     {
       "key": "c",

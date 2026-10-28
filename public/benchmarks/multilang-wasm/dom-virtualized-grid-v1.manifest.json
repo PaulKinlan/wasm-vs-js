@@ -16,6 +16,18 @@
       "source": "benchmarks/base/dom-virtualized-grid/engine.js"
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_trace_kernel_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 6291456
+    },
+    {
       "key": "c",
       "initialMemoryBytes": 6291456,
       "label": "C / Wasm",

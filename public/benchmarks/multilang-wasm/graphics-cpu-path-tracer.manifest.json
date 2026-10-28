@@ -1,6 +1,6 @@
 {
   "workloadId": "graphics-cpu-path-tracer.v1",
-  "kernelLabel": "Cornell-box ray tracer \u2014 16\u00d716, 4 spp",
+  "kernelLabel": "Cornell-box ray tracer — 16×16, 4 spp",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "render"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "files": {
+        "render": "path_tracer_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "c",

@@ -14,6 +14,7 @@
       "title": "ZIP workspace",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -76,6 +77,7 @@
       "title": "WebAudio effects rack correctness demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -90,6 +92,7 @@
       "title": "3D Mesh Quantization & Repair",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -104,6 +107,7 @@
       "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -118,6 +122,7 @@
       "title": "Authenticated message stream",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -133,6 +138,7 @@
       "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -148,6 +154,7 @@
       "title": "Five-query OLAP chart trace",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -163,6 +170,7 @@
       "title": "PDF Document Parsing & Rendering",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -177,6 +185,7 @@
       "title": "Dependent Form Validation",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -216,6 +225,7 @@
       "title": "Keyed List DOM Mutation",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -230,6 +240,7 @@
       "title": "Nested DOM Tree Mutation",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -244,6 +255,7 @@
       "title": "Table Sort, Filter & Pagination",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -258,6 +270,7 @@
       "title": "TodoMVC 100-item journey",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -272,6 +285,7 @@
       "title": "Reduced virtual-DOM fixture",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -286,6 +300,7 @@
       "title": "100,000-row virtualized grid",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -300,6 +315,7 @@
       "title": "Canvas Arcade Engine",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -314,6 +330,7 @@
       "title": "Canvas Entity Pathfinding Engine",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -328,6 +345,7 @@
       "title": "DOM Tactics Grid Engine",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -343,6 +361,7 @@
       "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -357,6 +376,7 @@
       "title": "CPU path tracer | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -372,6 +392,7 @@
       "title": "Avocado glTF decode, animation and picking",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp"
       ],
@@ -586,6 +607,7 @@
       "title": "Speech Commands keyword spotting",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -600,6 +622,7 @@
       "title": "ML numeric kernels",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -614,6 +637,7 @@
       "title": null,
       "baselineEngines": [
         "js",
+        "wat",
         "asc",
         "c",
         "cpp",
@@ -680,6 +704,7 @@
       "title": "PCAP protocol decode demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs"
@@ -737,6 +762,7 @@
       "title": "Reduced regex automata fixture",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -751,6 +777,7 @@
       "title": "JSON telemetry demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -766,6 +793,7 @@
       "title": "Protobuf gateway correctness demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -780,6 +808,7 @@
       "title": "Server-side template correctness demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -794,6 +823,7 @@
       "title": "N-Body Simulation",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -809,6 +839,7 @@
       "title": "500-box rigid-body settlement",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -824,6 +855,7 @@
       "title": "Unicode line diff demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -839,6 +871,7 @@
       "title": "GC-rich document edit demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -854,6 +887,7 @@
       "title": "Markdown CMS demo | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -868,6 +902,7 @@
       "title": "100 MiB regex log scan | Wasm versus JavaScript",
       "baselineEngines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
@@ -878,7 +913,7 @@
   ],
   "summary": {
     "workloads": 45,
-    "baselineEngineRows": 252,
+    "baselineEngineRows": 287,
     "variantRows": 23,
     "workloadsWithVariants": 4,
     "workloadsWithoutVariants": 41,

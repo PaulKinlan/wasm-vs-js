@@ -1,6 +1,6 @@
 {
   "workloadId": "crypto.file-integrity.v1",
-  "kernelLabel": "SHA-256 \u2014 1 MiB seeded fixture, 64 KiB chunks",
+  "kernelLabel": "SHA-256 — 1 MiB seeded fixture, 64 KiB chunks",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "sha256"
@@ -11,6 +11,18 @@
       "label": "JavaScript",
       "kind": "js",
       "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 131072,
+      "files": {
+        "sha256": "sha256_wat.wasm"
+      },
+      "source": "",
+      "initialMemoryBytes": 1048576
     },
     {
       "key": "c",
