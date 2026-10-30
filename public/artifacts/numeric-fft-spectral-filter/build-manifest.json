@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "9b476e3954165f899b7788fba03b6f05cb82a44f",
-  "sourceSha256": "36f0094bbbfa72e002ae7956070976d6acc12c9550893158d89c040cc8684cfd",
+  "sourceCommit": "ef8ea1e4021bad15384a350aba1b76d0ca540f91",
+  "sourceSha256": "834ee03ee27c3469285d52fb28895b43db7ae00ac020975d5db852ecd443a990",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 100110,
-      "sha256": "7926fabf4f39afae5d2a4ff8f5f035f1bec8a4df54c509b5aecf827034840767"
+      "bytes": 100198,
+      "sha256": "5e40bb1e787fc8012e7cac8e29527f28525a2f32f4a59216c4b24e9623d0a8f8"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5cc53e316c70d90cce5d92bdf2a7682d5aa0a037dd79ad054b8a77476a82fd4a"
+      "sha256": "c520467b1e75a7e3512c9205c63c6192cec93fb2e186a2cda63be2ea9f763a55"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "cd9c99f293f29b1057030a171db4cd21b4f6e1fa1041e35f13d6d66c8b44495f"
+      "sha256": "650dbb45609ba408b58f5b7333164104bb15af84a021f7599abbb2031b1a6798"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=9b476e3954165f899b7788fba03b6f05cb82a44f"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=ef8ea1e4021bad15384a350aba1b76d0ca540f91"
   }
 }

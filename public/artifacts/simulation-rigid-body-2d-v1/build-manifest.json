@@ -81,7 +81,7 @@
     },
     {
       "path": "server.ts",
-      "sha256": "7926fabf4f39afae5d2a4ff8f5f035f1bec8a4df54c509b5aecf827034840767"
+      "sha256": "5e40bb1e787fc8012e7cac8e29527f28525a2f32f4a59216c4b24e9623d0a8f8"
     },
     {
       "path": "deno.json",

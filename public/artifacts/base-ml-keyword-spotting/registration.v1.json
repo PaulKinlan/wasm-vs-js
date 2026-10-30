@@ -50,7 +50,7 @@
       "implementation": "authored C compiled to linear Wasm; full preprocessing and DS-CNN execute in module"
     }
   ],
-  "sourceCommit": "31cf9b64518931f61bff83a2f62c26259b522752",
+  "sourceCommit": "ef8ea1e4021bad15384a350aba1b76d0ca540f91",
   "sourceGraph": [
     {
       "path": "benchmarks/base/ml-keyword-spotting/engine.js",
@@ -169,8 +169,9 @@
     },
     {
       "path": "server.ts",
-      "sha256": "7926fabf4f39afae5d2a4ff8f5f035f1bec8a4df54c509b5aecf827034840767",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/31cf9b64518931f61bff83a2f62c26259b522752/server.ts"
+      "sha256": "5e40bb1e787fc8012e7cac8e29527f28525a2f32f4a59216c4b24e9623d0a8f8",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/31cf9b64518931f61bff83a2f62c26259b522752/server.ts",
+      "bytes": 100198
     },
     {
       "path": "catalog/workloads.v1.json",
