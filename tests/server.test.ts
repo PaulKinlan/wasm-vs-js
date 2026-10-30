@@ -283,6 +283,8 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     // eval-class primitives; required for the sqlite-notebook JS target.
     assert(csp.includes("'unsafe-eval'"));
     assert(!csp.includes("'unsafe-inline'"));
+    assert(csp.includes("frame-ancestors 'self' https://aifoc.us https://*.aifoc.us *"));
+    assertEquals(wasm.headers.get("cross-origin-resource-policy"), "cross-origin");
     const manifest = await handler(
       new Request("http://127.0.0.1/artifacts/sum-u32/build-manifest.9c309c49.json"),
     );
