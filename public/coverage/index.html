@@ -96,7 +96,9 @@
         <h2 id="provenance-heading">Artifact provenance</h2>
         <p>
           Every compiled kernel that a workload manifest declares has a recorded build recipe —
-          the exact command, the source hash and the artifact hash. Whether that recipe rebuilds
+          the exact command, the source hash and the artifact hash (see the
+          <a href="/docs/wasm-build-and-equivalence.md">WebAssembly build &amp; equivalence guide</a>
+          for all 8 build lanes and 50 per-test commands). Whether that recipe rebuilds
           the committed binary is a measurement, not a property of the artifact: it depends on
           the machine. The record holds one observation per toolchain, so two machines that
           disagree are both visible instead of one overwriting the other.

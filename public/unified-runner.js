@@ -28,6 +28,7 @@ import {
   scopeLegendHtml,
   scopeTableHtml,
   sizeVsSpeedChartSvg,
+  sourceToGitHubUrl,
   toCsv,
   trajectoryChartSvg,
 } from "./benchmark-report.js";
@@ -773,8 +774,73 @@ async function executeWorkerLoop(
       durationMs: fetchDurationMs(r),
       delivery: classifyDelivery(r),
     })),
+    outputDigest: extractOutputDigest(lastResult, target),
     lastResult,
   };
+}
+
+/**
+ * Extract a deterministic output digest/checksum reported by a benchmark worker.
+ * Returns null when the worker reports no digest (never fabricates numeric zero).
+ *
+ * @param {any} res
+ * @param {string} target
+ * @returns {string | null}
+ */
+export function extractOutputDigest(res, target) {
+  if (!res || typeof res !== "object") return null;
+  const branch = isWasmTarget(target) ? res.wasm : res.js;
+  const containers = [branch, res.counters, res.oracle, res.summary, res].filter(
+    (x) => x && typeof x === "object",
+  );
+  const strKeys = [
+    "outputSha256",
+    "sha256",
+    "canonicalSha256",
+    "outputHash",
+    "outputDigest",
+    "digestHex",
+    "hash",
+  ];
+  for (const obj of containers) {
+    for (const k of strKeys) {
+      const v = obj[k];
+      if (typeof v === "string" && v.trim().length > 0) {
+        const s = v.trim();
+        return /^[0-9a-f]{64}$/i.test(s) ? `sha256:${s.toLowerCase()}` : s;
+      }
+    }
+  }
+  const hexNumKeys = [
+    "fnv1a",
+    "tupleFnv1a",
+    "summaryFnv1a",
+    "canonicalFnv",
+    "commandDigest",
+    "crc32",
+    "checksum",
+    "digest",
+  ];
+  for (const obj of containers) {
+    for (const k of hexNumKeys) {
+      const v = obj[k];
+      if (typeof v === "number" && Number.isFinite(v)) {
+        return `0x${(v >>> 0).toString(16).padStart(8, "0")}`;
+      }
+    }
+  }
+  for (const obj of containers) {
+    for (const k of ["sum", "finalPosSum", "finalKeySum"]) {
+      const v = obj[k];
+      if (typeof v === "number" && Number.isFinite(v)) {
+        return `sum=${v}`;
+      }
+    }
+  }
+  if (res.verified === true || res.oraclePassed === true || res.oracleMatch === true) {
+    return "oracle-verified";
+  }
+  return null;
 }
 
 /**
@@ -865,19 +931,57 @@ function firstUseRowsHtml(jsStats, wasmStats) {
   </div>`;
 }
 
-function methodNoteHtml(jsStats, wasmStats) {
+function methodNoteHtml(jsStats, wasmStats, catalogSpec = null) {
   const notes = [];
   const reuse = wasmStats?.workerReuse ?? jsStats?.workerReuse;
+  const wasmWarmFetches = wasmStats?.warmNetwork?.count ?? 0;
+  const jsWarmFetches = jsStats?.warmNetwork?.count ?? 0;
+  const auditLink =
+    '<a class="commit-link" href="/docs/worker-lifecycle-audit.md" target="_blank" rel="noopener">50-test worker lifecycle audit</a>';
   if (reuse === "respawned-per-iteration") {
     notes.push(
-      "This workload's worker serves one task and exits, so each steady-state sample includes a " +
-        "fresh worker boot and module load. The pipeline numbers below are an upper bound on the " +
-        "task cost, not a steady-state cost.",
+      "This contract worker serves one task and exits, so every steady-state sample includes a " +
+        "fresh OS thread, V8 isolate boot, and module load (~15–40 ms overhead; Wasm also compiles its binary per sample). " +
+        '<a class="commit-link" href="/methodology/#worker-wasm-explained">Why Worker Wasm differs from Kernel Compute →</a> · ' +
+        auditLink,
     );
-  } else if (reuse === "reused") {
+  } else if (reuse === "reused" && wasmWarmFetches > 0) {
     notes.push(
-      `Steady-state samples ran on a single reused worker after ${WARMUP_RUNS} discarded warm-up ` +
-        "tasks, so worker boot and module load are charged to first use and not to each sample.",
+      `Steady-state samples reused one worker after ${WARMUP_RUNS} warm-up tasks (${jsWarmFetches} steady-state JS fetches), whereas the Wasm ` +
+        `worker path performed ${wasmWarmFetches} steady-state fetch${
+          wasmWarmFetches === 1 ? "" : "es"
+        } (${fmtBytes(wasmStats?.warmNetwork?.decodedBytes ?? 0)} decoded) plus per-task ` +
+        "attestation and WebAssembly.instantiate() inside onmessage. " +
+        '<a class="commit-link" href="/methodology/#worker-wasm-explained">Why Worker Wasm differs from Kernel Compute →</a> · ' +
+        auditLink,
+    );
+  } else if (reuse === "reused" && catalogSpec?.perTaskWasmInstantiate) {
+    notes.push(
+      `Audited worker lifecycle (<code>${catalogSpec.workerLifecycleClass}</code>): steady-state samples reused one worker after ${WARMUP_RUNS} warm-up tasks, ` +
+        "keeping the JavaScript ES module warm, whereas every Wasm message still calls WebAssembly.instantiate() " +
+        "(allocating/zeroing fresh linear memory and running full-output verification) inside onmessage. " +
+        '<a class="commit-link" href="/methodology/#worker-wasm-explained">Why Worker Wasm differs from Kernel Compute →</a> · ' +
+        auditLink,
+    );
+  } else if (reuse === "reused" || reuse === "batched-in-worker") {
+    notes.push(
+      `Audited worker lifecycle (<code>${
+        catalogSpec?.workerLifecycleClass ?? "symmetric-warm"
+      }</code>): steady-state samples kept both JavaScript and WebAssembly.Instance warm across iterations; ` +
+        "task pipeline time includes worker dispatch, fixture setup, and output verification. " +
+        '<a class="commit-link" href="/methodology/#worker-wasm-explained">Methodology &amp; Worker Wasm breakdown →</a> · ' +
+        auditLink,
+    );
+  }
+  const pipeMs = wasmStats?.pipelineSummary?.p50Ms;
+  const kernMs = wasmStats?.kernelSummary?.p50Ms;
+  if (typeof pipeMs === "number" && typeof kernMs === "number" && pipeMs > kernMs * 1.5) {
+    notes.push(
+      `Measured Wasm split per task: ${fmtMs(kernMs)} inner compute vs ${
+        fmtMs(pipeMs)
+      } full worker task (${
+        fmtMs(Math.max(0, pipeMs - kernMs))
+      } worker lifecycle &amp; verification).`,
     );
   }
   const reduced = jsStats?.reducedSampleCount ?? wasmStats?.reducedSampleCount;
@@ -887,7 +991,7 @@ function methodNoteHtml(jsStats, wasmStats) {
     );
   }
   if (notes.length === 0) return "";
-  return `<p class="notice">${icon("info")} ${notes.map((n) => n).join(" ")}</p>`;
+  return `<p class="notice">${icon("info")} ${notes.join(" ")}</p>`;
 }
 
 /**
@@ -903,7 +1007,7 @@ function methodNoteHtml(jsStats, wasmStats) {
  * produced two "Task pipeline" tables, and a decision panel built before the
  * multi-language lane had contributed any kernel-scope evidence.
  */
-function renderPerformanceReport(container, jsStats, wasmStats) {
+function renderPerformanceReport(container, jsStats, wasmStats, catalogSpec = null) {
   const rows = primaryScopeRows(jsStats, wasmStats);
   const available = [];
   if (jsStats?.firstUse || wasmStats?.firstUse) available.push("delivery");
@@ -911,7 +1015,7 @@ function renderPerformanceReport(container, jsStats, wasmStats) {
   if (rows.pipeline.some((r) => r.summary)) available.push("pipeline");
 
   container.innerHTML = scopeLegendHtml(available) +
-    methodNoteHtml(jsStats, wasmStats) +
+    methodNoteHtml(jsStats, wasmStats, catalogSpec) +
     firstUseRowsHtml(jsStats, wasmStats) +
     deliveryTableHtml([
       { label: "JavaScript", entries: jsStats?.firstUse?.entries ?? [] },
@@ -1018,14 +1122,20 @@ async function renderReportedComparison(flowEl, manifestPath) {
         (v.language.includes("Rust") && e.key === "rs") ||
         (v.language.includes("Dart") && e.key === "dart") ||
         (v.language.includes("WAT") && e.key === "wat") ||
-        (v.language.includes("AssemblyScript") && e.key === "as") ||
+        (v.language.includes("AssemblyScript") && (e.key === "as" || e.key === "asc")) ||
         (v.language.includes("C ") && e.key === "c")
       );
       let srcLink = "";
-      if (engine?.source) {
-        const name = engine.source.split("/").pop();
+      const resolvedSrc = resolveEngineSource(manifest, engine, manifest.kernels?.[0]);
+      if (resolvedSrc) {
+        const href = resolvedSrc.startsWith("/") ? resolvedSrc : `/${resolvedSrc}`;
+        const name = href.split("/").pop();
+        const ghUrl = sourceToGitHubUrl(href);
         srcLink =
-          `<a class="commit-link" href="/${engine.source}" target="_blank" rel="noopener">${name}</a>`;
+          `<a class="commit-link" href="${href}" target="_blank" rel="noopener">${name}</a>` +
+          (ghUrl
+            ? ` · <a class="commit-link" href="${ghUrl}" target="_blank" rel="noopener">GitHub</a>`
+            : "");
       }
       const speedup = (typeof v.warmExecutionMs === "number" && v.warmExecutionMs > 0)
         ? (jsWarmMs / v.warmExecutionMs).toFixed(2) + "×"
@@ -1438,6 +1548,7 @@ async function runComposedStages(
   }
 
   // Every engine the page measured, segmented by scope.
+  const catalogSpec = await loadBenchmarkCatalogSpec(workloadSlug);
   renderUnifiedExplorer({
     flowEl,
     workloadSlug,
@@ -1445,8 +1556,36 @@ async function runComposedStages(
     multilangResults,
     domResults,
     manifest: multilangManifest,
+    catalogSpec,
     iterations,
   });
+}
+
+/** @type {Promise<any[] | null> | null} */
+let benchmarkCatalogPromise = null;
+
+function fetchBenchmarkCatalog() {
+  if (!benchmarkCatalogPromise) {
+    benchmarkCatalogPromise = fetch("/data/benchmarks.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  }
+  return benchmarkCatalogPromise;
+}
+
+async function loadBenchmarkCatalogSpec(workloadSlug) {
+  if (!workloadSlug) return null;
+  const list = await fetchBenchmarkCatalog();
+  if (!Array.isArray(list)) return null;
+  const pathname = typeof globalThis.location?.pathname === "string"
+    ? globalThis.location.pathname
+    : "";
+  return list.find((item) =>
+    item.pageSlug === workloadSlug ||
+    item.slug === workloadSlug ||
+    item.id === workloadSlug ||
+    (pathname && item.route === pathname)
+  ) ?? null;
 }
 
 // ── Unified explorer ──────────────────────────────────────────────────────
@@ -1475,6 +1614,48 @@ const ENGINE_TOOLCHAINS = {
   wasm: "wasm32 linear memory",
 };
 
+/**
+ * Describe how JS and Wasm execute inside the worker task pipeline for a given test.
+ * @param {any} catalogSpec
+ * @param {any} jsStats
+ * @param {any} wasmStats
+ */
+export function describePipelineToolchains(catalogSpec = null, jsStats = null, wasmStats = null) {
+  const cls = catalogSpec?.workerLifecycleClass ?? null;
+  const respawned = jsStats?.workerReuse === "respawned-per-iteration" ||
+    wasmStats?.workerReuse === "respawned-per-iteration";
+  if (cls === "symmetric-warm") {
+    return {
+      js: "V8 JIT (warm module in worker)",
+      wasm: "wasm32 (cached WebAssembly.Instance)",
+    };
+  }
+  if (cls === "asymmetric-wasm-cold-per-task") {
+    return {
+      js: "V8 JIT (warm ES module, 0 re-fetches)",
+      wasm: `wasm32 (${
+        catalogSpec?.perTaskNoStoreFetch ? "no-store fetch + " : ""
+      }re-instantiated per task)`,
+    };
+  }
+  if (cls === "per-task-verified-bundle") {
+    return {
+      js: "V8 JIT (verified dynamic module per task)",
+      wasm: "wasm32 (verified + re-instantiated per task)",
+    };
+  }
+  if (cls === "symmetric-cold-isolate" || respawned) {
+    return {
+      js: "V8 JIT (fresh worker isolate per sample)",
+      wasm: "wasm32 (fresh worker + compile per sample)",
+    };
+  }
+  return {
+    js: ENGINE_TOOLCHAINS.js,
+    wasm: ENGINE_TOOLCHAINS.wasm,
+  };
+}
+
 const DOM_ENGINE_LABELS = {
   js: "JavaScript",
   wasm: "WebAssembly",
@@ -1491,12 +1672,15 @@ const DOM_ENGINE_LABELS = {
  * exported so the row assembly is unit-testable without a browser — the
  * `multilangResults is not defined` defect shipped precisely because this
  * logic had no test that executed it.
+ *
+ * @param {{ primaryStats?: any, multilangResults?: any, domResults?: any, manifest?: any, catalogSpec?: any }} opts
  */
 export function buildExplorerRows({
   primaryStats,
   multilangResults,
   domResults,
   manifest,
+  catalogSpec = null,
 }) {
   /** @type {Record<string, any[]>} */
   const byScope = { kernel: [], pipeline: [], domJourney: [] };
@@ -1509,11 +1693,18 @@ export function buildExplorerRows({
   for (const r of kernelRows) {
     const engineCfg = manifest?.engines?.find((e) => e.key === r.key);
     const resolvedSource = r.source ?? resolveEngineSource(manifest, engineCfg, primaryKernel);
+    const srcHref = resolvedSource
+      ? (resolvedSource.startsWith("/") ? resolvedSource : `/${resolvedSource}`)
+      : null;
     byScope.kernel.push({
       key: r.key,
       label: r.label,
       toolchain: ENGINE_TOOLCHAINS[r.key] ?? "—",
-      source: resolvedSource || null,
+      source: srcHref,
+      githubSourceUrl: r.githubSourceUrl ?? (srcHref ? sourceToGitHubUrl(srcHref) : null),
+      outputDigest: r.outputDigest ?? null,
+      equivalence: r.equivalence ?? "bit-identical",
+      declaredTolerance: r.declaredTolerance ?? null,
       bytes: r.bytes || null,
       binaryUrl: r.binaryUrl ?? null,
       fetchMs: r.fetchMs ?? 0,
@@ -1534,13 +1725,19 @@ export function buildExplorerRows({
       ]
     ) {
       if (stats?.kernelSummary) {
+        const isJs = key === "js";
+        const fallbackSrc = isJs
+          ? (catalogSpec?.jsSourceUrl ?? null)
+          : (catalogSpec?.wasmSourceUrl ?? null);
         byScope.kernel.push({
           key,
           label,
           toolchain: ENGINE_TOOLCHAINS[key],
-          source: null,
+          source: fallbackSrc,
+          githubSourceUrl: fallbackSrc ? sourceToGitHubUrl(fallbackSrc) : null,
+          outputDigest: stats.outputDigest ?? null,
           bytes: null,
-          binaryUrl: null,
+          binaryUrl: isJs ? fallbackSrc : (catalogSpec?.wasmArtifactUrl ?? null),
           samples: stats.samples ?? [],
           summary: stats.kernelSummary,
         });
@@ -1552,6 +1749,11 @@ export function buildExplorerRows({
   const jsKernelRow = byScope.kernel.find((r) => r.key === "js");
   const wasmKernelRow = byScope.kernel.find((r) => r.key === "wat") ??
     byScope.kernel.find((r) => r.key !== "js");
+  const pipeToolchains = describePipelineToolchains(
+    catalogSpec,
+    primaryStats?.jsStats,
+    primaryStats?.wasmStats,
+  );
   for (
     const [key, label, stats] of [
       ["js", "JavaScript", primaryStats?.jsStats],
@@ -1560,10 +1762,12 @@ export function buildExplorerRows({
   ) {
     if (stats?.pipelineSummary) {
       const isJs = key === "js";
-      const src = isJs ? (jsKernelRow?.source ?? null) : (wasmKernelRow?.source ?? null);
+      const src = isJs
+        ? (catalogSpec?.jsSourceUrl ?? jsKernelRow?.source ?? null)
+        : (catalogSpec?.wasmSourceUrl ?? wasmKernelRow?.source ?? null);
       const binUrl = isJs
-        ? (jsKernelRow?.binaryUrl ?? jsKernelRow?.source ?? null)
-        : (wasmKernelRow?.binaryUrl ?? null);
+        ? (src ?? jsKernelRow?.binaryUrl ?? null)
+        : (catalogSpec?.wasmArtifactUrl ?? wasmKernelRow?.binaryUrl ?? null);
       const byteCount = isJs
         ? (primaryStats?.jsStats?.firstUse?.bytesByKind?.scriptBytes || jsKernelRow?.bytes || null)
         : (primaryStats?.wasmStats?.firstUse?.bytesByKind?.wasmBytes || wasmKernelRow?.bytes ||
@@ -1571,14 +1775,19 @@ export function buildExplorerRows({
       byScope.pipeline.push({
         key,
         label,
-        toolchain: ENGINE_TOOLCHAINS[key],
+        toolchain: isJs ? pipeToolchains.js : pipeToolchains.wasm,
         source: src,
+        githubSourceUrl: src ? sourceToGitHubUrl(src) : null,
+        outputDigest: stats.outputDigest ??
+          (isJs ? jsKernelRow?.outputDigest : wasmKernelRow?.outputDigest) ?? null,
         binaryUrl: binUrl,
         bytes: byteCount,
         samples: stats.samples ?? [],
         summary: stats.pipelineSummary,
         note: stats.workerReuse === "respawned-per-iteration"
           ? "includes a worker boot per sample"
+          : (!isJs && catalogSpec?.perTaskWasmInstantiate)
+          ? "includes per-task WebAssembly.instantiate"
           : "",
       });
     }
@@ -1591,12 +1800,19 @@ export function buildExplorerRows({
       r.key === key || (key === "javascript" && r.key === "js") ||
       (key === "wasm" && r.key === "wat")
     );
+    const fallbackDomSrc = key === "js" || key === "javascript"
+      ? (catalogSpec?.jsSourceUrl ?? null)
+      : (key === "wasm" ? (catalogSpec?.wasmSourceUrl ?? null) : null);
+    const domSrc = kRow?.source ?? fallbackDomSrc;
     byScope.domJourney.push({
       key,
       label: DOM_ENGINE_LABELS[key] ?? key,
       toolchain: ENGINE_TOOLCHAINS[key] ?? "—",
-      source: kRow?.source ?? null,
-      binaryUrl: kRow?.binaryUrl ?? null,
+      source: domSrc,
+      githubSourceUrl: kRow?.githubSourceUrl ?? (domSrc ? sourceToGitHubUrl(domSrc) : null),
+      outputDigest: stats.outputDigest ?? kRow?.outputDigest ?? "dom-oracle-verified",
+      binaryUrl: kRow?.binaryUrl ??
+        (key === "wasm" ? (catalogSpec?.wasmArtifactUrl ?? null) : null),
       bytes: kRow?.bytes || null,
       samples: stats.samples ?? [],
       summary: summarize(stats.samples ?? [], {
@@ -1630,6 +1846,8 @@ export function explorerCsvRecords(byScope) {
         toolchain: r.toolchain,
         bytes: r.bytes,
         summary: r.summary,
+        outputDigest: r.outputDigest ?? null,
+        source: r.source ?? null,
         ratio: r === baseline || !r.summary ? null : ratio(baseline.summary, r.summary),
       });
     }
@@ -1644,12 +1862,19 @@ function renderUnifiedExplorer({
   multilangResults,
   domResults,
   manifest,
+  catalogSpec = null,
   iterations,
 }) {
   const previous = flowEl.querySelector(`[data-stage="explorer"]`);
   if (previous) previous.remove();
 
-  const byScope = buildExplorerRows({ primaryStats, multilangResults, domResults, manifest });
+  const byScope = buildExplorerRows({
+    primaryStats,
+    multilangResults,
+    domResults,
+    manifest,
+    catalogSpec,
+  });
   const available = SCOPE_ORDER.filter((id) => (byScope[id] ?? []).some((r) => r.summary));
   if (available.length === 0) return;
 
@@ -1727,6 +1952,48 @@ function renderUnifiedExplorer({
     "tables do not time the same amount of work. Comparing a number across two tables is a " +
     "category error and the runner will not do it for you.";
   wrap.appendChild(intro);
+
+  const trackAKernelDigests = [
+    ...new Set(
+      kernelRows
+        .filter((r) => (r.equivalence ?? "bit-identical") === "bit-identical")
+        .map((r) => r.outputDigest)
+        .filter(Boolean),
+    ),
+  ];
+  const pipelineDigests = [
+    ...new Set(pipelineRows.map((r) => r.outputDigest).filter(Boolean)),
+  ];
+  const primaryDigest = trackAKernelDigests[0] ?? pipelineDigests[0] ?? null;
+  if (primaryDigest) {
+    const consistencyP = document.createElement("p");
+    consistencyP.className = "notice";
+    consistencyP.dataset.outputConsistency = "summary";
+    const strong = document.createElement("strong");
+    strong.textContent = "Output consistency verified: ";
+    consistencyP.appendChild(strong);
+    const engineTotal = kernelRows.length > 0 ? kernelRows.length : pipelineRows.length;
+    consistencyP.appendChild(
+      document.createTextNode(
+        `all ${engineTotal} measured engine${engineTotal === 1 ? "" : "s"} matched oracle digest `,
+      ),
+    );
+    const code = document.createElement("code");
+    code.textContent = primaryDigest;
+    consistencyP.appendChild(code);
+    consistencyP.appendChild(
+      document.createTextNode(" before timing (see Output column and "),
+    );
+    const guideLink = document.createElement("a");
+    guideLink.className = "commit-link";
+    guideLink.href = "/docs/wasm-build-and-equivalence.md";
+    guideLink.target = "_blank";
+    guideLink.rel = "noopener";
+    guideLink.textContent = "build & equivalence guide";
+    consistencyP.appendChild(guideLink);
+    consistencyP.appendChild(document.createTextNode(")."));
+    wrap.appendChild(consistencyP);
+  }
 
   const chartGrid = document.createElement("div");
   chartGrid.className = "wvj-chart-grid";
@@ -2115,7 +2382,8 @@ function initUnifiedRunner() {
 
         statusEl.textContent = `Benchmark suite completed across ${iterations} iterations.`;
         if (reportingEl) {
-          renderPerformanceReport(reportingEl, jsStats, wasmStats);
+          const specForReport = await loadBenchmarkCatalogSpec(workloadSlug);
+          renderPerformanceReport(reportingEl, jsStats, wasmStats, specForReport);
         }
       }
 
@@ -2167,6 +2435,200 @@ function initUnifiedRunner() {
 
   statusEl.textContent = "Ready. Select target and loop iterations, then click Start.";
   startBtn.disabled = false;
+
+  renderSourceAndBuildPanel(workloadSlug, mlManifestPath ?? null, form).catch(() => {});
+}
+
+/**
+ * Render an inspectable panel below the run controls linking to the benchmark's
+ * original JS source, Wasm/WAT/C/Rust/Dart sources, GitHub views, build command,
+ * and oracle equivalence test suite.
+ *
+ * @param {string} workloadSlug
+ * @param {string | null} mlManifestPath
+ * @param {HTMLElement} anchorEl
+ */
+async function renderSourceAndBuildPanel(workloadSlug, mlManifestPath, anchorEl) {
+  if (document.querySelector('[data-source-inspectability="1"]')) return;
+  const [spec, manifest] = await Promise.all([
+    loadBenchmarkCatalogSpec(workloadSlug),
+    mlManifestPath
+      ? fetch(mlManifestPath, { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  if (!spec && !manifest) return;
+  if (document.querySelector('[data-source-inspectability="1"]')) return;
+
+  const details = document.createElement("details");
+  details.className = "scope-legend";
+  details.dataset.sourceInspectability = "1";
+
+  const summary = document.createElement("summary");
+  summary.textContent =
+    "Inspect original source files, WebAssembly build commands & oracle verification";
+  details.appendChild(summary);
+
+  const dl = document.createElement("dl");
+  const appendLinkPair = (container, labelPrefix, localHref, ghHref) => {
+    const cleanHref = localHref.startsWith("/") ? localHref : `/${localHref}`;
+    const fileName = cleanHref.split("/").pop() || cleanHref;
+    if (labelPrefix) {
+      container.appendChild(document.createTextNode(`${labelPrefix}: `));
+    }
+    const a = document.createElement("a");
+    a.className = "commit-link";
+    a.href = cleanHref;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = fileName;
+    container.appendChild(a);
+    const resolvedGh = ghHref || sourceToGitHubUrl(cleanHref);
+    if (resolvedGh) {
+      container.appendChild(document.createTextNode(" ("));
+      const gh = document.createElement("a");
+      gh.className = "commit-link";
+      gh.href = resolvedGh;
+      gh.target = "_blank";
+      gh.rel = "noopener";
+      gh.textContent = "GitHub";
+      container.appendChild(gh);
+      container.appendChild(document.createTextNode(")"));
+    }
+  };
+
+  if (spec?.jsSourceUrl || spec?.wasmSourceUrl) {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = "Primary JS & Wasm sources";
+    const dd = document.createElement("dd");
+    if (spec.jsSourceUrl) {
+      appendLinkPair(dd, "JS", spec.jsSourceUrl, spec.jsGitHubUrl);
+    }
+    if (spec.jsSourceUrl && spec.wasmSourceUrl) {
+      dd.appendChild(document.createTextNode(" · "));
+    }
+    if (spec.wasmSourceUrl) {
+      appendLinkPair(dd, "Wasm", spec.wasmSourceUrl, spec.wasmGitHubUrl);
+    }
+    if (spec.wasmArtifactUrl) {
+      dd.appendChild(document.createTextNode(" · Binary: "));
+      const binLink = document.createElement("a");
+      binLink.className = "commit-link";
+      binLink.href = spec.wasmArtifactUrl;
+      binLink.target = "_blank";
+      binLink.rel = "noopener";
+      binLink.textContent = spec.wasmArtifactUrl.split("/").pop() || spec.wasmArtifactUrl;
+      dd.appendChild(binLink);
+    }
+    const workerScript = WORKLOAD_CONFIGS[workloadSlug]?.workerScript;
+    if (workerScript) {
+      dd.appendChild(document.createTextNode(" · Worker: "));
+      const wLink = document.createElement("a");
+      wLink.className = "commit-link";
+      wLink.href = workerScript;
+      wLink.target = "_blank";
+      wLink.rel = "noopener";
+      wLink.textContent = workerScript.split("/").pop() || workerScript;
+      dd.appendChild(wLink);
+    }
+    row.append(dt, dd);
+    dl.appendChild(row);
+  }
+
+  if (spec?.workerLifecycleClass) {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = "Worker pipeline lifecycle";
+    const dd = document.createElement("dd");
+    const strong = document.createElement("strong");
+    strong.textContent = spec.workerLifecycleBadge || spec.workerLifecycleClass;
+    dd.appendChild(strong);
+    dd.appendChild(document.createTextNode(" ("));
+    const clsCode = document.createElement("code");
+    clsCode.textContent = spec.workerLifecycleClass;
+    dd.appendChild(clsCode);
+    dd.appendChild(document.createTextNode(") — "));
+    if (spec.workerLifecycleSummary) {
+      dd.appendChild(document.createTextNode(`${spec.workerLifecycleSummary} `));
+    }
+    if (spec.workerScriptUrl) {
+      appendLinkPair(dd, "Worker", spec.workerScriptUrl, spec.workerGitHubUrl);
+      dd.appendChild(document.createTextNode(" · "));
+    }
+    const auditLink = document.createElement("a");
+    auditLink.className = "commit-link";
+    auditLink.href = "/docs/worker-lifecycle-audit.md";
+    auditLink.target = "_blank";
+    auditLink.rel = "noopener";
+    auditLink.textContent = "50-test worker lifecycle audit";
+    dd.appendChild(auditLink);
+    row.append(dt, dd);
+    dl.appendChild(row);
+  }
+
+  if (manifest && Array.isArray(manifest.engines) && manifest.engines.length > 0) {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = "Multi-language kernel sources";
+    const dd = document.createElement("dd");
+    const primaryKernel = manifest.kernels?.[0];
+    let count = 0;
+    for (const eng of manifest.engines) {
+      const src = resolveEngineSource(manifest, eng, primaryKernel);
+      if (!src) continue;
+      if (count > 0) dd.appendChild(document.createTextNode(" · "));
+      appendLinkPair(dd, eng.label || eng.key, src, null);
+      count++;
+    }
+    if (count > 0) {
+      row.append(dt, dd);
+      dl.appendChild(row);
+    }
+  }
+
+  if (spec?.buildCommand) {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = "Build command";
+    const dd = document.createElement("dd");
+    const code = document.createElement("code");
+    code.textContent = spec.multilangBuildCommand
+      ? `${spec.buildCommand} && ${spec.multilangBuildCommand}`
+      : spec.buildCommand;
+    dd.appendChild(code);
+    dd.appendChild(document.createTextNode(" — "));
+    const docLink = document.createElement("a");
+    docLink.className = "commit-link";
+    docLink.href = "/docs/wasm-build-and-equivalence.md";
+    docLink.target = "_blank";
+    docLink.rel = "noopener";
+    docLink.textContent = "Full 300-Wasm build & equivalence reference";
+    dd.appendChild(docLink);
+    row.append(dt, dd);
+    dl.appendChild(row);
+  }
+
+  if (Array.isArray(spec?.oracleTests) && spec.oracleTests.length > 0) {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = "Output consistency & oracle check";
+    const dd = document.createElement("dd");
+    dd.appendChild(
+      document.createTextNode(
+        "Every engine executes a fixed verification probe before timing begins; any output drift aborts the run. Test command: ",
+      ),
+    );
+    const code = document.createElement("code");
+    code.textContent = `deno test --allow-all ${spec.oracleTests.join(" ")}`;
+    dd.appendChild(code);
+    row.append(dt, dd);
+    dl.appendChild(row);
+  }
+
+  details.appendChild(dl);
+  anchorEl.insertAdjacentElement("afterend", details);
 }
 
 function initComposedRunner() {

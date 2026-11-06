@@ -29,7 +29,7 @@
       "kind": "linear",
       "lang": "c",
       "offset": 0,
-      "source": "",
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
       "files": {
         "pdf_parse": "pdf_engine_c.wasm"
       }

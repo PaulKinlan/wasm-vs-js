@@ -32,41 +32,41 @@
     {
       "key": "c",
       "kind": "linear",
-      "lang": "C (Clang)",
+      "lang": "c",
       "files": {
         "kws_run": "kws_kernel_c.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
       "label": "C / Wasm"
     },
     {
       "key": "cpp",
       "kind": "linear",
-      "lang": "C++ (Clang++)",
+      "lang": "cpp",
       "files": {
         "kws_run": "kws_kernel_cpp.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
       "label": "C++ / Wasm"
     },
     {
       "key": "rs",
       "kind": "linear",
-      "lang": "Rust (rustc)",
+      "lang": "rs",
       "files": {
         "kws_run": "kws_kernel_rs.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
       "label": "Rust / Wasm"
     },
     {
       "key": "asc",
       "kind": "linear",
-      "lang": "AssemblyScript",
+      "lang": "asc",
       "files": {
         "kws_run": "kws_kernel_asc.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.ts",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.ts",
       "label": "AssemblyScript / Wasm"
     }
   ]

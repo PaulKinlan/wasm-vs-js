@@ -48,6 +48,14 @@ const CONTENT_TYPES: Record<string, string> = {
   ".data": "application/octet-stream",
   ".md": "text/markdown; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
+  ".wat": "text/plain; charset=utf-8",
+  ".c": "text/plain; charset=utf-8",
+  ".cpp": "text/plain; charset=utf-8",
+  ".h": "text/plain; charset=utf-8",
+  ".rs": "text/plain; charset=utf-8",
+  ".ts": "text/plain; charset=utf-8",
+  ".dart": "text/plain; charset=utf-8",
+  ".kt": "text/plain; charset=utf-8",
 };
 
 function contentTypeFor(file: string): string {
@@ -205,6 +213,55 @@ const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
   "artifacts/multilang-wasm-benchmark/vdom_kernel_wat.wasm",
   "artifacts/multilang-wasm-benchmark/viewer_wat.wasm",
   "artifacts/multilang-wasm-benchmark/zip_kernel_wat.wasm",
+  // Pre-computed Track B Auto-Research log & isolated SIMD128 binaries (scripts/run-autoresearch.ts).
+  "data/autoresearch-log.v1.json",
+  // Source-audited per-test worker lifecycle ledger (scripts/audit-worker-lifecycle.ts).
+  "data/worker-lifecycle.v1.json",
+  "artifacts/autoresearch/archive-zip-workspace-v1_c_simd128.wasm",
+  "artifacts/autoresearch/audio-fft_c_simd128.wasm",
+  "artifacts/autoresearch/audio-fir_c_simd128.wasm",
+  "artifacts/autoresearch/audio-stft_c_simd128.wasm",
+  "artifacts/autoresearch/audio-webaudio-effects-v1_c_simd128.wasm",
+  "artifacts/autoresearch/base-dom-todomvc-journey_c_simd128.wasm",
+  "artifacts/autoresearch/cad-mesh-repair_c_simd128.wasm",
+  "artifacts/autoresearch/cad-parametric-bracket_c_simd128.wasm",
+  "artifacts/autoresearch/crypto-authenticated-stream_c_simd128.wasm",
+  "artifacts/autoresearch/crypto-file-integrity_c_simd128.wasm",
+  "artifacts/autoresearch/database-olap-chart_c_simd128.wasm",
+  "artifacts/autoresearch/document-pdf-viewer_c_simd128.wasm",
+  "artifacts/autoresearch/dom-dependent-form-validation_c_simd128.wasm",
+  "artifacts/autoresearch/dom-grid-movement_c_simd128.wasm",
+  "artifacts/autoresearch/dom-keyed-list-mutation_c_simd128.wasm",
+  "artifacts/autoresearch/dom-nested-tree-mutation_c_simd128.wasm",
+  "artifacts/autoresearch/dom-table-sort-filter-pagination_c_simd128.wasm",
+  "artifacts/autoresearch/dom-virtualized-grid-v1_c_simd128.wasm",
+  "artifacts/autoresearch/fft-kernel_c_simd128.wasm",
+  "artifacts/autoresearch/game-canvas-arcade_c_simd128.wasm",
+  "artifacts/autoresearch/game-canvas-entity-pathfinding_c_simd128.wasm",
+  "artifacts/autoresearch/game-dom-tactics-grid_c_simd128.wasm",
+  "artifacts/autoresearch/game-ecs-frame-update_c_simd128.wasm",
+  "artifacts/autoresearch/graphics-cpu-path-tracer_c_simd128.wasm",
+  "artifacts/autoresearch/graphics-gltf-viewer_c_simd128.wasm",
+  "artifacts/autoresearch/image-editing_c_simd128.wasm",
+  "artifacts/autoresearch/ml-dense-mlp_c_simd128.wasm",
+  "artifacts/autoresearch/ml-gemm_c_simd128.wasm",
+  "artifacts/autoresearch/ml-keyword-spotting-v1_c_simd128.wasm",
+  "artifacts/autoresearch/ml-numeric-kernels_c_simd128.wasm",
+  "artifacts/autoresearch/multilang-wasm_c_simd128.wasm",
+  "artifacts/autoresearch/network-pcap-decode_c_simd128.wasm",
+  "artifacts/autoresearch/numeric-polybench-panel_c_simd128.wasm",
+  "artifacts/autoresearch/regex-automata-duel-demo_c_simd128.wasm",
+  "artifacts/autoresearch/serialization-json-telemetry_c_simd128.wasm",
+  "artifacts/autoresearch/serialization-protobuf-gateway_c_simd128.wasm",
+  "artifacts/autoresearch/server-ssr-template-v1_c_simd128.wasm",
+  "artifacts/autoresearch/simulation-nbody-cloth_c_simd128.wasm",
+  "artifacts/autoresearch/simulation-rigid-body-2d_c_simd128.wasm",
+  "artifacts/autoresearch/sum-u32_c_simd128.wasm",
+  "artifacts/autoresearch/text-diff-patch_c_simd128.wasm",
+  "artifacts/autoresearch/text-gc-document-edit_c_simd128.wasm",
+  "artifacts/autoresearch/text-markdown-cms_c_simd128.wasm",
+  "artifacts/autoresearch/text-regex-log-scan_c_simd128.wasm",
+  "artifacts/autoresearch/vdom-diff-patch_c_simd128.wasm",
 ];
 
 function assetRoutes(): Array<readonly [string, string, string]> {
@@ -221,6 +278,74 @@ function assetRoutes(): Array<readonly [string, string, string]> {
       throw new Error(`server.ts already routes ${rel} — remove it from GENERATED_ASSET_ROUTES`);
     }
     return [`/${rel}`, file, contentTypeFor(name)] as const;
+  });
+}
+
+// Explicit reviewed repo-root source & build-documentation files exposed for UI
+// source inspectability without modifying hash-pinned server.ts.
+const GENERATED_REPO_SOURCE_ROUTES: ReadonlyArray<string> = [
+  "benchmarks/audio-fft/audio-fft.wat",
+  "benchmarks/audio-fft/js.ts",
+  "benchmarks/audio-fft/workload.ts",
+  "benchmarks/audio-fir/audio-fir.wat",
+  "benchmarks/audio-fir/js.ts",
+  "benchmarks/audio-fir/workload.ts",
+  "benchmarks/audio-stft/audio-stft.wat",
+  "benchmarks/audio-stft/js.ts",
+  "benchmarks/audio-stft/workload.ts",
+  "benchmarks/base-v1/graphics-cpu-path-tracer/path-tracer.c",
+  "benchmarks/base/audio-webaudio-effects/audio-webaudio-effects.wat",
+  "benchmarks/base/cad-mesh-repair/mesh-repair.c",
+  "benchmarks/base/cad-parametric-bracket/bracket.c",
+  "benchmarks/base/crypto-authenticated-stream/aead.c",
+  "benchmarks/base/crypto-file-integrity/sha256.c",
+  "benchmarks/base/database-olap-chart/olap.c",
+  "benchmarks/base/document-pdf-viewer/pdf-engine.c",
+  "benchmarks/base/dom-virtualized-grid/grid.c",
+  "benchmarks/base/graphics-gltf-viewer/viewer.c",
+  "benchmarks/base/ml-keyword-spotting/keyword-spotting.c",
+  "benchmarks/base/ml-numeric-kernels/ml-numeric-kernels.c",
+  "benchmarks/base/network-pcap-decode/pcap-decode.c",
+  "benchmarks/base/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wat",
+  "benchmarks/base/numeric-polybench-panel/polybench-panel.wat",
+  "benchmarks/base/serialization-protobuf-gateway/protobuf-gateway.c",
+  "benchmarks/base/simulation-nbody/nbody.c",
+  "benchmarks/dom-dependent-form-validation/dom_form_validate.c",
+  "benchmarks/dom-grid-movement/dom_grid.c",
+  "benchmarks/dom-keyed-list-mutation/dom_keyed_list.c",
+  "benchmarks/dom-nested-tree-mutation/dom_nested_tree.c",
+  "benchmarks/dom-table-sort-filter-pagination/dom_table_sort.c",
+  "benchmarks/dom-virtualized-scrolling/dom_vscroll.c",
+  "benchmarks/sum-u32/sum-u32.wat",
+  "benchmarks/text-regex-log-scan/text-regex-log-scan.wat",
+  "benchmarks/v1/archive-zip-workspace/archive_zip.c",
+  "benchmarks/v1/game-ecs-frame-update/ecs-frame-update.c",
+  "benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c",
+  "benchmarks/v1/serialization-json-telemetry/telemetry.c",
+  "benchmarks/v1/server-ssr-template/server-ssr-template.c",
+  "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
+  "benchmarks/v1/text-gc-document-edit/kotlin/src/wasmJsMain/kotlin/Main.kt",
+  "benchmarks/v2/game-family/game-family.c",
+  "benchmarks/v2/text-diff-patch/text-diff-patch.wat",
+  "benchmarks/v2/text-markdown-cms/text-markdown-cms.wat",
+  "docs/autoresearch-log.md",
+  "docs/wasm-build-and-equivalence.md",
+  "docs/worker-lifecycle-audit.md",
+];
+
+function repoSourceRoutes(): Array<readonly [string, string, string]> {
+  const serverSrc = Deno.readTextFileSync(join(ROOT_PATH, "server.ts"));
+  return GENERATED_REPO_SOURCE_ROUTES.map((rel) => {
+    if (!fileExists(join(ROOT_PATH, rel))) {
+      throw new Error(`GENERATED_REPO_SOURCE_ROUTES names a missing file: ${rel}`);
+    }
+    const routePath = `/${rel}`;
+    if (serverSrc.includes(`"${routePath}"`)) {
+      throw new Error(
+        `server.ts already routes ${routePath} — remove it from GENERATED_REPO_SOURCE_ROUTES`,
+      );
+    }
+    return [routePath, rel, contentTypeFor(rel)] as const;
   });
 }
 
@@ -408,7 +533,7 @@ function isFile(p: string): boolean {
 
 function main(): void {
   const check = Deno.args.includes("--check");
-  const routes = [...scanPages(), ...assetRoutes()];
+  const routes = [...scanPages(), ...assetRoutes(), ...repoSourceRoutes()];
   const cardRoutes = parseCardRoutes();
 
   routes.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);

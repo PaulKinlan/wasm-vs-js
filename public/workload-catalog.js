@@ -32,7 +32,22 @@ function addList(section, title, values) {
   section.append(heading, valuesList);
 }
 
+function appendExternalLink(parent, label, href) {
+  if (!href) return;
+  const link = element("a", label, "commit-link");
+  link.href = href;
+  link.target = "_blank";
+  link.rel = "noopener";
+  parent.append(link);
+}
+
+const benchmarksById = new Map();
+const benchmarksByRoute = new Map();
+
 function renderEntry(entry) {
+  const route = WORKLOAD_DEMO_ROUTES[entry.id];
+  const benchMeta = benchmarksById.get(entry.id) ??
+    (route ? benchmarksByRoute.get(route) : undefined);
   const card = element("article", undefined, "catalog-card");
   const header = element("header", undefined, "catalog-card-header");
   const title = element("h3", entry.title);
@@ -57,6 +72,19 @@ function renderEntry(entry) {
   addDefinition(oracle, "Oracle", entry.oracle.kind);
   addDefinition(oracle, "Equivalence", entry.oracle.equivalenceClass);
   addDefinition(oracle, "Algorithm family", entry.oracle.algorithmFamily);
+  if (benchMeta?.buildCommand) {
+    addDefinition(oracle, "Build command", benchMeta.buildCommand);
+  }
+  if (benchMeta?.workerLifecycleBadge) {
+    addDefinition(
+      oracle,
+      "Worker pipeline",
+      `${benchMeta.workerLifecycleBadge} (${benchMeta.workerLifecycleClass})`,
+    );
+  }
+  if (Array.isArray(benchMeta?.oracleTests) && benchMeta.oracleTests.length > 0) {
+    addDefinition(oracle, "Oracle tests", benchMeta.oracleTests.join(", "));
+  }
   contract.append(oracle, element("p", entry.oracle.description));
 
   const modes = element("section");
@@ -107,11 +135,19 @@ function renderEntry(entry) {
   details.append(body);
 
   const actions = element("div", undefined, "catalog-actions");
-  const route = WORKLOAD_DEMO_ROUTES[entry.id];
   if (route) {
     const runBtn = element("a", "Run benchmark", "btn-run-catalog");
     runBtn.href = route;
     actions.append(runBtn);
+    appendExternalLink(actions, "JS source", benchMeta?.jsSourceUrl);
+    appendExternalLink(actions, "Wasm source", benchMeta?.wasmSourceUrl);
+    appendExternalLink(actions, "Worker source", benchMeta?.workerScriptUrl);
+    appendExternalLink(
+      actions,
+      "GitHub",
+      benchMeta?.wasmGitHubUrl || benchMeta?.jsGitHubUrl,
+    );
+    appendExternalLink(actions, "Worker audit", "/docs/worker-lifecycle-audit.md");
   } else {
     const blockedBadge = element(
       "a",
@@ -134,8 +170,22 @@ function countBy(entries, key) {
 }
 
 try {
-  const response = await fetch("/data/workloads.v1.json", { credentials: "omit" });
+  const [response, benchResp] = await Promise.all([
+    fetch("/data/workloads.v1.json", { credentials: "omit" }),
+    fetch("/data/benchmarks.json", { credentials: "omit" }).catch(() => null),
+  ]);
   if (!response.ok) throw new Error(`catalog request returned ${response.status}`);
+  if (benchResp && benchResp.ok) {
+    const benchItems = await benchResp.json().catch(() => []);
+    if (Array.isArray(benchItems)) {
+      for (const item of benchItems) {
+        if (item.id && !benchmarksById.has(item.id)) benchmarksById.set(item.id, item);
+        if (item.route && !benchmarksByRoute.has(item.route)) {
+          benchmarksByRoute.set(item.route, item);
+        }
+      }
+    }
+  }
   const catalog = await response.json();
   if (catalog.publishedCount !== 38 || catalog.entries.length !== 38) {
     throw new Error("catalog denominator does not reconcile to 38");

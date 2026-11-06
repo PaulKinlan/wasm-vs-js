@@ -2,6 +2,14 @@
 // Generates catalog/benchmarks.json and public/data/benchmarks.json as the canonical
 // denominator for the refactored 3-stage benchmark suite.
 
+import { findBuildSpec, toGitHubBlobUrl, toServedUrl } from "./wasm-build-registry.ts";
+import type {
+  WorkerLifecycleClass,
+  WorkerLifecycleEntry,
+  WorkerLifecycleLedger,
+  WorkerReuseMode,
+} from "./audit-worker-lifecycle.ts";
+
 export interface BenchmarkMeta {
   slug: string;
   id: string;
@@ -14,9 +22,32 @@ export interface BenchmarkMeta {
   whyCompare: string;
   manifest: string;
   kernels: string[];
+  pageSlug?: string;
+  route?: string;
+  jsSource?: string;
+  jsSourceUrl?: string;
+  jsGitHubUrl?: string;
+  wasmSource?: string;
+  wasmSourceUrl?: string;
+  wasmGitHubUrl?: string;
+  wasmArtifact?: string;
+  wasmArtifactUrl?: string;
+  compiler?: string;
+  buildCommand?: string;
+  multilangBuildCommand?: string | null;
+  oracleTests?: string[];
+  workerScriptUrl?: string | null;
+  workerGitHubUrl?: string | null;
+  workerLifecycleClass?: WorkerLifecycleClass;
+  workerLifecycleBadge?: string;
+  workerReuse?: WorkerReuseMode;
+  perTaskNoStoreFetch?: boolean;
+  perTaskSha256Digest?: boolean;
+  perTaskWasmInstantiate?: boolean;
+  workerLifecycleSummary?: string;
 }
 
-export const CANONICAL_BENCHMARKS: BenchmarkMeta[] = [
+const RAW_BENCHMARKS: BenchmarkMeta[] = [
   // Numeric & Math
   {
     slug: "sum-u32",
@@ -744,7 +775,89 @@ export const CANONICAL_BENCHMARKS: BenchmarkMeta[] = [
     manifest: "/benchmarks/base/tooling-c-to-wasm-compile/benchmark.json",
     kernels: ["compile_c_to_wasm"],
   },
+  {
+    slug: "database-sqlite-notebook-v1",
+    id: "database.sqlite-notebook.v1",
+    title: "SQLite In-Browser SQL Notebook",
+    category: "Database & Storage",
+    pageType: "compute",
+    summary:
+      "Executes relational SQL joins, aggregations, and schema queries in-browser over CSV fixtures.",
+    whatItDoes:
+      "Loads relational tables and runs analytical SQL statements against an in-memory relational engine.",
+    whyCompare:
+      "Contrasts vendored C SQLite compiled to WebAssembly against pure JavaScript relational query evaluation.",
+    manifest: "",
+    kernels: ["sqlite_exec"],
+  },
+  {
+    slug: "multilang-wasm-dsp-panel",
+    id: "multilang.wasm.dsp-panel.v1",
+    title: "Multi-Language Sum + FFT Panel",
+    category: "Numeric & Math",
+    pageType: "compute",
+    summary:
+      "Runs Modulo-2³² integer sum and 512-point f32 FFT kernels side-by-side across seven compiler targets.",
+    whatItDoes:
+      "Executes integer accumulation and complex radix-2 butterfly kernels over identical buffers.",
+    whyCompare:
+      "Compares code size, instantiation latency, and steady-state kernel speed across JS, WAT, C, C++, Rust, AssemblyScript, and Dart.",
+    manifest: "/benchmarks/multilang-wasm/multilang-wasm.manifest.json",
+    kernels: ["sum", "fft"],
+  },
 ];
+
+const WORKER_LIFECYCLE_BY_KEY = new Map<string, WorkerLifecycleEntry>();
+try {
+  const lifecycleLedger = JSON.parse(
+    Deno.readTextFileSync("public/data/worker-lifecycle.v1.json"),
+  ) as WorkerLifecycleLedger;
+  for (const entry of lifecycleLedger.entries ?? []) {
+    WORKER_LIFECYCLE_BY_KEY.set(entry.slug, entry);
+    if (!WORKER_LIFECYCLE_BY_KEY.has(entry.pageSlug)) {
+      WORKER_LIFECYCLE_BY_KEY.set(entry.pageSlug, entry);
+    }
+    if (!WORKER_LIFECYCLE_BY_KEY.has(entry.route)) {
+      WORKER_LIFECYCLE_BY_KEY.set(entry.route, entry);
+    }
+  }
+} catch {
+  // Optional fallback before initial generation.
+}
+
+export const CANONICAL_BENCHMARKS: BenchmarkMeta[] = RAW_BENCHMARKS.map((b) => {
+  const spec = findBuildSpec(b.slug) ?? findBuildSpec(b.id);
+  if (!spec) return b;
+  const wl = WORKER_LIFECYCLE_BY_KEY.get(spec.slug) ??
+    WORKER_LIFECYCLE_BY_KEY.get(spec.pageSlug) ??
+    WORKER_LIFECYCLE_BY_KEY.get(spec.route);
+  return {
+    ...b,
+    pageSlug: spec.pageSlug,
+    route: spec.route,
+    jsSource: spec.jsSource,
+    jsSourceUrl: toServedUrl(spec.jsSource),
+    jsGitHubUrl: toGitHubBlobUrl(spec.jsSource),
+    wasmSource: spec.wasmSource,
+    wasmSourceUrl: toServedUrl(spec.wasmSource),
+    wasmGitHubUrl: toGitHubBlobUrl(spec.wasmSource),
+    wasmArtifact: spec.wasmArtifact,
+    wasmArtifactUrl: spec.wasmArtifactUrl,
+    compiler: `${spec.compiler} (${spec.compilerFlags})`,
+    buildCommand: spec.buildCommand,
+    multilangBuildCommand: spec.multilangBuildCommand,
+    oracleTests: [...spec.oracleTests],
+    workerScriptUrl: wl?.workerScript ?? null,
+    workerGitHubUrl: wl?.workerGitHubUrl ?? null,
+    workerLifecycleClass: wl?.lifecycleClass,
+    workerLifecycleBadge: wl?.lifecycleBadge,
+    workerReuse: wl?.workerReuse,
+    perTaskNoStoreFetch: wl?.perTaskNoStoreFetch,
+    perTaskSha256Digest: wl?.perTaskSha256Digest,
+    perTaskWasmInstantiate: wl?.perTaskWasmInstantiate,
+    workerLifecycleSummary: wl?.summaryNote,
+  };
+});
 
 if (import.meta.main) {
   const jsonText = JSON.stringify(CANONICAL_BENCHMARKS, null, 2) + "\n";

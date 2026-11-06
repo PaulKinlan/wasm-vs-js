@@ -39,6 +39,7 @@ M1 has one accepted implementation slice: `sum-u32`, a controlled JavaScript/lin
 - [Public source/build inspectability manifest](public/data/sum-u32-inspectability.v1.json) and [closed schema](schemas/public-inspectability.schema.json)
 - [Frozen M1 Chrome preregistration](experiments/m1-chrome-sum-u32-v1/preregistration.json) and [closed schema](schemas/preregistration.schema.json)
 - [Public read-only deployment procedure](docs/public-deployment.md)
+- [WebAssembly build reference and 50-test output equivalence guide](docs/wasm-build-and-equivalence.md)
 
 The public application is [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/).
 
@@ -62,6 +63,8 @@ Requires Deno 2.9.0.
 
 ```sh
 deno task build    # reproducible WAT → Wasm plus build/footprint manifest
+deno run --allow-read scripts/build-all-wasm.ts --list   # print all 8 Wasm build lanes and 50 per-test recipes
+deno run --allow-read scripts/build-all-wasm.ts --verify # verify 50 specs, source routes, and 300/300 .wasm artifacts
 deno task catalog  # closed-schema, rights, denominator, and public-copy validation
 deno run --allow-read=. scripts/check-preregistration.ts # exact M1 experiment contract
 deno task check    # build, format, lint, typecheck, contracts, and tests

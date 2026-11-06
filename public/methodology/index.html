@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="description"
-      content="Measurement methodology, 3-stage benchmark progression, and honest performance reporting model.">
+      content="Measurement methodology, four execution scopes, why Worker Wasm task pipelines differ from in-memory kernels, and Track A vs Track B isolation.">
     <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'">
     <title>Methodology · Wasm vs JavaScript</title>
@@ -25,63 +25,215 @@
     <main id="main">
       <section class="hero catalog-hero">
         <p class="eyebrow">Benchmark Principles</p>
-        <h1>Measurement Methodology &amp; 3-Stage Progression</h1>
+        <h1>Measurement Methodology &amp; Execution Scopes</h1>
         <p class="lede">
-          Comparing JavaScript and WebAssembly requires strict isolation between delivery overhead, initiation cost, and raw computational throughput.
+          A WebAssembly benchmark can measure a 0.08 ms in-memory arithmetic loop or a 35 ms end-to-end Web Worker task on the exact same page. This document defines each timer boundary, explains why Worker Wasm pipelines often run slower than in-memory kernels, and documents how Track A baselines and Track B optimizations stay isolated.
         </p>
       </section>
 
-      <section class="proposal-inventory">
+      <section class="proposal-inventory" id="measurement-scopes" aria-labelledby="scopes-heading">
+        <p class="eyebrow">Timer Boundaries</p>
+        <h2 id="scopes-heading">1. Four Distinct Measurement Scopes</h2>
+        <p>
+          Every timing table on this site declares which scope it measures. Speedup ratios are computed strictly within the same scope; dividing an in-memory kernel median by an end-to-end worker task time mixes incompatible work.
+        </p>
+        <div class="table-wrap">
+          <table class="results-table">
+            <caption>Timer boundaries across benchmark stages</caption>
+            <thead>
+              <tr>
+                <th scope="col">Scope</th>
+                <th scope="col">Timer Starts</th>
+                <th scope="col">Timer Stops</th>
+                <th scope="col">Included Work</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Delivery &amp; First Use</th>
+                <td>First <code>new Worker()</code> + <code>postMessage()</code></td>
+                <td>First verified result arrives on main thread</td>
+                <td>Worker thread creation, network <code>fetch()</code>, wire decompression, SHA-256 byte check, module compile/instantiate, cold run, and verification.</td>
+              </tr>
+              <tr>
+                <th scope="row">Task Pipeline (Worker JS / Worker Wasm)</th>
+                <td>Main thread calls <code>worker.postMessage(cmd)</code></td>
+                <td>Main thread receives <code>worker.onmessage</code></td>
+                <td>Structured-clone dispatch, any per-task asset retrieval or <code>WebAssembly.instantiate()</code> inside the worker, fixture setup, linear-memory copy in/out, kernel execution, and full-output oracle verification.</td>
+              </tr>
+              <tr>
+                <th scope="row">Kernel Compute (Stage 1, Stage 2, Stage 3)</th>
+                <td>Right before calling exported JS or Wasm function</td>
+                <td>Immediately after function returns</td>
+                <td>Pure CPU execution and linear-memory reads/writes on an already-fetched, already-instantiated module with pre-allocated buffers. Zero worker IPC, zero network, zero recompilation.</td>
+              </tr>
+              <tr>
+                <th scope="row">Real-DOM Journey</th>
+                <td>Host sends frozen action trace to live iframe</td>
+                <td>Iframe finishes applying DOM mutations and layout queries</td>
+                <td>Engine command-stream generation plus real browser DOM API calls (<code>createElement</code>, <code>appendChild</code>, <code>classList</code>, selection/focus, canvas draw).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="proposal-inventory" id="worker-wasm-explained"
+        aria-labelledby="worker-wasm-heading">
+        <p class="eyebrow">Pipeline Diagnostics</p>
+        <h2 id="worker-wasm-heading">2. Why "Worker Wasm" Is Often Much Slower Than Expected</h2>
+        <p>
+          On many benchmark cards and detail pages, <strong>Worker Wasm</strong> (<code>Task Pipeline</code> scope) takes 5 ms to 60 ms per iteration while the same algorithm in <strong>Kernel Compute</strong> scope takes 0.05 ms to 2 ms — and Worker Wasm sometimes trails Worker JavaScript on the exact same page. Auditing all <strong>49</strong> runnable browser worker scripts in <code>public/unified-runner.js</code> isolates four concrete causes.
+        </p>
+
+        <h3>Hypothesis A: Is the Wasm runtime slower inside a Web Worker?</h3>
+        <p>
+          <strong>No.</strong> Dedicated Web Workers use the exact same V8 Liftoff baseline compiler and TurboFan optimizing tier as the main window thread. When a worker caches its instantiated <code>WebAssembly.Instance</code> across messages, inner kernel execution matches main-thread <code>Kernel Compute</code> speed.
+        </p>
+
+        <h3>Hypothesis B: Is <code>postMessage</code> message passing the bottleneck?</h3>
+        <p>
+          <strong>Rarely for control messages; yes when cloning large buffers without transfer.</strong> Structured-cloning a small command payload (<code>{ runId, target: "wasm" }</code>) and returning a small summary object across threads costs roughly <code>0.05–0.30 ms</code>. Message passing dominates only when an application structured-clones megabytes of typed arrays or deep object graphs on every call instead of transferring buffer ownership (<code>Transferable</code>) or mutating persistent worker memory.
+        </p>
+
+        <h3>Hypothesis C: Asymmetric per-task loading &amp; instantiation inside workers (Primary Cause)</h3>
+        <p>
+          JavaScript and WebAssembly are loaded asymmetrically inside most contract workers in this repository:
+        </p>
+        <ul>
+          <li>
+            <strong>Worker JavaScript loads once per worker lifetime:</strong> The worker file imports its JS implementation via a top-level ES module statement (<code>import { runJs } from "./workload.js"</code>). When <code>unified-runner.js</code> reuses that worker across 3 warm-up runs and 30 timed iterations, V8 parses the JS source once at worker startup and keeps the hot TurboFan machine code resident in memory. Steady-state JS tasks perform zero network fetches and zero module compilations.
+          </li>
+          <li>
+            <strong>Worker WebAssembly re-fetches and re-instantiates per task in 45 of 49 workers:</strong> To enforce strict self-contained contract attestation on each run, 33 reused workers keep JS warm at module scope while executing <code>fetch(wasmUrl)</code> (mostly <code>{ cache: "no-store" }</code>), <code>crypto.subtle.digest("SHA-256", bytes)</code>, and <code>WebAssembly.instantiate(bytes)</code> <em>inside</em> <code>onmessage</code> on every Wasm task; 8 reused workers dynamically re-verify and re-import runtime bundles per message; and 4 single-use workers respawn a fresh worker isolate per sample. Every steady-state Wasm sample in those 45 benchmarks therefore pays Liftoff compilation, fresh 64 KiB–16 MiB linear-memory page allocation and zero-filling, and cold first-call execution before running a single arithmetic instruction. Inspect every benchmark's exact classification in the <a href="/docs/worker-lifecycle-audit.md">50-Test Worker Lifecycle Audit</a> (<a href="/data/worker-lifecycle.v1.json"><code>worker-lifecycle.v1.json</code></a>).
+          </li>
+        </ul>
+
+        <div class="table-wrap">
+          <table class="results-table">
+            <caption>Source-audited worker lifecycle behavior across all 49 worker-backed browser benchmarks</caption>
+            <thead>
+              <tr>
+                <th scope="col">Worker Lifecycle Pattern</th>
+                <th scope="col">Worker Count</th>
+                <th scope="col">Per-Iteration Effect on Timed "Worker Wasm" Sample</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th
+                  scope="row">Keeps <code>WebAssembly.Instance</code> warm across timed samples (<code>symmetric-warm</code>)</th>
+                <td class="num">4 / 49</td>
+                <td>Warm worker execution: <code>game-canvas-arcade</code>, <code>game-canvas-entity-pathfinding</code>, and <code>game-dom-tactics-grid</code> cache <code>wasm ??= instantiateGameWasm(...)</code> across messages; <code>sum-u32</code> instantiates JS and Wasm once up front and batches warm iterations inside <code>hosted-runner-worker.js</code>.</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">JS warm ES module vs Wasm per-task <code>instantiate</code> (<code>asymmetric-wasm-cold-per-task</code>)</th>
+                <td class="num">33 / 49</td>
+                <td>Reused worker keeps top-level ES <code>import</code> JS warm in V8 (0 JS module re-fetches), whereas every Wasm message fetches <code>.wasm</code> and calls <code>WebAssembly.instantiate()</code> inside <code>onmessage</code>.</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">Per-message verified bundle reload (<code>per-task-verified-bundle</code>)</th>
+                <td class="num">8 / 49</td>
+                <td>Reused worker re-fetches, SHA-256-verifies, and dynamically imports fresh <code>Blob</code> / <code>?run=</code> JS modules and re-compiles <code>.wasm</code> per message (<code>audio-fft</code>, <code>audio-fir</code>, <code>audio-stft</code>, <code>base-audio-webaudio-effects-v1</code>, <code>base-dom-todomvc-journey</code>, <code>database-sqlite-notebook-v1</code>, <code>serialization-json-telemetry-v1</code>, <code>text-gc-document-edit-v1</code>).</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">Calls <code>fetch(..., { cache: "no-store" })</code> inside <code>onmessage</code></th>
+                <td class="num">39 / 49</td>
+                <td>Bypasses HTTP cache and fetches <code>.wasm</code> (and any binary reference fixtures) over loopback HTTP on every Wasm iteration.</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">Runs <code>crypto.subtle.digest("SHA-256")</code> inside <code>onmessage</code></th>
+                <td class="num">37 / 49</td>
+                <td>Hashes full <code>.wasm</code> binary, fixture, or output bytes during every timed Wasm task to attest provenance.</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">Calls <code>WebAssembly.compile</code> / <code>instantiate</code> per timed Wasm task</th>
+                <td class="num">45 / 49</td>
+                <td>Recompiles module, allocates and zeroes fresh linear memory pages (up to 16 MiB), and discards TurboFan tier-up state each iteration (<code>33 + 8 + 4</code> workers).</td>
+              </tr>
+              <tr>
+                <th
+                  scope="row">Single-use worker (<code>symmetric-cold-isolate</code> / <code>respawned-per-iteration</code>)</th>
+                <td class="num">4 / 49</td>
+                <td><code>vdom-diff-patch-demo</code>, <code>image-editing-demo</code>, <code>image-flood-fill-demo</code>, and <code>regex-automata-duel-demo</code> accept one message (<code>accepted = true</code>), adding ~15–40 ms of OS thread + V8 isolate startup to both JS and Wasm samples.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Hypothesis D: End-to-end fixture setup &amp; full-output verification inside the task</h3>
+        <p>
+          Contract workers verify complete outputs inside the timed task boundary. For example, <code>ml-gemm</code> fetches an 8 MiB <code>reference.f64</code> tensor and a 4 MiB <code>bounds.f32</code> tensor and validates all <code>1,048,576</code> output floats on every task. When a kernel finishes in <code>0.25 ms</code> while fixture loading, instantiation, and verification take <code>18 ms</code>, 98.6% of the reported Worker Pipeline duration is non-kernel lifecycle work. Check the <strong>Steady-State Network</strong> diagnostics and compare <strong>Task Pipeline</strong> against <strong>Kernel Compute</strong> on each benchmark page to see the exact split.
+        </p>
+
+        <h3>Production Checklist: How to Build Fast Worker Wasm</h3>
+        <ol>
+          <li><strong>Compile and instantiate once per worker:</strong> Store <code>const wasmReady = WebAssembly.instantiateStreaming(fetch(url))</code> at module scope in the worker so <code>onmessage</code> awaits an already-resolved instance.</li>
+          <li><strong>Reuse a pinned linear-memory arena:</strong> Allocate scratch regions once inside <code>memory.buffer</code> instead of calling <code>new WebAssembly.Instance()</code> or growing memory on each task. Across the 45-workload auto-research log, reusing a pre-instantiated instance and arena is measurably faster whenever kernel compute is under ~5 ms.</li>
+          <li><strong>Coarsen task granularity:</strong> Send batches of frames, records, or blocks per <code>postMessage</code> rather than dispatching thousands of micro-tasks across threads.</li>
+          <li><strong>Transfer large buffers zero-copy:</strong> Pass <code>ArrayBuffer</code>s in the <code>postMessage(payload, [payload.buffer])</code> transfer list or use <code>SharedArrayBuffer</code> when cross-origin isolation is enabled.</li>
+        </ol>
+      </section>
+
+      <section class="proposal-inventory" id="progression-stages" aria-labelledby="stages-heading">
         <p class="eyebrow">Progression Pipeline</p>
-        <h2>The 3-Stage Evaluation Architecture</h2>
-        <p>Every benchmark progresses through three strictly isolated stages:</p>
+        <h2 id="stages-heading">3. Three-Stage Kernel Evaluation &amp; Track Isolation</h2>
+        <p>Within <strong>Kernel Compute</strong> scope, every multi-language benchmark separates compiler parity from target-specific tuning:</p>
         <ol>
           <li>
             <strong>Stage 1 — Core Baseline (JS vs Handwritten WAT):</strong>
-            First-principles baseline comparing handwritten JavaScript against handwritten WebAssembly text format (WAT). This comparison runs first and establishes the algorithmic foundation.
+            Compares idiomatic JavaScript against hand-authored WebAssembly Text format (<code>.wat</code>) compiled directly via <code>wat2wasm</code> without an optimizing C/Rust compiler in between.
           </li>
           <li>
             <strong>Stage 2 — Multi-Language Comparison (Track A Controlled):</strong>
-            Identical algorithms implemented across compiled language toolchains (C, C++, Rust, AssemblyScript, and Dart with WasmGC or flat typed memory) targeting WebAssembly.
+            Implements the identical algorithm and data layout across C (<code>clang -O3</code>), C++ (<code>clang++ -O3</code>), Rust (<code>rustc -O</code>), AssemblyScript (<code>asc -O3</code>), and Dart (<code>dart compile wasm</code>) without target-specific SIMD intrinsics or loop re-tiling.
           </li>
           <li>
-            <strong>Stage 3 — Idiomatic &amp; SIMD Optimizations (Track B):</strong>
-            Specialized optimizations such as 128-bit SIMD vectorization and cache-blocking transforms, evaluated directly against each target's own Stage 1 or Stage 2 baseline.
+            <strong>Stage 3 — Idiomatic &amp; Hardware Optimizations (Track B &amp; Pre-Computed Auto-Research):</strong>
+            Evaluates SIMD128 vectorization (<code>-msimd128 -funroll-loops</code>), cache-blocked loop tiling, call-boundary batching, and linear-memory arena reuse. To keep Track A baselines untouched, all <strong>45</strong> pre-computed auto-research SIMD128 binaries are compiled into an isolated directory (<code>/artifacts/autoresearch/</code>), verified against each workload's pinned output oracle, and logged in <a href="/data/autoresearch-log.v1.json"><code>/data/autoresearch-log.v1.json</code></a> and <a href="/docs/autoresearch-log.md"><code>/docs/autoresearch-log.md</code></a>. Visitors see the pre-computed empirical measurements immediately and can optionally re-measure probes in their own browser.
           </li>
         </ol>
       </section>
 
-      <section class="proposal-inventory">
+      <section class="proposal-inventory" id="reporting-and-charts"
+        aria-labelledby="reporting-heading">
         <p class="eyebrow">Measurement Disciplines</p>
-        <h2>Three-Part Honest Reporting Model</h2>
-        <p>
-          Single aggregate numbers conceal crucial trade-offs. The suite separates measurements into three distinct components:
-        </p>
+        <h2 id="reporting-heading">4. Distributions, Cold Trajectories &amp; Visual Evidence</h2>
         <ul>
           <li>
             <strong>Static Payload Footprint:</strong>
-            Pre-fetched binary and source byte counts, separated from in-browser execution latency so network fluctuations do not corrupt timing data.
+            Binary and source byte counts are reported separately from in-memory execution latency.
           </li>
           <li>
-            <strong>Initiation Time:</strong>
-            Compilation, module instantiation, and cold execution recorded separately from sustained loop samples.
+            <strong>Cold Initiation vs Warm Distribution:</strong>
+            First-invocation compilation/tier-up latency is preserved separately from the warm steady-state median, interquartile range (IQR), min, max, and 95% confidence interval.
           </li>
           <li>
-            <strong>Warm Execution Distribution:</strong>
-            Median, minimum, maximum, 95th percentile, and interquartile range (IQR) calculated across sustained execution trajectories.
+            <strong>Four Standard SVG Charts:</strong>
+            Execution Time Bar Chart (with min–max/CI whiskers), Initiation vs Execution Amortization Break-Even Chart, Sequential Iteration Trajectory Chart, and Binary Footprint vs Speed Scatter Plot.
           </li>
         </ul>
       </section>
 
-      <section class="proposal-inventory">
-        <p class="eyebrow">Visual Evidence</p>
-        <h2>Four Standard Performance Visualizations</h2>
-        <p>Every benchmark execution renders four distinct SVG visualizations:</p>
+      <section class="proposal-inventory" id="build-equivalence"
+        aria-labelledby="build-equivalence-heading">
+        <p class="eyebrow">Reproducibility &amp; Verification</p>
+        <h2
+          id="build-equivalence-heading">5. Build Recipes, Source Links &amp; Output Consistency</h2>
+        <p>
+          Every benchmark page links directly to its executed JavaScript source, authored WebAssembly Text (<code>.wat</code>) or compiled language kernel (<code>.c</code>, <code>.cpp</code>, <code>.rs</code>, <code>.ts</code>, <code>.dart</code>, <code>.kt</code>), and GitHub file view. Before any timing iteration runs, each engine executes a deterministic verification probe (32-bit FNV-1a digest, SHA-256 digest, or frozen state tuple) and aborts if outputs diverge; the agreed digest is displayed in every results table.
+        </p>
         <ul>
-          <li><strong>Execution Time Bar Chart:</strong> Proportional horizontal comparison with 95% confidence interval whiskers.</li>
-          <li><strong>Initiation vs Execution Amortization Chart:</strong> Explicit break-even crossing point indicating where compiled throughput offsets startup overhead.</li>
-          <li><strong>Iteration Trajectory Chart:</strong> Sequential iteration plot showing warm-up, JIT tier-up, and steady-state stability.</li>
-          <li><strong>Size vs Speed Scatter Plot:</strong> Two-dimensional plot correlating binary footprint against warm execution median.</li>
+          <li><a href="/docs/wasm-build-and-equivalence.md">WebAssembly Build Reference &amp; 50-Test Equivalence Guide</a> — build commands, per-test worker lifecycle classes, and verification checks across all build lanes and committed <code>.wasm</code> binaries.</li>
+          <li><a href="/docs/worker-lifecycle-audit.md">50-Test Worker Task Pipeline Lifecycle Audit</a> &amp; <a href="/data/worker-lifecycle.v1.json"><code>worker-lifecycle.v1.json</code></a> — source-audited classification of every worker's JS vs Wasm loading, <code>no-store</code> fetching, SHA-256 hashing, and per-task <code>WebAssembly.instantiate</code> behavior.</li>
+          <li><a href="/docs/autoresearch-log.md">Pre-Computed Track B Auto-Research Log</a> &amp; <a href="/data/autoresearch-log.v1.json"><code>autoresearch-log.v1.json</code></a> — isolated <code>-msimd128 -funroll-loops</code> binaries, <code>v128</code> instruction counts, verified oracle digests, and 5-dimension empirical timings across all 45 manifests.</li>
+          <li><a href="/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json">Multi-language kernel build provenance JSON</a> — compiler flags, SHA-256 hashes, and per-toolchain reproduction status for Track A &amp; Track B kernels.</li>
+          <li><a href="/data/oracle-equivalence.v1.json">Source-rebuild oracle equivalence attestation JSON</a> — offline source-to-Wasm rebuild verification against JavaScript reference oracles.</li>
         </ul>
       </section>
     </main>

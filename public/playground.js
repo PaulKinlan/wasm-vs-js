@@ -518,6 +518,91 @@ const PLAYGROUND_WORKLOADS = [
 ];
 
 const suiteStore = new Map();
+const benchmarkSourceMap = new Map();
+const benchmarkSourceByHref = new Map();
+
+function appendCardSourceLink(parent, label, href) {
+  if (!href) return;
+  if (parent.childNodes.length > 0) {
+    parent.appendChild(document.createTextNode(" · "));
+  }
+  const link = document.createElement("a");
+  link.href = href;
+  link.className = "commit-link";
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = label;
+  parent.appendChild(link);
+}
+
+function populateCardSourceLinks(card, config) {
+  const slot = card.querySelector(".pg-source-links");
+  if (!slot) return;
+  const meta = benchmarkSourceMap.get(config.slug) || benchmarkSourceByHref.get(config.route);
+  if (!meta) return;
+  slot.textContent = "";
+  const prefix = document.createElement("strong");
+  prefix.textContent = "Source & build: ";
+  slot.appendChild(prefix);
+  if (meta.jsSourceUrl) {
+    const link = document.createElement("a");
+    link.href = meta.jsSourceUrl;
+    link.className = "commit-link";
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "JS source";
+    slot.appendChild(link);
+  }
+  appendCardSourceLink(slot, "Wasm source", meta.wasmSourceUrl);
+  appendCardSourceLink(slot, "Worker", meta.workerScriptUrl);
+  appendCardSourceLink(slot, "GitHub", meta.wasmGitHubUrl || meta.jsGitHubUrl);
+  appendCardSourceLink(slot, "Build & Equivalence", "/docs/wasm-build-and-equivalence.md");
+  appendCardSourceLink(slot, "Worker Audit", "/docs/worker-lifecycle-audit.md");
+  if (meta.workerLifecycleBadge) {
+    slot.appendChild(document.createElement("br"));
+    const wlLabel = document.createElement("strong");
+    wlLabel.textContent = "Worker pipeline: ";
+    slot.appendChild(wlLabel);
+    slot.appendChild(document.createTextNode(meta.workerLifecycleBadge));
+    if (meta.workerLifecycleClass) {
+      slot.appendChild(document.createTextNode(" ("));
+      const code = document.createElement("code");
+      code.textContent = meta.workerLifecycleClass;
+      slot.appendChild(code);
+      slot.appendChild(document.createTextNode(")"));
+    }
+  }
+  slot.hidden = false;
+}
+
+async function loadBenchmarkSourceRegistry() {
+  try {
+    const resp = await fetch("/data/benchmarks.json", { credentials: "omit" });
+    if (!resp.ok) return;
+    const items = await resp.json();
+    if (!Array.isArray(items)) return;
+    for (const item of items) {
+      if (item.pageSlug) benchmarkSourceMap.set(item.pageSlug, item);
+      if (item["slug"] && !benchmarkSourceMap.has(item["slug"])) {
+        benchmarkSourceMap.set(item["slug"], item);
+      }
+      if (item.id && !benchmarkSourceMap.has(item.id)) {
+        benchmarkSourceMap.set(item.id, item);
+      }
+      if (item["route"]) benchmarkSourceByHref.set(item["route"], item);
+    }
+    const cardsContainer = document.getElementById("playground-cards");
+    if (cardsContainer) {
+      for (const config of PLAYGROUND_WORKLOADS) {
+        const card = cardsContainer.querySelector(`.playground-card[data-slug="${config.slug}"]`);
+        if (card) populateCardSourceLinks(card, config);
+      }
+    }
+    renderHolisticOverview();
+  } catch {
+    // Source links remain optional when offline or unmounted in unit tests.
+  }
+}
 
 PLAYGROUND_WORKLOADS.forEach((cfg) => {
   suiteStore.set(cfg.slug, {
@@ -540,13 +625,12 @@ function getWorkloadComparison(entry, targetEngine = "best") {
   let engineLabel = "Wasm";
 
   const engines = entry.engines ?? {};
-  if (engines.js?.warmMs > 0) {
-    jsWarmMs = engines.js.warmMs;
-  } else if (entry.pipeline?.jsWarmMs > 0) {
-    jsWarmMs = entry.pipeline.jsWarmMs;
-  }
+  const kernelJsWarm = engines.js?.warmMs > 0 ? engines.js.warmMs : null;
+  const pipelineJsWarm = entry.pipeline?.jsWarmMs > 0 ? entry.pipeline.jsWarmMs : null;
 
   if (targetEngine === "pipeline") {
+    // Strictly compare Worker Task Pipeline JS vs Worker Task Pipeline Wasm (same scope).
+    jsWarmMs = pipelineJsWarm;
     if (entry.pipeline?.wasmWarmMs > 0) {
       wasmWarmMs = entry.pipeline.wasmWarmMs;
       wasmColdMs = entry.pipeline.wasmColdMs;
@@ -565,7 +649,8 @@ function getWorkloadComparison(entry, targetEngine = "best") {
         });
       }
     }
-    if (optCandidates.length > 0) {
+    if (optCandidates.length > 0 && kernelJsWarm !== null) {
+      jsWarmMs = kernelJsWarm;
       optCandidates.sort((a, b) => a.warmMs - b.warmMs);
       wasmWarmMs = optCandidates[0].warmMs;
       wasmColdMs = optCandidates[0].coldMs;
@@ -574,26 +659,22 @@ function getWorkloadComparison(entry, targetEngine = "best") {
     } else {
       return getWorkloadComparison(entry, "best");
     }
-  } else if (targetEngine !== "best" && engines[targetEngine]?.warmMs > 0) {
+  } else if (
+    targetEngine !== "best" && engines[targetEngine]?.warmMs > 0 && kernelJsWarm !== null
+  ) {
+    jsWarmMs = kernelJsWarm;
     const e = engines[targetEngine];
     wasmWarmMs = e.warmMs;
     wasmColdMs = e.coldMs;
     wasmBytes = e.bytes ?? 0;
     engineLabel = e.label;
   } else {
-    // targetEngine === "best": Only Track A baseline candidates
-    const candidates = [];
-    if (entry.pipeline?.wasmWarmMs > 0) {
-      candidates.push({
-        label: "Worker Wasm",
-        warmMs: entry.pipeline.wasmWarmMs,
-        coldMs: entry.pipeline.wasmColdMs,
-        bytes: entry.pipeline.wasmBytes ?? 0,
-      });
-    }
+    // targetEngine === "best": Prefer Kernel Compute Track A comparison when available;
+    // fall back to Worker Task Pipeline comparison only when no kernel lane exists.
+    const kernelCandidates = [];
     for (const [k, e] of Object.entries(engines)) {
       if (k !== "js" && e.track !== "B" && !k.endsWith("-opt") && e.warmMs > 0) {
-        candidates.push({
+        kernelCandidates.push({
           label: e.label,
           warmMs: e.warmMs,
           coldMs: e.coldMs,
@@ -601,12 +682,19 @@ function getWorkloadComparison(entry, targetEngine = "best") {
         });
       }
     }
-    if (candidates.length > 0) {
-      candidates.sort((a, b) => a.warmMs - b.warmMs);
-      wasmWarmMs = candidates[0].warmMs;
-      wasmColdMs = candidates[0].coldMs;
-      wasmBytes = candidates[0].bytes;
-      engineLabel = candidates[0].label;
+    if (kernelCandidates.length > 0 && kernelJsWarm !== null) {
+      jsWarmMs = kernelJsWarm;
+      kernelCandidates.sort((a, b) => a.warmMs - b.warmMs);
+      wasmWarmMs = kernelCandidates[0].warmMs;
+      wasmColdMs = kernelCandidates[0].coldMs;
+      wasmBytes = kernelCandidates[0].bytes;
+      engineLabel = kernelCandidates[0].label;
+    } else if (entry.pipeline?.wasmWarmMs > 0 && pipelineJsWarm !== null) {
+      jsWarmMs = pipelineJsWarm;
+      wasmWarmMs = entry.pipeline.wasmWarmMs;
+      wasmColdMs = entry.pipeline.wasmColdMs;
+      wasmBytes = entry.pipeline.wasmBytes ?? 0;
+      engineLabel = "Worker Wasm";
     }
   }
 
@@ -1010,18 +1098,40 @@ function renderHolisticOverview() {
         : "even";
 
       const sizeStr = cmp.wasmBytes > 0 ? fmtBytes(cmp.wasmBytes) : "—";
+      const srcMeta = benchmarkSourceMap.get(item.workKey) || benchmarkSourceByHref.get(item.href);
+      const srcLinksHtml = srcMeta
+        ? `<div class="muted"><small>` +
+          (srcMeta.jsSourceUrl
+            ? `<a href="${srcMeta.jsSourceUrl}" class="commit-link" target="_blank" rel="noopener">JS</a>`
+            : "") +
+          (srcMeta.jsSourceUrl && srcMeta.wasmSourceUrl ? " · " : "") +
+          (srcMeta.wasmSourceUrl
+            ? `<a href="${srcMeta.wasmSourceUrl}" class="commit-link" target="_blank" rel="noopener">Wasm</a>`
+            : "") +
+          ((srcMeta.wasmGitHubUrl || srcMeta.jsGitHubUrl)
+            ? ` · <a href="${
+              srcMeta.wasmGitHubUrl || srcMeta.jsGitHubUrl
+            }" class="commit-link" target="_blank" rel="noopener">GitHub</a>`
+            : "") +
+          `</small></div>`
+        : "";
 
       return `
         <tr>
           <td>
             <a href="#workload-${item.workKey}" class="ov-workload-link"><strong>${item.title}</strong></a>
+            ${srcLinksHtml}
           </td>
           <td><span class="pg-cat-badge">${item.category}</span></td>
           <td>${cmp.jsWarmMs > 0 ? fmtMs(cmp.jsWarmMs) : "—"}</td>
-          <td>
-            ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
-            <br><small class="muted">${cmp.engineLabel}</small>
-          </td>
+            <td>
+              ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
+              <br><small class="muted">${cmp.engineLabel}${
+        overviewState.engine === "pipeline" && srcMeta?.workerLifecycleClass
+          ? ` · <code>${srcMeta.workerLifecycleClass}</code>`
+          : ""
+      }</small>
+            </td>
           <td>
             ${
         cmp.speedup ? `<strong class="speedup-pill ${speedupClass}">${speedupStr}</strong>` : "—"
@@ -1065,7 +1175,18 @@ function renderHolisticOverview() {
     `;
   }
 
-  container.innerHTML = toolbarHtml + kpiStripHtml + chartsGridHtml + tableHtml;
+  const pipelineScopeNoticeHtml = overviewState.engine === "pipeline"
+    ? `<p class="notice">
+        <strong>Worker Pipeline scope note:</strong> 45 of 49 workers compile and instantiate a fresh
+        <code>WebAssembly.Instance</code> inside <code>onmessage</code> on every task (33 while JavaScript stays warm via top-level ES import);
+        4 of 49 keep a warm Wasm instance (<code>sum-u32</code> and the 3 <code>game-*</code> demos).
+        Select <strong>Fastest Track A Compiler Baseline</strong> above to compare pre-instantiated kernel speed, or inspect the
+        <a class="commit-link" href="/docs/worker-lifecycle-audit.md" target="_blank" rel="noopener">50-test worker lifecycle audit →</a>
+      </p>`
+    : "";
+
+  container.innerHTML = toolbarHtml + pipelineScopeNoticeHtml + kpiStripHtml + chartsGridHtml +
+    tableHtml;
 
   // Wire Toolbar Listeners
   const catSel = container.querySelector("#ov-category");
@@ -1316,69 +1437,183 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
     }
     renderHolisticOverview();
 
-    // Render Compact Card Summary
-    const speedup = jsMed > 0 && wasmMed > 0 ? (jsMed / wasmMed) : 1;
-    const speedupClass = speedup >= 1.2 ? "wasm-faster" : speedup <= 0.8 ? "js-faster" : "even";
+    // Render Compact Card Summary — keep Kernel Compute and Worker Task Pipeline strictly separate.
+    const jsDigest = jsStats?.outputDigest || null;
+    const wasmDigest = wasmStats?.outputDigest || null;
+    const mlRowsRaw = mlData ? (mlData[Object.keys(mlData)[0]] ?? []) : [];
+    const mlJsRow = mlRowsRaw.find((r) => r.key === "js" && r.medianMs > 0) || null;
+    const mlWasmRows = mlRowsRaw.filter((r) => r.key !== "js" && r.medianMs > 0);
+    const bestMlWasm = mlWasmRows.length > 0
+      ? [...mlWasmRows].sort((a, b) => a.medianMs - b.medianMs)[0]
+      : null;
 
-    const kpiRowHtml = `
+    const pipeSpeedup = jsMed > 0 && wasmMed > 0 ? (jsMed / wasmMed) : 1;
+    const kernelSpeedup = mlJsRow && bestMlWasm ? (mlJsRow.medianMs / bestMlWasm.medianMs) : null;
+    const primarySpeedup = kernelSpeedup ?? pipeSpeedup;
+    const speedupClass = primarySpeedup >= 1.2
+      ? "wasm-faster"
+      : primarySpeedup <= 0.8
+      ? "js-faster"
+      : "even";
+
+    const kpiRowHtml = mlJsRow && bestMlWasm
+      ? `
       <div class="pg-kpi-row">
-        <div class="pg-kpi"><span>JS Warm</span><strong>${fmtMs(jsMed)}</strong></div>
-        <div class="pg-kpi"><span>Wasm Warm</span><strong>${fmtMs(wasmMed)}</strong></div>
-        <div class="pg-kpi"><span>Speedup vs JS</span><strong class="speedup-pill ${speedupClass}">${
-      speedup.toFixed(2)
-    }×</strong></div>
-        <div class="pg-kpi"><span>Cold First Run</span><strong>${
-      wasmCold > 0 ? fmtMs(wasmCold) : "—"
-    }</strong></div>
+        <div class="pg-kpi"><span>Kernel JS</span><strong>${fmtMs(mlJsRow.medianMs)}</strong></div>
+        <div class="pg-kpi"><span>Best Kernel (${bestMlWasm.label})</span><strong>${
+        fmtMs(bestMlWasm.medianMs)
+      }</strong></div>
+        <div class="pg-kpi"><span>Kernel Speedup</span><strong class="speedup-pill ${speedupClass}">${
+        primarySpeedup.toFixed(2)
+      }×</strong></div>
+        <div class="pg-kpi"><span>Worker Pipeline (JS / Wasm)</span><strong>${fmtMs(jsMed)} / ${
+        fmtMs(wasmMed)
+      }</strong></div>
+      </div>
+    `
+      : `
+      <div class="pg-kpi-row">
+        <div class="pg-kpi"><span>Worker JS</span><strong>${fmtMs(jsMed)}</strong></div>
+        <div class="pg-kpi"><span>Worker Wasm</span><strong>${fmtMs(wasmMed)}</strong></div>
+        <div class="pg-kpi"><span>Pipeline Speedup</span><strong class="speedup-pill ${speedupClass}">${
+        pipeSpeedup.toFixed(2)
+      }×</strong></div>
+        <div class="pg-kpi"><span>Cold First Task</span><strong>${
+        wasmCold > 0 ? fmtMs(wasmCold) : "—"
+      }</strong></div>
       </div>
     `;
 
-    const cardChartRows = [
-      { label: "JavaScript", valueMs: jsMed, kind: "js" },
-      { label: "Worker Wasm", valueMs: wasmMed, kind: "wasm" },
+    const pipelineRows = [
+      {
+        label: "Worker JavaScript",
+        valueMs: jsMed,
+        coldMs: jsCold,
+        kind: "js",
+        outputDigest: jsDigest,
+      },
+      {
+        label: "Worker Wasm",
+        valueMs: wasmMed,
+        coldMs: wasmCold,
+        kind: "wasm",
+        outputDigest: wasmDigest,
+      },
     ];
-    if (mlData) {
-      const firstK = Object.keys(mlData)[0];
-      for (const r of (mlData[firstK] ?? [])) {
-        if (r.key !== "js" && r.medianMs > 0) {
-          cardChartRows.push({
-            label: r.label,
-            valueMs: r.medianMs,
-            lowMs: r.minMs,
-            highMs: r.maxMs,
-            kind: "wasm",
-          });
-        }
-      }
+
+    let kernelSectionHtml = "";
+    if (mlJsRow && mlWasmRows.length > 0) {
+      const kChartRows = [
+        {
+          label: "Kernel JavaScript",
+          valueMs: mlJsRow.medianMs,
+          lowMs: mlJsRow.minMs,
+          highMs: mlJsRow.maxMs,
+          coldMs: mlJsRow.coldMs ?? 0,
+          kind: "js",
+          outputDigest: mlJsRow.outputDigest || null,
+        },
+        ...mlWasmRows.map((r) => ({
+          label: r.label,
+          valueMs: r.medianMs,
+          lowMs: r.minMs,
+          highMs: r.maxMs,
+          coldMs: r.coldMs ?? 0,
+          kind: "wasm",
+          outputDigest: r.outputDigest || null,
+        })),
+      ];
+      const kChartHtml = `<div class="pg-compact-chart">${
+        barChartSvg(kChartRows, {
+          title: "In-Memory Kernel Compute (Pre-Instantiated)",
+          caption: "Pure CPU execution without worker IPC, network fetch, or re-instantiation.",
+        })
+      }</div>`;
+      const kRowsHtml = kChartRows.map((r) => {
+        const isJs = r.kind === "js";
+        const ratio = r.valueMs > 0 ? (mlJsRow.medianMs / r.valueMs).toFixed(2) + "×" : "—";
+        const digestCell = r.outputDigest ? `<code>${r.outputDigest}</code>` : "verified";
+        return `<tr>
+          <td><strong>${r.label}</strong></td>
+          <td>${r.coldMs > 0 ? fmtMs(r.coldMs) : "—"}</td>
+          <td>${fmtMs(r.valueMs)}</td>
+          <td>${isJs ? "1.00× (Kernel Baseline)" : `<strong>${ratio}</strong>`}</td>
+          <td>${digestCell}</td>
+        </tr>`;
+      }).join("");
+      kernelSectionHtml = kChartHtml + `
+        <div class="table-wrap">
+          <table class="results-table">
+            <caption>Scope 1 — In-Memory Kernel Compute</caption>
+            <thead><tr><th>Implementation</th><th>Cold 1st Call</th><th>Median Warm</th><th>Speedup vs Kernel JS</th><th>Output</th></tr></thead>
+            <tbody>${kRowsHtml}</tbody>
+          </table>
+        </div>
+      `;
     }
-    const compactChartHtml = `<div class="pg-compact-chart">${
-      barChartSvg(cardChartRows, {
-        title: "Measured Execution Timing",
-        caption: "Median execution time per iteration (lower is faster).",
+
+    const pipeChartHtml = `<div class="pg-compact-chart">${
+      barChartSvg(pipelineRows, {
+        title: "End-to-End Web Worker Task Pipeline",
+        caption:
+          "Includes postMessage dispatch, per-task worker asset load/instantiation, and oracle check.",
       })
     }</div>`;
 
-    const summaryRowsHtml = cardChartRows.map((r) => {
-      const rSpeedup = r.valueMs > 0 ? (jsMed / r.valueMs).toFixed(2) + "×" : "—";
+    const pipeRowsHtml = pipelineRows.map((r) => {
       const isJs = r.kind === "js";
+      const rSpeedup = r.valueMs > 0 ? (jsMed / r.valueMs).toFixed(2) + "×" : "—";
+      const digestCell = r.outputDigest ? `<code>${r.outputDigest}</code>` : "verified";
       return `<tr>
         <td><strong>${r.label}</strong></td>
-        <td>${
-        isJs ? (jsCold > 0 ? fmtMs(jsCold) : "—") : (wasmCold > 0 ? fmtMs(wasmCold) : "—")
-      }</td>
+        <td>${r.coldMs > 0 ? fmtMs(r.coldMs) : "—"}</td>
         <td>${fmtMs(r.valueMs)}</td>
-        <td>${isJs ? "1.00× (Baseline)" : `<strong>${rSpeedup}</strong>`}</td>
+        <td>${isJs ? "1.00× (Worker Baseline)" : `<strong>${rSpeedup}</strong>`}</td>
+        <td>${digestCell}</td>
       </tr>`;
     }).join("");
 
-    const summaryTableHtml = `
+    const wasmSteadyFetches = wasmStats?.warmNetwork?.count ?? 0;
+    const cardMeta = benchmarkSourceMap.get(config.slug) || benchmarkSourceByHref.get(config.route);
+    const workerScopeNoteHtml = `<p class="notice">
+      <strong>Why does Worker Wasm differ from Kernel Compute?</strong>
+      ${
+      cardMeta?.workerLifecycleSummary
+        ? `${cardMeta.workerLifecycleSummary}`
+        : wasmStats?.workerReuse === "respawned-per-iteration"
+        ? "This contract worker exits after one run, so each sample spawns a fresh worker thread and V8 isolate."
+        : wasmSteadyFetches > 0
+        ? `Worker JS imports its ES module once at startup, whereas this Wasm worker executed ${wasmSteadyFetches} no-store fetch/instantiation cycle${
+          wasmSteadyFetches === 1 ? "" : "s"
+        } plus full-output verification inside onmessage.`
+        : "Worker Task Pipeline includes postMessage dispatch, fixture setup, and full-output oracle verification per iteration."
+    }
+      <a class="commit-link" href="/methodology/#worker-wasm-explained">Methodology →</a> ·
+      <a class="commit-link" href="/docs/worker-lifecycle-audit.md" target="_blank" rel="noopener">50-test worker lifecycle audit →</a>
+    </p>`;
+
+    const summaryTableHtml = (mlJsRow ? "" : pipeChartHtml) + `
       <div class="table-wrap">
         <table class="results-table">
-          <thead><tr><th>Implementation</th><th>Cold Start</th><th>Median Warm</th><th>Speedup vs JS</th></tr></thead>
-          <tbody>${summaryRowsHtml}</tbody>
+          <caption>Scope ${mlJsRow ? "2" : "1"} — End-to-End Web Worker Task Pipeline</caption>
+          <thead><tr><th>Implementation</th><th>First Task</th><th>Median Task</th><th>Speedup vs Worker JS</th><th>Output</th></tr></thead>
+          <tbody>${pipeRowsHtml}</tbody>
         </table>
       </div>
-    `;
+    ` + workerScopeNoteHtml;
+
+    const consistencyBanner = document.createElement("p");
+    consistencyBanner.className = "notice";
+    const resolvedDigest = mlJsRow?.outputDigest || wasmDigest || jsDigest;
+    if (jsDigest && wasmDigest && jsDigest === wasmDigest) {
+      consistencyBanner.textContent =
+        `Output consistency verified: JS and Wasm produced identical output (${jsDigest}).`;
+    } else if (resolvedDigest) {
+      consistencyBanner.textContent = `Output verified against pinned oracle (${resolvedDigest}).`;
+    } else {
+      consistencyBanner.textContent =
+        "Output consistency verified against pinned oracle before timing.";
+    }
 
     // Collapsible deep diagnostic details
     const deepDetails = document.createElement("details");
@@ -1395,7 +1630,8 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       deepContent.appendChild(errEl);
     }
 
-    metricsEl.innerHTML = kpiRowHtml + compactChartHtml + summaryTableHtml;
+    metricsEl.innerHTML = kpiRowHtml + kernelSectionHtml + summaryTableHtml;
+    metricsEl.prepend(consistencyBanner);
     metricsEl.appendChild(deepDetails);
 
     statusEl.textContent = "Complete";
@@ -1450,6 +1686,7 @@ function initPlaygroundUI() {
       <h3>${config.title}</h3>
       <p class="pg-desc"><strong>What it does:</strong> ${config.description}</p>
       <p class="pg-expl"><strong>Why compare:</strong> ${config.explanation}</p>
+      <p class="pg-source-links muted" hidden></p>
       <div class="playground-metrics">${
       config.manual
         ? `<p class="notice">${config.manual} <a href="${config.route}">Open the demo page →</a></p>`
@@ -1462,6 +1699,8 @@ function initPlaygroundUI() {
         <a href="${config.route}" class="btn-pg-link">Inspect Demo Details →</a>
       </div>
     `;
+
+    populateCardSourceLinks(card, config);
 
     card.querySelector(".btn-pg-run").addEventListener("click", () => {
       const iterations = Number(iterSelect ? iterSelect.value : 30);
@@ -1529,6 +1768,7 @@ function initPlaygroundUI() {
   }
 
   renderHolisticOverview();
+  loadBenchmarkSourceRegistry();
 }
 
 if (document.readyState === "loading") {

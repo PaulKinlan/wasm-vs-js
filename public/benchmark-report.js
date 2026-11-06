@@ -441,6 +441,40 @@ export function sizeVsSpeedChartSvg(rows, { title = "", caption = "" } = {}) {
 
 // ── Tables ────────────────────────────────────────────────────────────────
 
+const GITHUB_BLOB_BASE = "https://github.com/PaulKinlan/wasm-vs-js/blob/main";
+
+const PUBLIC_ROOTED_SOURCES = new Set([
+  "benchmarks/image-demo-js-engine.js",
+  "benchmarks/vdom-diff-patch-demo/engine.js",
+  "benchmarks/regex-automata-duel-demo/engine.js",
+  "benchmarks/dom-grid-movement/engine.js",
+  "benchmarks/dom-keyed-list-mutation/engine.js",
+  "benchmarks/dom-nested-tree-mutation/engine.js",
+  "benchmarks/dom-table-sort-filter-pagination/engine.js",
+  "benchmarks/dom-dependent-form-validation/engine.js",
+  "benchmarks/dom-virtualized-scrolling/engine.js",
+]);
+
+/**
+ * Map a served or repo-relative source path to its exact GitHub blob URL.
+ * @param {string | null | undefined} source
+ * @returns {string}
+ */
+export function sourceToGitHubUrl(source) {
+  if (!source) return "";
+  const clean = String(source).replace(/^\//, "");
+  if (!clean) return "";
+  if (
+    clean.startsWith("public/") || clean.startsWith("docs/") || clean.startsWith("artifacts/v2/")
+  ) {
+    return `${GITHUB_BLOB_BASE}/${clean}`;
+  }
+  if (clean.startsWith("demo-assets/") || PUBLIC_ROOTED_SOURCES.has(clean)) {
+    return `${GITHUB_BLOB_BASE}/public/${clean}`;
+  }
+  return `${GITHUB_BLOB_BASE}/${clean}`;
+}
+
 function ciCell(summary) {
   if (!summary) return "—";
   const p50 = fmtMs(summary.p50Ms);
@@ -454,7 +488,10 @@ function ciCell(summary) {
  * One scope, one table, one baseline.
  *
  * @param {{ scopeId: string, rows: { label: string, summary: any, toolchain?: string,
- *           source?: string|null, bytes?: number|null, binaryUrl?: string|null, note?: string }[],
+ *           source?: string|null, githubSourceUrl?: string|null,
+ *           outputDigest?: string|null, equivalence?: string|null,
+ *           declaredTolerance?: number|null,
+ *           bytes?: number|null, binaryUrl?: string|null, note?: string }[],
  *           baselineLabel?: string, iterations?: number }} input
  */
 export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", iterations }) {
@@ -475,10 +512,29 @@ export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", it
           : ""
       }`
       : "—";
+    const ghUrl = r.githubSourceUrl || (r.source ? sourceToGitHubUrl(r.source) : "");
     const src = r.source
       ? `<a class="commit-link" href="${esc(r.source.startsWith("/") ? r.source : "/" + r.source)}"
-           target="_blank" rel="noopener">${esc(r.source.split("/").pop() ?? r.source)}</a>`
+           target="_blank" rel="noopener">${esc(r.source.split("/").pop() ?? r.source)}</a>${
+        ghUrl
+          ? ` · <a class="commit-link" href="${
+            esc(ghUrl)
+          }" target="_blank" rel="noopener">GitHub</a>`
+          : ""
+      }`
       : "";
+    const outTitle = r.outputDigest
+      ? ` title="Verified output digest: ${esc(r.outputDigest)}"`
+      : "";
+    const outLabel = r.outputDigest
+      ? (r.outputDigest.length > 18 ? `${r.outputDigest.slice(0, 16)}…` : r.outputDigest)
+      : "";
+    const tolNote = r.equivalence === "reassociated" && r.declaredTolerance != null
+      ? `<br><small class="muted">reassociated ≤ ${esc(String(r.declaredTolerance))}</small>`
+      : "";
+    const outCell = r.outputDigest
+      ? `<code${outTitle}>${esc(outLabel)}</code>${tolNote}`
+      : (tolNote ? `<span class="muted">within tol</span>${tolNote}` : "—");
     const binCell = r.bytes
       ? (r.binaryUrl
         ? `<a class="commit-link" href="${
@@ -493,6 +549,7 @@ export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", it
       <td>${src}${
       r.toolchain ? `<div><small><code>${esc(r.toolchain)}</code></small></div>` : ""
     }</td>
+      <td>${outCell}</td>
       <td class="num">${ciCell(s)}</td>
       <td class="num">${s ? fmtMs(s.minMs) : "—"}</td>
       <td class="num">${s ? fmtMs(s.p90Ms) : "—"}</td>
@@ -520,6 +577,7 @@ export function scopeTableHtml({ scopeId, rows, baselineLabel = "JavaScript", it
         <thead><tr>
           <th scope="col">Engine</th>
           <th scope="col">Source &amp; toolchain</th>
+          <th scope="col">Output</th>
           <th scope="col">Median</th>
           <th scope="col">Min</th>
           <th scope="col">p90</th>
@@ -790,6 +848,8 @@ export function toCsv(records) {
     "binaryBytes",
     "ratioVsBaseline",
     "ratioSeparated",
+    "outputDigest",
+    "source",
   ];
   const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v.toFixed(4) : "");
@@ -813,6 +873,8 @@ export function toCsv(records) {
       r.ratio && r.ratio.status === "ok" && r.ratio.separated !== null
         ? String(r.ratio.separated)
         : "",
+      q(r.outputDigest ?? ""),
+      q(r.source ?? ""),
     ].join(","));
   }
   return lines.join("\n");

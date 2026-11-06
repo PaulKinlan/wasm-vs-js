@@ -29,7 +29,7 @@
       "kind": "linear",
       "lang": "c",
       "offset": 0,
-      "source": ""
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c"
     },
     {
       "key": "cpp",
@@ -37,7 +37,7 @@
       "kind": "linear",
       "lang": "cpp",
       "offset": 0,
-      "source": ""
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp"
     },
     {
       "key": "rs",
@@ -45,7 +45,7 @@
       "kind": "linear",
       "lang": "rs",
       "offset": 0,
-      "source": ""
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs"
     },
     {
       "key": "dart",

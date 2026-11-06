@@ -36,7 +36,7 @@
         "flood_fill": "image_kernels_c.wasm",
         "luma_gaussian_pipeline": "image_kernels_c.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.c"
     },
     {
       "key": "cpp",
@@ -48,7 +48,7 @@
         "flood_fill": "image_kernels_cpp.wasm",
         "luma_gaussian_pipeline": "image_kernels_cpp.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.cpp"
     },
     {
       "key": "rs",
@@ -60,7 +60,7 @@
         "flood_fill": "image_kernels_rs.wasm",
         "luma_gaussian_pipeline": "image_kernels_rs.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.rs"
     },
     {
       "key": "asc",
@@ -72,7 +72,7 @@
         "flood_fill": "image_kernels_asc.wasm",
         "luma_gaussian_pipeline": "image_kernels_asc.wasm"
       },
-      "source": ""
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.ts"
     },
     {
       "key": "dart",

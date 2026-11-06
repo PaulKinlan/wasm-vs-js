@@ -1,0 +1,3947 @@
+{
+  "schemaVersion": 1,
+  "capturedOn": "2026-11-04",
+  "environment": {
+    "denoVersion": "2.9.0",
+    "v8Version": "14.9.207.2-rusty",
+    "os": "darwin",
+    "arch": "aarch64",
+    "toolchainId": "tc-effb6779307a",
+    "clangVersion": "Homebrew clang version 22.1.8",
+    "rustcVersion": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "buildInfrastructure": {
+    "hardware": {
+      "cpuModel": "Apple M4 Pro",
+      "arch": "aarch64",
+      "logicalCores": 14,
+      "physicalCores": 14,
+      "performanceCores": 10,
+      "efficiencyCores": 4,
+      "memoryBytes": 51539607552,
+      "memoryGiB": 48
+    },
+    "os": {
+      "platform": "darwin",
+      "productName": "macOS",
+      "productVersion": "15.8.1",
+      "buildVersion": "24H32",
+      "kernelRelease": "24.6.0",
+      "uname": "Darwin 24.6.0 arm64"
+    },
+    "runtime": {
+      "denoVersion": "2.9.0",
+      "v8Version": "14.9.207.2-rusty",
+      "typescriptVersion": "6.0.3",
+      "targetTriple": "aarch64-apple-darwin",
+      "nodeVersion": "v25.3.0"
+    },
+    "compilers": {
+      "toolchainId": "tc-effb6779307a",
+      "clang": {
+        "version": "Homebrew clang version 22.1.8",
+        "detail": {
+          "Target": "arm64-apple-darwin24.6.0",
+          "Thread model": "posix"
+        }
+      },
+      "clangpp": {
+        "version": "Homebrew clang version 22.1.8",
+        "detail": {
+          "Target": "arm64-apple-darwin24.6.0",
+          "Thread model": "posix"
+        }
+      },
+      "wasmLd": {
+        "version": "Homebrew LLD 22.1.8"
+      },
+      "rustc": {
+        "version": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+        "detail": {
+          "commit-hash": "8bab26f4f68e0e26f0bb7960be334d5b520ea452",
+          "host": "aarch64-apple-darwin",
+          "LLVM version": "22.1.6"
+        }
+      },
+      "dart": {
+        "version": "Dart SDK version: 3.12.2 (stable) (Tue Jun 9 01:11:39 2026 -0700) on \"macos_arm64\""
+      },
+      "asc": {
+        "version": "Version 0.28.2"
+      },
+      "wabt": {
+        "version": "1.0.37",
+        "source": "deno.json (npm:wabt@1.0.37) + deno.lock"
+      }
+    },
+    "pins": {
+      "gitBaseCommit": "0a9015a83ac89a5b488719ec81f0ded68f993c8f",
+      "toolchainPinSha256": "5eb1d0ac353fd71cda1333debe22ebc7a9cab30f09264fcee822b4bf6a16e83f",
+      "denoLockSha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+      "sanitizedHostPaths": {
+        "clang.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+        "clang.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+        "clang++.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+        "clang++.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+        "denoVersion": "2.9.0",
+        "osRelease": "24.6.0",
+        "clang.path": "/opt/homebrew/opt/llvm@22/bin/clang",
+        "rustc.path": "$HOME/.cargo/bin/rustc",
+        "dart.path": "$HOME/.local/toolchains/dart-sdk/bin/dart",
+        "wasm-ld.path": "/opt/homebrew/opt/lld@22/bin/wasm-ld"
+      }
+    }
+  },
+  "isolationGuarantee": "All compiled SIMD128 binaries reside under public/artifacts/autoresearch/ and leave every Track A source file, manifest baseline, and committed .wasm binary byte-identical.",
+  "summary": {
+    "workloadsEvaluated": 45,
+    "isolatedSimdBinariesBuilt": 45,
+    "oracleVerifiedCount": 45,
+    "autoVectorizedWithV128Count": 36,
+    "simdSpeedupOver105xCount": 12,
+    "medianArenaReuseSpeedup": 1.02
+  },
+  "workloads": [
+    {
+      "manifestSlug": "archive-zip-workspace-v1",
+      "manifestPath": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
+      "workloadId": "archive.zip-workspace.v1",
+      "kernel": "zip_build",
+      "kernelLabel": "ZIP build + verify",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.c",
+        "artifact": "public/artifacts/autoresearch/archive-zip-workspace-v1_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/archive-zip-workspace-v1_c_simd128.wasm",
+        "bytes": 12707,
+        "sha256": "f5f39c34a22b885c8c5e436be67d8f974f5eb252b00677e87f6cbf7db8ee918e",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=7340032 -o public/artifacts/autoresearch/archive-zip-workspace-v1_c_simd128.wasm benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.c",
+        "v128InstructionCount": 327,
+        "topSimdOps": [
+          "v128.const×39",
+          "i32x4.extract_lane×36",
+          "i32x4.add×32",
+          "i8x16.extract_lane_u×32"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (327 v128 ops)",
+          "baselineMs": 2.746,
+          "optimizedMs": 2.6732,
+          "speedup": 1.03,
+          "status": "neutral",
+          "finding": "LLVM emitted 327 v128 SIMD ops (v128.const×39, i32x4.extract_lane×36, i32x4.add×32, i8x16.extract_lane_u×32). Measured 1.03× (2.673 ms vs 2.746 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 2.7418,
+          "optimizedMs": 2.7318,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (2.732 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 2.7487,
+          "optimizedMs": 2.7366,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 2.7836,
+          "optimizedMs": 2.7253,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "Kernel compute time (2.73 ms) dominates WebAssembly.Instance allocation cost (1.02×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 18.392,
+          "optimizedMs": 5.2174,
+          "speedup": 3.53,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 18.392 ms to 5.217 ms (3.53×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 327 v128 SIMD instructions (1.03× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "audio-fft",
+      "manifestPath": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+      "workloadId": "audio.fft.v1",
+      "kernel": "fft",
+      "kernelLabel": "Radix-2 FFT butterfly — 512 floats",
+      "oracleDigest": "0x9244318b",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/fft_kernel.c",
+        "artifact": "public/artifacts/autoresearch/audio-fft_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/audio-fft_c_simd128.wasm",
+        "bytes": 1178,
+        "sha256": "256341cb5eadfba19141bd26f8733ab37fcf6a6156ce5e7b716b16b7256d0cfd",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/audio-fft_c_simd128.wasm benchmarks/multilang-wasm/fft_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "0x9244318b"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 0.0085,
+          "optimizedMs": 0.0082,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 1.04× (0.008 ms vs 0.009 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0086,
+          "optimizedMs": 0.0085,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (0.009 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0085,
+          "optimizedMs": 0.0085,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0154,
+          "optimizedMs": 0.008,
+          "speedup": 1.93,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.007 ms of per-task instance/page initialization (1.93× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.3554,
+          "optimizedMs": 0.0146,
+          "speedup": 24.34,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.355 ms to 0.015 ms (24.34×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (1.04× vs Track A scalar) and matched oracle 0x9244318b. Caching WebAssembly.Instance & linear memory across tasks is 1.93× faster than instantiating per task (0.008 ms vs 0.015 ms)."
+    },
+    {
+      "manifestSlug": "audio-fir",
+      "manifestPath": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
+      "workloadId": "audio.fir.v1",
+      "kernel": "fir",
+      "kernelLabel": "FIR direct convolution — 16,384 samples × 256 taps",
+      "oracleDigest": "0x8a9a963f",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/audio-fir/fir.c",
+        "artifact": "public/artifacts/autoresearch/audio-fir_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/audio-fir_c_simd128.wasm",
+        "bytes": 1119,
+        "sha256": "6b1a99214209bf5cd3202f97591b0d477976f1c6a36619815d888aa6e8c548f6",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/audio-fir_c_simd128.wasm benchmarks/multilang-wasm/audio-fir/fir.c",
+        "v128InstructionCount": 8,
+        "topSimdOps": [
+          "v128.store×2",
+          "v128.load×2",
+          "v128.const×1",
+          "f32x4.splat×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x8a9a963f"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (8 v128 ops)",
+          "baselineMs": 10.9798,
+          "optimizedMs": 3.4295,
+          "speedup": 3.2,
+          "status": "pass",
+          "finding": "LLVM emitted 8 v128 SIMD ops (v128.store×2, v128.load×2, v128.const×1, f32x4.splat×1). Measured 3.20× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 10.9237,
+          "optimizedMs": 10.9858,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Single kernel call (10.986 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.99×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 11.0185,
+          "optimizedMs": 11.0213,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 11.006,
+          "optimizedMs": 10.971,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (10.97 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 38.5851,
+          "optimizedMs": 21.0975,
+          "speedup": 1.83,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 38.585 ms to 21.098 ms (1.83×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 8 v128 SIMD instructions (3.20× vs Track A scalar) and matched oracle 0x8a9a963f."
+    },
+    {
+      "manifestSlug": "audio-stft",
+      "manifestPath": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
+      "workloadId": "audio.stft.v1",
+      "kernel": "stft",
+      "kernelLabel": "STFT — 8,192 samples, 1,024-frame, 256-hop, frozen twiddle",
+      "oracleDigest": "0x419ce79d",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/audio-stft/stft.c",
+        "artifact": "public/artifacts/autoresearch/audio-stft_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/audio-stft_c_simd128.wasm",
+        "bytes": 2817,
+        "sha256": "fe1ee6833de9889d959c265a15152e3d365fc58d8cbe7c94a207d99e52b434ef",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/audio-stft_c_simd128.wasm benchmarks/multilang-wasm/audio-stft/stft.c",
+        "v128InstructionCount": 40,
+        "topSimdOps": [
+          "i8x16.shuffle×12",
+          "v128.load×9",
+          "v128.store×7",
+          "f32x4.mul×5"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x419ce79d"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (40 v128 ops)",
+          "baselineMs": 3.2328,
+          "optimizedMs": 2.0116,
+          "speedup": 1.61,
+          "status": "pass",
+          "finding": "LLVM emitted 40 v128 SIMD ops (i8x16.shuffle×12, v128.load×9, v128.store×7, f32x4.mul×5). Measured 1.61× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 3.2333,
+          "optimizedMs": 3.2489,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (3.249 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 3.6092,
+          "optimizedMs": 3.5917,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 3.5757,
+          "optimizedMs": 3.5783,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (3.58 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 5.7852,
+          "optimizedMs": 5.5434,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (5.785 ms vs 5.543 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 40 v128 SIMD instructions (1.61× vs Track A scalar) and matched oracle 0x419ce79d."
+    },
+    {
+      "manifestSlug": "audio-webaudio-effects-v1",
+      "manifestPath": "/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json",
+      "workloadId": "audio.webaudio-effects.v1",
+      "kernel": "audio_dsp",
+      "kernelLabel": "WebAudio effects rack — 48 kHz stereo biquad → soft-knee compressor → 16-tap convolution, reduced 48,000-frame fixture, strict f32",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.c",
+        "artifact": "public/artifacts/autoresearch/audio-webaudio-effects-v1_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/audio-webaudio-effects-v1_c_simd128.wasm",
+        "bytes": 4631,
+        "sha256": "e0c311d65b890999cea9d9402981a8118d4e121d4aded568e917b555e7ffbb8e",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=3670016 -o public/artifacts/autoresearch/audio-webaudio-effects-v1_c_simd128.wasm benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.c",
+        "v128InstructionCount": 11,
+        "topSimdOps": [
+          "v128.load×2",
+          "f32x4.ne×2",
+          "v128.and×2",
+          "i8x16.shuffle×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (11 v128 ops)",
+          "baselineMs": 1.0673,
+          "optimizedMs": 0.9866,
+          "speedup": 1.08,
+          "status": "pass",
+          "finding": "LLVM emitted 11 v128 SIMD ops (v128.load×2, f32x4.ne×2, v128.and×2, i8x16.shuffle×2). Measured 1.08× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.0641,
+          "optimizedMs": 1.0606,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (1.061 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.0549,
+          "optimizedMs": 1.0645,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.99×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.0677,
+          "optimizedMs": 1.0588,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.06 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 10.2925,
+          "optimizedMs": 2.88,
+          "speedup": 3.57,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 10.293 ms to 2.880 ms (3.57×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 11 v128 SIMD instructions (1.08× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "base-dom-todomvc-journey",
+      "manifestPath": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+      "workloadId": "dom.todomvc-journey.v1",
+      "kernel": "todomvc_engine",
+      "kernelLabel": "TodoMVC 100-item state machine — frozen 150-action trace",
+      "oracleDigest": "0xf0a3643a",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+        "artifact": "public/artifacts/autoresearch/base-dom-todomvc-journey_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/base-dom-todomvc-journey_c_simd128.wasm",
+        "bytes": 1772,
+        "sha256": "b9be27d82e1fd61f68b3f3b56b79dc9968eccc9622e81b04ebd271d26486bad4",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/base-dom-todomvc-journey_c_simd128.wasm benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+        "v128InstructionCount": 13,
+        "topSimdOps": [
+          "v128.store×12",
+          "v128.const×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0xf0a3643a"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (13 v128 ops)",
+          "baselineMs": 0.0036,
+          "optimizedMs": 0.0036,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 13 v128 SIMD ops (v128.store×12, v128.const×1). Measured 1.00× (0.004 ms vs 0.004 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.003,
+          "optimizedMs": 0.003,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.003 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.003,
+          "optimizedMs": 0.0031,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.99×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0169,
+          "optimizedMs": 0.0057,
+          "speedup": 2.96,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.011 ms of per-task instance/page initialization (2.96× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.0249,
+          "optimizedMs": 0.006,
+          "speedup": 4.15,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.025 ms to 0.006 ms (4.15×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 13 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle 0xf0a3643a. Caching WebAssembly.Instance & linear memory across tasks is 2.96× faster than instantiating per task (0.006 ms vs 0.017 ms)."
+    },
+    {
+      "manifestSlug": "cad-mesh-repair",
+      "manifestPath": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
+      "workloadId": "cad.mesh-repair.v1",
+      "kernel": "mesh_repair",
+      "kernelLabel": "STL mesh repair — quantize, weld, orient, simplify",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.c",
+        "artifact": "public/artifacts/autoresearch/cad-mesh-repair_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/cad-mesh-repair_c_simd128.wasm",
+        "bytes": 7065,
+        "sha256": "f48f6c0ec974a5d1083ffb8e3d19f8e4c1e249b5ece995281ffabb2f2572fee8",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/cad-mesh-repair_c_simd128.wasm benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.c",
+        "v128InstructionCount": 154,
+        "topSimdOps": [
+          "v128.load32_lane×27",
+          "i32x4.eq×18",
+          "v128.and×18",
+          "i32x4.extract_lane×15"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (154 v128 ops)",
+          "baselineMs": 20.2466,
+          "optimizedMs": 14.574,
+          "speedup": 1.39,
+          "status": "pass",
+          "finding": "LLVM emitted 154 v128 SIMD ops (v128.load32_lane×27, i32x4.eq×18, v128.and×18, i32x4.extract_lane×15). Measured 1.39× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 20.0759,
+          "optimizedMs": 20.1169,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (20.117 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 20.1274,
+          "optimizedMs": 20.0367,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 20.3005,
+          "optimizedMs": 20.2433,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (20.24 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 50.5265,
+          "optimizedMs": 33.4507,
+          "speedup": 1.51,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 50.526 ms to 33.451 ms (1.51×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 154 v128 SIMD instructions (1.39× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "cad-parametric-bracket",
+      "manifestPath": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
+      "workloadId": "cad.parametric-bracket.v1",
+      "kernel": "bracket",
+      "kernelLabel": "Parametric bracket B-rep + scan-band tessellation",
+      "oracleDigest": "0x63e06c3b",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/cad-parametric-bracket/bracket_c.c",
+        "artifact": "public/artifacts/autoresearch/cad-parametric-bracket_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/cad-parametric-bracket_c_simd128.wasm",
+        "bytes": 24360,
+        "sha256": "28dde3fe620c736a90264a3731640bc638435803021ffd742b63b727b1bdf83f",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=8388608 -o public/artifacts/autoresearch/cad-parametric-bracket_c_simd128.wasm benchmarks/multilang-wasm/cad-parametric-bracket/bracket_c.c",
+        "v128InstructionCount": 213,
+        "topSimdOps": [
+          "v128.store×101",
+          "v128.const×41",
+          "v128.load×22",
+          "i8x16.shuffle×7"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x63e06c3b"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (213 v128 ops)",
+          "baselineMs": 0.0366,
+          "optimizedMs": 0.0395,
+          "speedup": 0.93,
+          "status": "neutral",
+          "finding": "LLVM emitted 213 v128 SIMD ops (v128.store×101, v128.const×41, v128.load×22, i8x16.shuffle×7). Measured 0.93× (0.040 ms vs 0.037 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0374,
+          "optimizedMs": 0.0368,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "Single kernel call (0.037 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.02×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.038,
+          "optimizedMs": 0.0379,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0511,
+          "optimizedMs": 0.0402,
+          "speedup": 1.27,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.011 ms of per-task instance/page initialization (1.27× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 2.5955,
+          "optimizedMs": 0.8782,
+          "speedup": 2.96,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 2.595 ms to 0.878 ms (2.96×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 213 v128 SIMD instructions (0.93× vs Track A scalar) and matched oracle 0x63e06c3b. Caching WebAssembly.Instance & linear memory across tasks is 1.27× faster than instantiating per task (0.040 ms vs 0.051 ms)."
+    },
+    {
+      "manifestSlug": "crypto-authenticated-stream",
+      "manifestPath": "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+      "workloadId": "crypto.authenticated-stream.v1",
+      "kernel": "crypto",
+      "kernelLabel": "ChaCha20-Poly1305 authenticated stream — seal + open",
+      "oracleDigest": "0x4c255808",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.c",
+        "artifact": "public/artifacts/autoresearch/crypto-authenticated-stream_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/crypto-authenticated-stream_c_simd128.wasm",
+        "bytes": 4122,
+        "sha256": "d98c3472c0abdf60f46b5ba3d7864ace100897f80e0906290ca67fc7fc722ec2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/crypto-authenticated-stream_c_simd128.wasm benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.c",
+        "v128InstructionCount": 23,
+        "topSimdOps": [
+          "v128.load×7",
+          "v128.store×5",
+          "i32x4.replace_lane×3",
+          "v128.xor×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x4c255808"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (23 v128 ops)",
+          "baselineMs": 0.0205,
+          "optimizedMs": 0.0195,
+          "speedup": 1.05,
+          "status": "pass",
+          "finding": "LLVM emitted 23 v128 SIMD ops (v128.load×7, v128.store×5, i32x4.replace_lane×3, v128.xor×2). Measured 1.05× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0156,
+          "optimizedMs": 0.0158,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Single kernel call (0.016 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.99×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0158,
+          "optimizedMs": 0.0158,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0292,
+          "optimizedMs": 0.0173,
+          "speedup": 1.69,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.012 ms of per-task instance/page initialization (1.69× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.2349,
+          "optimizedMs": 0.2311,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (0.235 ms vs 0.231 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 23 v128 SIMD instructions (1.05× vs Track A scalar) and matched oracle 0x4c255808. Caching WebAssembly.Instance & linear memory across tasks is 1.69× faster than instantiating per task (0.017 ms vs 0.029 ms)."
+    },
+    {
+      "manifestSlug": "crypto-file-integrity",
+      "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+      "workloadId": "crypto.file-integrity.v1",
+      "kernel": "sha256",
+      "kernelLabel": "SHA-256 — 1 MiB seeded fixture, 64 KiB chunks",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.c",
+        "artifact": "public/artifacts/autoresearch/crypto-file-integrity_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/crypto-file-integrity_c_simd128.wasm",
+        "bytes": 3390,
+        "sha256": "8ea798d0599cadbcfab68c1c644369029b352e9968646a8c9b5d3f29c66e0c8f",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1179648 -o public/artifacts/autoresearch/crypto-file-integrity_c_simd128.wasm benchmarks/multilang-wasm/crypto-file-integrity/sha256.c",
+        "v128InstructionCount": 6,
+        "topSimdOps": [
+          "v128.store×3",
+          "v128.const×2",
+          "v128.load×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (6 v128 ops)",
+          "baselineMs": 3.193,
+          "optimizedMs": 3.059,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "LLVM emitted 6 v128 SIMD ops (v128.store×3, v128.const×2, v128.load×1). Measured 1.04× (3.059 ms vs 3.193 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 3.1524,
+          "optimizedMs": 3.1666,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (3.167 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 3.1785,
+          "optimizedMs": 3.1617,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 3.1868,
+          "optimizedMs": 3.1684,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (3.17 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 12.5911,
+          "optimizedMs": 11.772,
+          "speedup": 1.07,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 12.591 ms to 11.772 ms (1.07×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 6 v128 SIMD instructions (1.04× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "database-olap-chart",
+      "manifestPath": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
+      "workloadId": "database.olap-chart.v1",
+      "kernel": "olap",
+      "kernelLabel": "OLAP chart aggregation — 5 queries over 10,000 rows",
+      "oracleDigest": "0x56304683",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/database-olap-chart/olap.c",
+        "artifact": "public/artifacts/autoresearch/database-olap-chart_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/database-olap-chart_c_simd128.wasm",
+        "bytes": 4000,
+        "sha256": "6311f64035d501ccecbd8a3ac7f109763aa3677a2b9a6f0699b469a04aeae350",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/database-olap-chart_c_simd128.wasm benchmarks/multilang-wasm/database-olap-chart/olap.c",
+        "v128InstructionCount": 43,
+        "topSimdOps": [
+          "v128.store×25",
+          "v128.const×7",
+          "v128.load×5",
+          "i32x4.ne×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x56304683"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (43 v128 ops)",
+          "baselineMs": 1.2142,
+          "optimizedMs": 1.0658,
+          "speedup": 1.14,
+          "status": "pass",
+          "finding": "LLVM emitted 43 v128 SIMD ops (v128.store×25, v128.const×7, v128.load×5, i32x4.ne×2). Measured 1.14× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.1685,
+          "optimizedMs": 1.1724,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (1.172 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.159,
+          "optimizedMs": 1.1578,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.1546,
+          "optimizedMs": 1.1465,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.15 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 2.7756,
+          "optimizedMs": 2.2132,
+          "speedup": 1.25,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 2.776 ms to 2.213 ms (1.25×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 43 v128 SIMD instructions (1.14× vs Track A scalar) and matched oracle 0x56304683."
+    },
+    {
+      "manifestSlug": "document-pdf-viewer",
+      "manifestPath": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
+      "workloadId": "document.pdf-viewer.v1",
+      "kernel": "pdf_parse",
+      "kernelLabel": "PDF parser — 100-page report (object table, font/ToUnicode, content, raster)",
+      "oracleDigest": "0xe24e0325",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
+        "artifact": "public/artifacts/autoresearch/document-pdf-viewer_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/document-pdf-viewer_c_simd128.wasm",
+        "bytes": 19985,
+        "sha256": "e85b4bfcc951aa7d93b090c6f8c1eec9611fc125f8a08ad02da114478c597e76",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/document-pdf-viewer_c_simd128.wasm benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
+        "v128InstructionCount": 20,
+        "topSimdOps": [
+          "v128.store×17",
+          "v128.const×3"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0xe24e0325"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (20 v128 ops)",
+          "baselineMs": 0.1015,
+          "optimizedMs": 0.1024,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "LLVM emitted 20 v128 SIMD ops (v128.store×17, v128.const×3). Measured 0.99× (0.102 ms vs 0.102 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0963,
+          "optimizedMs": 0.0955,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (0.095 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0966,
+          "optimizedMs": 0.0969,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.1191,
+          "optimizedMs": 0.0989,
+          "speedup": 1.2,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.020 ms of per-task instance/page initialization (1.20× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1.6768,
+          "optimizedMs": 0.401,
+          "speedup": 4.18,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1.677 ms to 0.401 ms (4.18×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 20 v128 SIMD instructions (0.99× vs Track A scalar) and matched oracle 0xe24e0325. Caching WebAssembly.Instance & linear memory across tasks is 1.20× faster than instantiating per task (0.099 ms vs 0.119 ms)."
+    },
+    {
+      "manifestSlug": "dom-dependent-form-validation",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-dependent-form-validation.manifest.json",
+      "workloadId": "dom.dependent-form-validation.v1",
+      "kernel": "form_validate_trace",
+      "kernelLabel": "Dependent form validation trace — 10 fields × 240 frozen input/blur ops (per-rule validation)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-dependent-form-validation_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-dependent-form-validation_c_simd128.wasm",
+        "bytes": 3104,
+        "sha256": "259dde8516215e12dbeac2593e712c05848c91bcacaabc961add271246c7835e",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/dom-dependent-form-validation_c_simd128.wasm benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.c",
+        "v128InstructionCount": 24,
+        "topSimdOps": [
+          "v128.store×21",
+          "v128.const×1",
+          "v128.load×1",
+          "i8x16.shuffle×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (24 v128 ops)",
+          "baselineMs": 0.0101,
+          "optimizedMs": 0.0101,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 24 v128 SIMD ops (v128.store×21, v128.const×1, v128.load×1, i8x16.shuffle×1). Measured 1.00× (0.010 ms vs 0.010 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0105,
+          "optimizedMs": 0.0105,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.010 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0105,
+          "optimizedMs": 0.0105,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0175,
+          "optimizedMs": 0.0094,
+          "speedup": 1.86,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.008 ms of per-task instance/page initialization (1.86× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.4827,
+          "optimizedMs": 0.051,
+          "speedup": 9.46,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.483 ms to 0.051 ms (9.46×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 24 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 1.86× faster than instantiating per task (0.009 ms vs 0.018 ms)."
+    },
+    {
+      "manifestSlug": "dom-grid-movement",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
+      "workloadId": "dom.grid-movement.v1",
+      "kernel": "grid_trace",
+      "kernelLabel": "Grid movement trace — 128 entities × 3,600 moves (integer-only)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [
+        "js-opt"
+      ],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-grid-movement_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-grid-movement_c_simd128.wasm",
+        "bytes": 1508,
+        "sha256": "f3625efadd985d0528c672fb83afef71e16662db4938dfe0e29e0500e81a8482",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/dom-grid-movement_c_simd128.wasm benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.c",
+        "v128InstructionCount": 26,
+        "topSimdOps": [
+          "i8x16.shuffle×6",
+          "v128.const×5",
+          "i32x4.add×5",
+          "v128.store×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (26 v128 ops)",
+          "baselineMs": 0.2411,
+          "optimizedMs": 0.2597,
+          "speedup": 0.93,
+          "status": "neutral",
+          "finding": "LLVM emitted 26 v128 SIMD ops (i8x16.shuffle×6, v128.const×5, i32x4.add×5, v128.store×2). Measured 0.93× (0.260 ms vs 0.241 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.2296,
+          "optimizedMs": 0.2297,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.230 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.2266,
+          "optimizedMs": 0.2268,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.2343,
+          "optimizedMs": 0.2281,
+          "speedup": 1.03,
+          "status": "neutral",
+          "finding": "Kernel compute time (0.23 ms) dominates WebAssembly.Instance allocation cost (1.03×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1.175,
+          "optimizedMs": 0.5086,
+          "speedup": 2.31,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1.175 ms to 0.509 ms (2.31×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 26 v128 SIMD instructions (0.93× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "dom-keyed-list-mutation",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-keyed-list-mutation.manifest.json",
+      "workloadId": "dom.keyed-list-mutation.v1",
+      "kernel": "keyed_list_trace",
+      "kernelLabel": "Keyed list mutation trace — 1,000 items × 2,000 frozen ops (integer-only)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-keyed-list-mutation_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-keyed-list-mutation_c_simd128.wasm",
+        "bytes": 2143,
+        "sha256": "0e566a0271c9d85df1c628a09875cc4c4bb34fb05ad9b76dfddcb811e46186bd",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=131072 -o public/artifacts/autoresearch/dom-keyed-list-mutation_c_simd128.wasm benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.c",
+        "v128InstructionCount": 28,
+        "topSimdOps": [
+          "i32x4.add×8",
+          "v128.const×7",
+          "v128.store×7",
+          "v128.load×3"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (28 v128 ops)",
+          "baselineMs": 0.3225,
+          "optimizedMs": 0.311,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "LLVM emitted 28 v128 SIMD ops (i32x4.add×8, v128.const×7, v128.store×7, v128.load×3). Measured 1.04× (0.311 ms vs 0.323 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.3079,
+          "optimizedMs": 0.3078,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.308 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.3337,
+          "optimizedMs": 0.3311,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.305,
+          "optimizedMs": 0.2982,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "Kernel compute time (0.30 ms) dominates WebAssembly.Instance allocation cost (1.02×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 3.1878,
+          "optimizedMs": 0.6509,
+          "speedup": 4.9,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 3.188 ms to 0.651 ms (4.90×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 28 v128 SIMD instructions (1.04× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "dom-nested-tree-mutation",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
+      "workloadId": "dom.nested-tree-mutation.v1",
+      "kernel": "nested_tree_trace",
+      "kernelLabel": "Nested tree mutation trace — 500 nodes × 1,200 frozen ops (integer-only)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-nested-tree-mutation_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-nested-tree-mutation_c_simd128.wasm",
+        "bytes": 1852,
+        "sha256": "152b365ed3e5dfdf9ddeb0a91704b38f0f89a0ae8c2c73b3e0a2c05dd259c8f2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=131072 -o public/artifacts/autoresearch/dom-nested-tree-mutation_c_simd128.wasm benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.c",
+        "v128InstructionCount": 53,
+        "topSimdOps": [
+          "v128.const×9",
+          "i16x8.extract_lane_s×8",
+          "v128.store×7",
+          "i16x8.replace_lane×6"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (53 v128 ops)",
+          "baselineMs": 0.0098,
+          "optimizedMs": 0.0096,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "LLVM emitted 53 v128 SIMD ops (v128.const×9, i16x8.extract_lane_s×8, v128.store×7, i16x8.replace_lane×6). Measured 1.02× (0.010 ms vs 0.010 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0089,
+          "optimizedMs": 0.0089,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.009 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.009,
+          "optimizedMs": 0.0089,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.016,
+          "optimizedMs": 0.0089,
+          "speedup": 1.8,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.007 ms of per-task instance/page initialization (1.80× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.4025,
+          "optimizedMs": 0.0435,
+          "speedup": 9.25,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.403 ms to 0.043 ms (9.25×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 53 v128 SIMD instructions (1.02× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 1.80× faster than instantiating per task (0.009 ms vs 0.016 ms)."
+    },
+    {
+      "manifestSlug": "dom-table-sort-filter-pagination",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
+      "workloadId": "dom.table-sort-filter-pagination.v1",
+      "kernel": "table_sort_trace",
+      "kernelLabel": "Table sort/filter/paginate trace — 5,000 rows × 120 frozen sort/filter/paginate/edit ops (integer-only)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-table-sort-filter-pagination_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-table-sort-filter-pagination_c_simd128.wasm",
+        "bytes": 2886,
+        "sha256": "738d6195191a432792a0100420c7e9daf2db63bc68eebc57de8a5226466f1eb2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=131072 -o public/artifacts/autoresearch/dom-table-sort-filter-pagination_c_simd128.wasm benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.c",
+        "v128InstructionCount": 54,
+        "topSimdOps": [
+          "i32x4.add×11",
+          "v128.const×10",
+          "v128.store×9",
+          "i32x4.extract_lane×9"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (54 v128 ops)",
+          "baselineMs": 87.9069,
+          "optimizedMs": 88.3714,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "LLVM emitted 54 v128 SIMD ops (i32x4.add×11, v128.const×10, v128.store×9, i32x4.extract_lane×9). Measured 0.99× (88.371 ms vs 87.907 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (4× Amortization)",
+          "baselineLabel": "4 Individual Call Dispatches",
+          "optLabel": "Batched 4× Loop",
+          "baselineMs": 87.6165,
+          "optimizedMs": 87.6242,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (87.624 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 88.8295,
+          "optimizedMs": 91.9844,
+          "speedup": 0.97,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.97×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 87.9338,
+          "optimizedMs": 87.4562,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (87.46 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 12.739,
+          "optimizedMs": 11.9875,
+          "speedup": 1.06,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 12.739 ms to 11.988 ms (1.06×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 54 v128 SIMD instructions (0.99× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "dom-virtualized-grid-v1",
+      "manifestPath": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
+      "workloadId": "dom.virtualized-grid.v1",
+      "kernel": "grid_trace",
+      "kernelLabel": "100,000-row virtualized grid — 300-event trace over 100,000 rows (dom-virtualized-grid-v1/fixture.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.c",
+        "artifact": "public/artifacts/autoresearch/dom-virtualized-grid-v1_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/dom-virtualized-grid-v1_c_simd128.wasm",
+        "bytes": 6437,
+        "sha256": "57c82e14a2ed82e5cd1f77b40f530678df326271db8e8484a9262c21e4547a64",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=6291456 -o public/artifacts/autoresearch/dom-virtualized-grid-v1_c_simd128.wasm benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.c",
+        "v128InstructionCount": 78,
+        "topSimdOps": [
+          "v128.store×59",
+          "v128.load×17",
+          "v128.const×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (78 v128 ops)",
+          "baselineMs": 12.6121,
+          "optimizedMs": 12.513,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "LLVM emitted 78 v128 SIMD ops (v128.store×59, v128.load×17, v128.const×2). Measured 1.01× (12.513 ms vs 12.612 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 12.6529,
+          "optimizedMs": 12.5335,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (12.533 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 12.5867,
+          "optimizedMs": 12.5655,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 12.5367,
+          "optimizedMs": 12.5192,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (12.52 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 33.1428,
+          "optimizedMs": 26.5999,
+          "speedup": 1.25,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 33.143 ms to 26.600 ms (1.25×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 78 v128 SIMD instructions (1.01× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "fft-kernel",
+      "manifestPath": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
+      "workloadId": "multilang-wasm",
+      "kernel": "fft",
+      "kernelLabel": "Radix-2 FFT — 512 floats (7 engines)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/fft_kernel.c",
+        "artifact": "public/artifacts/autoresearch/fft-kernel_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/fft-kernel_c_simd128.wasm",
+        "bytes": 1179,
+        "sha256": "423483b37c835281b7673a89e6a3ca58df96ce26df84960f88deaa1e4b039161",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/fft-kernel_c_simd128.wasm benchmarks/multilang-wasm/fft_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 0.0082,
+          "optimizedMs": 0.0085,
+          "speedup": 0.96,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 0.96× (0.009 ms vs 0.008 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0087,
+          "optimizedMs": 0.0087,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.009 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0088,
+          "optimizedMs": 0.0087,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0159,
+          "optimizedMs": 0.0084,
+          "speedup": 1.89,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.008 ms of per-task instance/page initialization (1.89× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.0304,
+          "optimizedMs": 0.0193,
+          "speedup": 1.58,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.030 ms to 0.019 ms (1.58×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (0.96× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 1.89× faster than instantiating per task (0.008 ms vs 0.016 ms)."
+    },
+    {
+      "manifestSlug": "game-canvas-arcade",
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+      "workloadId": "game.canvas-arcade.v1",
+      "kernel": "arcade_trace",
+      "kernelLabel": "Canvas arcade — 3,600-frame deterministic replay (game-canvas-arcade-v1.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.c",
+        "artifact": "public/artifacts/autoresearch/game-canvas-arcade_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/game-canvas-arcade_c_simd128.wasm",
+        "bytes": 1488,
+        "sha256": "fe30c53ed7ccaece7a161bffafa63d2e21de5d210f8f20476b00f4d50b246c9f",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=196608 -o public/artifacts/autoresearch/game-canvas-arcade_c_simd128.wasm benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 0.6474,
+          "optimizedMs": 0.6468,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 1.00× (0.647 ms vs 0.647 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.6415,
+          "optimizedMs": 0.6417,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.642 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.6388,
+          "optimizedMs": 0.6393,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.6426,
+          "optimizedMs": 0.6328,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "Kernel compute time (0.63 ms) dominates WebAssembly.Instance allocation cost (1.02×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 5.8996,
+          "optimizedMs": 0.7019,
+          "speedup": 8.41,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 5.900 ms to 0.702 ms (8.41×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "game-canvas-entity-pathfinding",
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+      "workloadId": "game.canvas-entity-pathfinding.v1",
+      "kernel": "pathfinding_trace",
+      "kernelLabel": "Canvas entity + pathfinding — 128 A* requests + 1,800 frames × 4,096 entities (game-canvas-entity-pathfinding-v1.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.c",
+        "artifact": "public/artifacts/autoresearch/game-canvas-entity-pathfinding_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/game-canvas-entity-pathfinding_c_simd128.wasm",
+        "bytes": 4966,
+        "sha256": "d5629d4ee96a1578e520593a1374b65f7a5ed5992ccf5dd4b031fbcd3ebcb153",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=3407872 -o public/artifacts/autoresearch/game-canvas-entity-pathfinding_c_simd128.wasm benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.c",
+        "v128InstructionCount": 52,
+        "topSimdOps": [
+          "i8x16.shuffle×18",
+          "v128.store×10",
+          "i16x8.extend_low_i8x16_u×4",
+          "v128.load×3"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (52 v128 ops)",
+          "baselineMs": 70.6428,
+          "optimizedMs": 69.5992,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "LLVM emitted 52 v128 SIMD ops (i8x16.shuffle×18, v128.store×10, i16x8.extend_low_i8x16_u×4, v128.load×3). Measured 1.01× (69.599 ms vs 70.643 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (4× Amortization)",
+          "baselineLabel": "4 Individual Call Dispatches",
+          "optLabel": "Batched 4× Loop",
+          "baselineMs": 68.1458,
+          "optimizedMs": 68.2007,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (68.201 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 68.2748,
+          "optimizedMs": 68.1273,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 68.1187,
+          "optimizedMs": 68.2212,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (68.22 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 160.1938,
+          "optimizedMs": 122.6218,
+          "speedup": 1.31,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 160.194 ms to 122.622 ms (1.31×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 52 v128 SIMD instructions (1.01× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "game-dom-tactics-grid",
+      "manifestPath": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+      "workloadId": "game.dom-tactics-grid.v1",
+      "kernel": "tactics_trace",
+      "kernelLabel": "DOM tactics grid — 60 turns × 240 actions on 64×64 map (game-dom-tactics-grid-v1.bin)",
+      "oracleDigest": "0x71fbb27d",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.c",
+        "artifact": "public/artifacts/autoresearch/game-dom-tactics-grid_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/game-dom-tactics-grid_c_simd128.wasm",
+        "bytes": 3402,
+        "sha256": "0fc92777a6fde0364425fe8f466c96248a558d99bd8d93193587887b297c6433",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=4194304 -o public/artifacts/autoresearch/game-dom-tactics-grid_c_simd128.wasm benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.c",
+        "v128InstructionCount": 10,
+        "topSimdOps": [
+          "v128.store×8",
+          "v128.const×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x71fbb27d"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (10 v128 ops)",
+          "baselineMs": 1.8152,
+          "optimizedMs": 1.78,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "LLVM emitted 10 v128 SIMD ops (v128.store×8, v128.const×2). Measured 1.02× (1.780 ms vs 1.815 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.5824,
+          "optimizedMs": 1.57,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (1.570 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.5567,
+          "optimizedMs": 1.5542,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.5863,
+          "optimizedMs": 1.565,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.56 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 3.2588,
+          "optimizedMs": 2.9186,
+          "speedup": 1.12,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 3.259 ms to 2.919 ms (1.12×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 10 v128 SIMD instructions (1.02× vs Track A scalar) and matched oracle 0x71fbb27d."
+    },
+    {
+      "manifestSlug": "game-ecs-frame-update",
+      "manifestPath": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
+      "workloadId": "game.ecs-frame-update.v1",
+      "kernel": "ecs_frame_update",
+      "kernelLabel": "ECS frame update — 1,024 entities, 300 frames (grid collision + FNV-1a digests)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.c",
+        "artifact": "public/artifacts/autoresearch/game-ecs-frame-update_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/game-ecs-frame-update_c_simd128.wasm",
+        "bytes": 5170,
+        "sha256": "cc7e5cb1b88969ca247ff27a393f214e25b0343c90bb0427b32b38cd31516993",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/game-ecs-frame-update_c_simd128.wasm benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.c",
+        "v128InstructionCount": 69,
+        "topSimdOps": [
+          "i8x16.shuffle×24",
+          "v128.store×11",
+          "v128.load×7",
+          "v128.store64_lane×4"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (69 v128 ops)",
+          "baselineMs": 6.7527,
+          "optimizedMs": 7.1817,
+          "speedup": 0.94,
+          "status": "neutral",
+          "finding": "LLVM emitted 69 v128 SIMD ops (i8x16.shuffle×24, v128.store×11, v128.load×7, v128.store64_lane×4). Measured 0.94× (7.182 ms vs 6.753 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 6.7221,
+          "optimizedMs": 6.8458,
+          "speedup": 0.98,
+          "status": "neutral",
+          "finding": "Single kernel call (6.846 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.98×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 6.7736,
+          "optimizedMs": 6.7881,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 6.7888,
+          "optimizedMs": 6.7722,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (6.77 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 33.0662,
+          "optimizedMs": 33.1235,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (33.066 ms vs 33.123 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 69 v128 SIMD instructions (0.94× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "graphics-cpu-path-tracer",
+      "manifestPath": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
+      "workloadId": "graphics-cpu-path-tracer.v1",
+      "kernel": "render",
+      "kernelLabel": "Cornell-box ray tracer — 16×16, 4 spp",
+      "oracleDigest": "0x509d4baf",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.c",
+        "artifact": "public/artifacts/autoresearch/graphics-cpu-path-tracer_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/graphics-cpu-path-tracer_c_simd128.wasm",
+        "bytes": 3888,
+        "sha256": "c7265b443cca07d73c29c7fd3dc5eb329722d637562f72f55276acf5c29d99f1",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/graphics-cpu-path-tracer_c_simd128.wasm benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.c",
+        "v128InstructionCount": 18,
+        "topSimdOps": [
+          "v128.const×4",
+          "f32x4.extract_lane×4",
+          "v128.store×2",
+          "f32x4.mul×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x509d4baf"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (18 v128 ops)",
+          "baselineMs": 0.1423,
+          "optimizedMs": 0.1459,
+          "speedup": 0.98,
+          "status": "neutral",
+          "finding": "LLVM emitted 18 v128 SIMD ops (v128.const×4, f32x4.extract_lane×4, v128.store×2, f32x4.mul×2). Measured 0.98× (0.146 ms vs 0.142 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.1361,
+          "optimizedMs": 0.1366,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.137 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.1352,
+          "optimizedMs": 0.1347,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.1473,
+          "optimizedMs": 0.132,
+          "speedup": 1.12,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.015 ms of per-task instance/page initialization (1.12× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.8862,
+          "optimizedMs": 0.9206,
+          "speedup": 0.96,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (0.886 ms vs 0.921 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 18 v128 SIMD instructions (0.98× vs Track A scalar) and matched oracle 0x509d4baf. Caching WebAssembly.Instance & linear memory across tasks is 1.12× faster than instantiating per task (0.132 ms vs 0.147 ms)."
+    },
+    {
+      "manifestSlug": "graphics-gltf-viewer",
+      "manifestPath": "/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json",
+      "workloadId": "graphics.gltf-viewer.v1",
+      "kernel": "viewer",
+      "kernelLabel": "glTF viewer — exact JSON validation, 600-frame fixed-point animation and 96x96 rasterization of the pinned Avocado model",
+      "oracleDigest": "0xa594d4dd",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/base/graphics-gltf-viewer/viewer.c",
+        "artifact": "public/artifacts/autoresearch/graphics-gltf-viewer_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/graphics-gltf-viewer_c_simd128.wasm",
+        "bytes": 6154,
+        "sha256": "6b483c9045f6a309852851d9989bb5c0e4b533ee6cee387892af106fcdc60ca7",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=67108864 -o public/artifacts/autoresearch/graphics-gltf-viewer_c_simd128.wasm benchmarks/base/graphics-gltf-viewer/viewer.c",
+        "v128InstructionCount": 31,
+        "topSimdOps": [
+          "v128.store×11",
+          "i32x4.splat×4",
+          "i32x4.replace_lane×4",
+          "v128.load×4"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0xa594d4dd"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (31 v128 ops)",
+          "baselineMs": 14.6785,
+          "optimizedMs": 7.2169,
+          "speedup": 2.03,
+          "status": "pass",
+          "finding": "LLVM emitted 31 v128 SIMD ops (v128.store×11, i32x4.splat×4, i32x4.replace_lane×4, v128.load×4). Measured 2.03× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 14.5442,
+          "optimizedMs": 14.4761,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (14.476 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 14.589,
+          "optimizedMs": 14.7303,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.99×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 14.8137,
+          "optimizedMs": 14.7687,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (14.77 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 20.838,
+          "optimizedMs": 11.2458,
+          "speedup": 1.85,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 20.838 ms to 11.246 ms (1.85×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 31 v128 SIMD instructions (2.03× vs Track A scalar) and matched oracle 0xa594d4dd."
+    },
+    {
+      "manifestSlug": "image-editing",
+      "manifestPath": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+      "workloadId": "image-editing.v1",
+      "kernel": "flood_fill",
+      "kernelLabel": "Flood fill 64×48 + luma Gaussian pipeline 40×30 (integer-only)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/image-editing/image_kernels.c",
+        "artifact": "public/artifacts/autoresearch/image-editing_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/image-editing_c_simd128.wasm",
+        "bytes": 3118,
+        "sha256": "d9c4c4770383a16102fa0f6c30480e050d72d6f1cd4018e2cdcd5aa6785ce3bd",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=131072 -o public/artifacts/autoresearch/image-editing_c_simd128.wasm benchmarks/multilang-wasm/image-editing/image_kernels.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 0.0247,
+          "optimizedMs": 0.0244,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 1.01× (0.024 ms vs 0.025 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0249,
+          "optimizedMs": 0.0252,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Single kernel call (0.025 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.99×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0245,
+          "optimizedMs": 0.0245,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0295,
+          "optimizedMs": 0.0252,
+          "speedup": 1.17,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.004 ms of per-task instance/page initialization (1.17× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.071,
+          "optimizedMs": 0.0534,
+          "speedup": 1.33,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.071 ms to 0.053 ms (1.33×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (1.01× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 1.17× faster than instantiating per task (0.025 ms vs 0.029 ms)."
+    },
+    {
+      "manifestSlug": "ml-dense-mlp",
+      "manifestPath": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
+      "workloadId": "ml.dense-mlp.v1",
+      "kernel": "mlp_forward",
+      "kernelLabel": "Dense MLP forward — 4 hidden + 1 projection (16×128)",
+      "oracleDigest": "0x02f12fdb",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c",
+        "artifact": "public/artifacts/autoresearch/ml-dense-mlp_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/ml-dense-mlp_c_simd128.wasm",
+        "bytes": 1999,
+        "sha256": "e08cef07df48edfa9434b9139b99f67355421448599cb80ffe51ca6f7e7afcc2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/ml-dense-mlp_c_simd128.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "0x02f12fdb"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 1.3746,
+          "optimizedMs": 1.4067,
+          "speedup": 0.98,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 0.98× (1.407 ms vs 1.375 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.3402,
+          "optimizedMs": 1.3496,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Single kernel call (1.350 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.99×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.3587,
+          "optimizedMs": 1.3527,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.4166,
+          "optimizedMs": 1.399,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.40 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 6.5917,
+          "optimizedMs": 4.4318,
+          "speedup": 1.49,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 6.592 ms to 4.432 ms (1.49×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (0.98× vs Track A scalar) and matched oracle 0x02f12fdb."
+    },
+    {
+      "manifestSlug": "ml-gemm",
+      "manifestPath": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
+      "workloadId": "ml.gemm.v1",
+      "kernel": "gemm",
+      "kernelLabel": "strict-f32 GEMM — 128×128×128 product (frozen i/j/k order)",
+      "oracleDigest": "0x777b8f6c",
+      "staticTrackBVariants": [
+        "wat-simd",
+        "c-ikj",
+        "c-tiled",
+        "c-ikj-simd",
+        "c-simd-dot",
+        "cpp-ikj",
+        "cpp-tiled",
+        "cpp-ikj-simd",
+        "rs-ikj",
+        "rs-tiled",
+        "rs-ikj-simd",
+        "asc-ikj",
+        "asc-tiled",
+        "js-opt",
+        "dart-o2",
+        "dart-o3",
+        "dart-o4"
+      ],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/ml-gemm/gemm.c",
+        "artifact": "public/artifacts/autoresearch/ml-gemm_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/ml-gemm_c_simd128.wasm",
+        "bytes": 1335,
+        "sha256": "5a1d3d9992d184afd1356a8d770eafcb16f5c825b11cdaecd87dd347f8bbb2f4",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/ml-gemm_c_simd128.wasm benchmarks/multilang-wasm/ml-gemm/gemm.c",
+        "v128InstructionCount": 4,
+        "topSimdOps": [
+          "v128.load×1",
+          "v128.const×1",
+          "f32x4.add×1",
+          "v128.store×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x777b8f6c"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "wat-simd (hand-tuned Track B SIMD)",
+          "baselineMs": 1.1007,
+          "optimizedMs": 0.464,
+          "speedup": 2.37,
+          "status": "pass",
+          "finding": "LLVM emitted 4 v128 SIMD ops (v128.load×1, v128.const×1, f32x4.add×1, v128.store×1). Measured 2.37× speedup with verified oracle output. Auto-vectorized C -msimd128 (4 v128 ops) ran in 1.151 ms."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.0921,
+          "optimizedMs": 1.0872,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (1.087 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.087,
+          "optimizedMs": 1.0825,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.0993,
+          "optimizedMs": 1.0965,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.10 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 4.221,
+          "optimizedMs": 4.0444,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (4.221 ms vs 4.044 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 4 v128 SIMD instructions (2.37× vs Track A scalar) and matched oracle 0x777b8f6c."
+    },
+    {
+      "manifestSlug": "ml-keyword-spotting-v1",
+      "manifestPath": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
+      "workloadId": "ml.keyword-spotting.v1",
+      "kernel": "kws_run",
+      "kernelLabel": null,
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+        "artifact": "public/artifacts/autoresearch/ml-keyword-spotting-v1_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/ml-keyword-spotting-v1_c_simd128.wasm",
+        "bytes": 26243,
+        "sha256": "be2d50f14679b0cd17cf81a14574970a5c8b44ad9499f977bdb6d5e51d0d9d31",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=7864320 -o public/artifacts/autoresearch/ml-keyword-spotting-v1_c_simd128.wasm benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+        "v128InstructionCount": 606,
+        "topSimdOps": [
+          "i32x4.add×94",
+          "i32x4.splat×72",
+          "i32x4.mul×64",
+          "i8x16.shuffle×60"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (606 v128 ops)",
+          "baselineMs": 12.9309,
+          "optimizedMs": 11.5367,
+          "speedup": 1.12,
+          "status": "pass",
+          "finding": "LLVM emitted 606 v128 SIMD ops (i32x4.add×94, i32x4.splat×72, i32x4.mul×64, i8x16.shuffle×60). Measured 1.12× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 12.7555,
+          "optimizedMs": 12.7345,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (12.734 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 12.7397,
+          "optimizedMs": 12.6976,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 12.7059,
+          "optimizedMs": 12.7162,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (12.72 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 568.0509,
+          "optimizedMs": 548.4695,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (568.051 ms vs 548.470 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 606 v128 SIMD instructions (1.12× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "ml-numeric-kernels",
+      "manifestPath": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
+      "workloadId": "ml.numeric-kernels.v1",
+      "kernel": "numeric",
+      "kernelLabel": "ML numeric kernels — GEMM/Conv/Softmax f32+i8 (frozen shapes)",
+      "oracleDigest": "0x82cbdd1f",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.c",
+        "artifact": "public/artifacts/autoresearch/ml-numeric-kernels_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/ml-numeric-kernels_c_simd128.wasm",
+        "bytes": 31115,
+        "sha256": "0ed459c7cfcd22a75dd950da49c8e798639730b4c940c96642016398fac2b7b2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/ml-numeric-kernels_c_simd128.wasm benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.c",
+        "v128InstructionCount": 18,
+        "topSimdOps": [
+          "v128.load×4",
+          "f32x4.div×4",
+          "f32x4.add×4",
+          "v128.store×4"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x82cbdd1f"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (18 v128 ops)",
+          "baselineMs": 0.0189,
+          "optimizedMs": 0.0189,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 18 v128 SIMD ops (v128.load×4, f32x4.div×4, f32x4.add×4, v128.store×4). Measured 1.00× (0.019 ms vs 0.019 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0076,
+          "optimizedMs": 0.0076,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Single kernel call (0.008 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (0.99×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0076,
+          "optimizedMs": 0.0076,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0251,
+          "optimizedMs": 0.0081,
+          "speedup": 3.1,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.017 ms of per-task instance/page initialization (3.10× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.1267,
+          "optimizedMs": 0.0579,
+          "speedup": 2.19,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.127 ms to 0.058 ms (2.19×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 18 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle 0x82cbdd1f. Caching WebAssembly.Instance & linear memory across tasks is 3.10× faster than instantiating per task (0.008 ms vs 0.025 ms)."
+    },
+    {
+      "manifestSlug": "multilang-wasm",
+      "manifestPath": "/benchmarks/multilang-wasm/multilang-wasm.manifest.json",
+      "workloadId": "multilang-wasm",
+      "kernel": "sum",
+      "kernelLabel": "sum-u32 + fft-kernel (1000 u32 / 512 floats)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/sum_u32.c",
+        "artifact": "public/artifacts/autoresearch/multilang-wasm_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/multilang-wasm_c_simd128.wasm",
+        "bytes": 1429,
+        "sha256": "496df54ef01823cb1ad3d910a8b2429f31a0d5a39d3a88abfa0a92fb6591a11e",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/multilang-wasm_c_simd128.wasm benchmarks/multilang-wasm/sum_u32.c benchmarks/multilang-wasm/fft_kernel.c",
+        "v128InstructionCount": 8,
+        "topSimdOps": [
+          "i32x4.add×3",
+          "i8x16.shuffle×2",
+          "v128.const×1",
+          "v128.load×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (8 v128 ops)",
+          "baselineMs": 0.0013,
+          "optimizedMs": 0.0016,
+          "speedup": 0.81,
+          "status": "neutral",
+          "finding": "LLVM emitted 8 v128 SIMD ops (i32x4.add×3, i8x16.shuffle×2, v128.const×1, v128.load×1). Measured 0.81× (0.002 ms vs 0.001 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0019,
+          "optimizedMs": 0.0019,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.002 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.002,
+          "optimizedMs": 0.0019,
+          "speedup": 1.05,
+          "status": "pass",
+          "finding": "Straight-line 4× dispatch reduced loop-branch overhead (1.05×)."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0087,
+          "optimizedMs": 0.0012,
+          "speedup": 7.25,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.007 ms of per-task instance/page initialization (7.25× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.0021,
+          "optimizedMs": 0.0015,
+          "speedup": 1.4,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.002 ms to 0.002 ms (1.40×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 8 v128 SIMD instructions (0.81× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 7.25× faster than instantiating per task (0.001 ms vs 0.009 ms)."
+    },
+    {
+      "manifestSlug": "network-pcap-decode",
+      "manifestPath": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
+      "workloadId": "network.pcap-decode.v1",
+      "kernel": "pcap_decode",
+      "kernelLabel": "pcap packet decode — 1,000 packets",
+      "oracleDigest": "0x578064ea",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.c",
+        "artifact": "public/artifacts/autoresearch/network-pcap-decode_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/network-pcap-decode_c_simd128.wasm",
+        "bytes": 4020,
+        "sha256": "67791cfcbdefb7318a672ea648fb50cd275e64a87d7d6c8d83e3934bf5cfcd35",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/network-pcap-decode_c_simd128.wasm benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.c",
+        "v128InstructionCount": 21,
+        "topSimdOps": [
+          "v128.store×11",
+          "v128.load×7",
+          "i32x4.extract_lane×2",
+          "v128.const×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x578064ea"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (21 v128 ops)",
+          "baselineMs": 0.0011,
+          "optimizedMs": 0.0011,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 21 v128 SIMD ops (v128.store×11, v128.load×7, i32x4.extract_lane×2, v128.const×1). Measured 1.00× (0.001 ms vs 0.001 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0021,
+          "optimizedMs": 0.0021,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.002 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0021,
+          "optimizedMs": 0.0021,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0124,
+          "optimizedMs": 0.0008,
+          "speedup": 15.5,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.012 ms of per-task instance/page initialization (15.50× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.059,
+          "optimizedMs": 0.0065,
+          "speedup": 9.08,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.059 ms to 0.006 ms (9.08×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 21 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle 0x578064ea. Caching WebAssembly.Instance & linear memory across tasks is 15.50× faster than instantiating per task (0.001 ms vs 0.012 ms)."
+    },
+    {
+      "manifestSlug": "numeric-polybench-panel",
+      "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+      "workloadId": "numeric.polybench-panel.v1",
+      "kernel": "polybench",
+      "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) — double precision (f64)",
+      "oracleDigest": "0x2676e855",
+      "staticTrackBVariants": [
+        "c-opt",
+        "c-simd",
+        "rs-simd"
+      ],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c",
+        "artifact": "public/artifacts/autoresearch/numeric-polybench-panel_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/numeric-polybench-panel_c_simd128.wasm",
+        "bytes": 3869,
+        "sha256": "ab2bb24a6c340a80f9554d29a4d534868254f52d48ad9b20555ec6b75b8be83c",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=4194304 -o public/artifacts/autoresearch/numeric-polybench-panel_c_simd128.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c",
+        "v128InstructionCount": 52,
+        "topSimdOps": [
+          "v128.load×19",
+          "f64x2.add×13",
+          "v128.store×7",
+          "f64x2.mul×6"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x2676e855"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (52 v128 ops)",
+          "baselineMs": 0.0857,
+          "optimizedMs": 0.072,
+          "speedup": 1.19,
+          "status": "pass",
+          "finding": "LLVM emitted 52 v128 SIMD ops (v128.load×19, f64x2.add×13, v128.store×7, f64x2.mul×6). Measured 1.19× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0857,
+          "optimizedMs": 0.0854,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.085 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0866,
+          "optimizedMs": 0.085,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.02×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0981,
+          "optimizedMs": 0.0857,
+          "speedup": 1.14,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.012 ms of per-task instance/page initialization (1.14× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.1638,
+          "optimizedMs": 0.1667,
+          "speedup": 0.98,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (0.164 ms vs 0.167 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 52 v128 SIMD instructions (1.19× vs Track A scalar) and matched oracle 0x2676e855. Caching WebAssembly.Instance & linear memory across tasks is 1.14× faster than instantiating per task (0.086 ms vs 0.098 ms)."
+    },
+    {
+      "manifestSlug": "regex-automata-duel-demo",
+      "manifestPath": "/benchmarks/multilang-wasm/regex-automata-duel-demo.manifest.json",
+      "workloadId": "regex-automata-duel-demo",
+      "kernel": "regex_scan",
+      "kernelLabel": "20 frozen safe patterns × 1 MiB BMP corpus — DFA scan over the precompiled Thompson→DFA tables (regex-automata-duel-multilang/fixture.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.c",
+        "artifact": "public/artifacts/autoresearch/regex-automata-duel-demo_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/regex-automata-duel-demo_c_simd128.wasm",
+        "bytes": 2126,
+        "sha256": "2fb937d7d79a3467b16a054104b6396407006ed7fc4dfb5ba3db2e4f4c7dc4c2",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=8388608 -o public/artifacts/autoresearch/regex-automata-duel-demo_c_simd128.wasm benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 48.8818,
+          "optimizedMs": 51.0569,
+          "speedup": 0.96,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 0.96× (51.057 ms vs 48.882 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (4× Amortization)",
+          "baselineLabel": "4 Individual Call Dispatches",
+          "optLabel": "Batched 4× Loop",
+          "baselineMs": 49.3627,
+          "optimizedMs": 49.0591,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (49.059 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 50.1264,
+          "optimizedMs": 49.5182,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 49.1013,
+          "optimizedMs": 49.1644,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (49.16 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1279.9159,
+          "optimizedMs": 1169.3005,
+          "speedup": 1.09,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1279.916 ms to 1169.301 ms (1.09×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (0.96× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "serialization-json-telemetry",
+      "manifestPath": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
+      "workloadId": "serialization.json-telemetry.v1",
+      "kernel": "telemetry",
+      "kernelLabel": "JSON telemetry parse — 1,000 records, frozen vocabulary",
+      "oracleDigest": "0x85dc4c41",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.c",
+        "artifact": "public/artifacts/autoresearch/serialization-json-telemetry_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/serialization-json-telemetry_c_simd128.wasm",
+        "bytes": 8636,
+        "sha256": "f063aa9c34d13622939ccf442d33b835ec83637e1c1f8be40f6ad08c31291965",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o public/artifacts/autoresearch/serialization-json-telemetry_c_simd128.wasm benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.c",
+        "v128InstructionCount": 6,
+        "topSimdOps": [
+          "v128.load×2",
+          "i8x16.shuffle×2",
+          "v128.store×2"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x85dc4c41"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (6 v128 ops)",
+          "baselineMs": 0.4569,
+          "optimizedMs": 0.4595,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "LLVM emitted 6 v128 SIMD ops (v128.load×2, i8x16.shuffle×2, v128.store×2). Measured 0.99× (0.460 ms vs 0.457 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.4335,
+          "optimizedMs": 0.434,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.434 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.4322,
+          "optimizedMs": 0.4302,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.4478,
+          "optimizedMs": 0.4318,
+          "speedup": 1.04,
+          "status": "neutral",
+          "finding": "Kernel compute time (0.43 ms) dominates WebAssembly.Instance allocation cost (1.04×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.9095,
+          "optimizedMs": 0.6315,
+          "speedup": 1.44,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.909 ms to 0.631 ms (1.44×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 6 v128 SIMD instructions (0.99× vs Track A scalar) and matched oracle 0x85dc4c41."
+    },
+    {
+      "manifestSlug": "serialization-protobuf-gateway",
+      "manifestPath": "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
+      "workloadId": "serialization.protobuf-gateway.v1",
+      "kernel": "protobuf_gateway",
+      "kernelLabel": "10,000-message protobuf gateway — decode + filter every frozen wire message (serialization-protobuf-gateway-multilang/fixture.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.c",
+        "artifact": "public/artifacts/autoresearch/serialization-protobuf-gateway_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/serialization-protobuf-gateway_c_simd128.wasm",
+        "bytes": 5508,
+        "sha256": "0fe35d787b354503589fa30f959c7ec074ca26a8371580abf409744f06384431",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=8388608 -o public/artifacts/autoresearch/serialization-protobuf-gateway_c_simd128.wasm benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 2.082,
+          "optimizedMs": 2.1083,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 0.99× (2.108 ms vs 2.082 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 2.0716,
+          "optimizedMs": 2.0794,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (2.079 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 2.0821,
+          "optimizedMs": 2.0826,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 2.1051,
+          "optimizedMs": 2.0886,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (2.09 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 56.8089,
+          "optimizedMs": 36.844,
+          "speedup": 1.54,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 56.809 ms to 36.844 ms (1.54×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (0.99× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "server-ssr-template-v1",
+      "manifestPath": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
+      "workloadId": "server.ssr-template.v1",
+      "kernel": "ssr_render",
+      "kernelLabel": "1,000-record catalog SSR — parse + render every response body (server-ssr-template-v1-multilang/fixture.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.c",
+        "artifact": "public/artifacts/autoresearch/server-ssr-template-v1_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/server-ssr-template-v1_c_simd128.wasm",
+        "bytes": 14253,
+        "sha256": "69a97cc8feeafa6009731fefce077b9e78501dc6d14e72cad4515edef9874a8b",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=5242880 -o public/artifacts/autoresearch/server-ssr-template-v1_c_simd128.wasm benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 1.6479,
+          "optimizedMs": 1.6447,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 1.00× (1.645 ms vs 1.648 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 1.6487,
+          "optimizedMs": 1.6485,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (1.648 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 1.7199,
+          "optimizedMs": 1.7079,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 1.6735,
+          "optimizedMs": 1.6449,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "Kernel compute time (1.64 ms) dominates WebAssembly.Instance allocation cost (1.02×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 8.0484,
+          "optimizedMs": 4.7292,
+          "speedup": 1.7,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 8.048 ms to 4.729 ms (1.70×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "simulation-nbody-cloth",
+      "manifestPath": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+      "workloadId": "simulation.nbody-cloth.v1",
+      "kernel": "nbody_step",
+      "kernelLabel": "N-body gravitational step — 128 bodies × 30 timesteps",
+      "oracleDigest": "0xcc38c1bc",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.c",
+        "artifact": "public/artifacts/autoresearch/simulation-nbody-cloth_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/simulation-nbody-cloth_c_simd128.wasm",
+        "bytes": 4863,
+        "sha256": "34ae5cd587e8063912a5f880f49170d50e38dcf96c47e56361b5606941d17e11",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/simulation-nbody-cloth_c_simd128.wasm benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.c",
+        "v128InstructionCount": 63,
+        "topSimdOps": [
+          "v128.load×21",
+          "f64x2.mul×15",
+          "v128.store×15",
+          "f64x2.add×9"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0xcc38c1bc"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (63 v128 ops)",
+          "baselineMs": 0.8655,
+          "optimizedMs": 0.8668,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 63 v128 SIMD ops (v128.load×21, f64x2.mul×15, v128.store×15, f64x2.add×9). Measured 1.00× (0.867 ms vs 0.866 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.8749,
+          "optimizedMs": 0.8741,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.874 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.8729,
+          "optimizedMs": 0.8747,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.8885,
+          "optimizedMs": 0.8788,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Kernel compute time (0.88 ms) dominates WebAssembly.Instance allocation cost (1.01×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1.3808,
+          "optimizedMs": 1.1344,
+          "speedup": 1.22,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1.381 ms to 1.134 ms (1.22×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 63 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle 0xcc38c1bc."
+    },
+    {
+      "manifestSlug": "simulation-rigid-body-2d",
+      "manifestPath": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+      "workloadId": "simulation.rigid-body-2d.v1",
+      "kernel": "rigid_engine",
+      "kernelLabel": "500-body 2D physics — SAT collision, joints, torque (6 checkpoints)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.c",
+        "artifact": "public/artifacts/autoresearch/simulation-rigid-body-2d_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/simulation-rigid-body-2d_c_simd128.wasm",
+        "bytes": 8719,
+        "sha256": "afb4b2216516e2454920838568f49ead46333b3c09632e4b456eec61d8e1866a",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/simulation-rigid-body-2d_c_simd128.wasm benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.c",
+        "v128InstructionCount": 20,
+        "topSimdOps": [
+          "v128.store×7",
+          "f32x4.replace_lane×6",
+          "v128.const×4",
+          "v128.load×3"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (20 v128 ops)",
+          "baselineMs": 203.6502,
+          "optimizedMs": 190.1703,
+          "speedup": 1.07,
+          "status": "pass",
+          "finding": "LLVM emitted 20 v128 SIMD ops (v128.store×7, f32x4.replace_lane×6, v128.const×4, v128.load×3). Measured 1.07× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (4× Amortization)",
+          "baselineLabel": "4 Individual Call Dispatches",
+          "optLabel": "Batched 4× Loop",
+          "baselineMs": 204.8131,
+          "optimizedMs": 204.2794,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (204.279 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 203.0278,
+          "optimizedMs": 204.2673,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.99×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 204.4307,
+          "optimizedMs": 206.7033,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "Kernel compute time (206.70 ms) dominates WebAssembly.Instance allocation cost (0.99×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 424.7454,
+          "optimizedMs": 421.7759,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (424.745 ms vs 421.776 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 20 v128 SIMD instructions (1.07× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "sum-u32",
+      "manifestPath": "/benchmarks/multilang-wasm/sum-u32.manifest.json",
+      "workloadId": "multilang-wasm",
+      "kernel": "sum",
+      "kernelLabel": "Modulo-2³² integer sum — 1M values",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [
+        "wat-simd",
+        "js-opt"
+      ],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/sum_u32.c",
+        "artifact": "public/artifacts/autoresearch/sum-u32_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/sum-u32_c_simd128.wasm",
+        "bytes": 839,
+        "sha256": "afc82b8f49c0a39b631aaea269d8118c77cab14a0276c5899a37c8cdfe8ccd83",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=65536 -o public/artifacts/autoresearch/sum-u32_c_simd128.wasm benchmarks/multilang-wasm/sum_u32.c",
+        "v128InstructionCount": 8,
+        "topSimdOps": [
+          "i32x4.add×3",
+          "i8x16.shuffle×2",
+          "v128.const×1",
+          "v128.load×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (8 v128 ops)",
+          "baselineMs": 0.0013,
+          "optimizedMs": 0.0016,
+          "speedup": 0.81,
+          "status": "neutral",
+          "finding": "LLVM emitted 8 v128 SIMD ops (i32x4.add×3, i8x16.shuffle×2, v128.const×1, v128.load×1). Measured 0.81× (0.002 ms vs 0.001 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0018,
+          "optimizedMs": 0.0018,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.002 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0018,
+          "optimizedMs": 0.0017,
+          "speedup": 1.06,
+          "status": "pass",
+          "finding": "Straight-line 4× dispatch reduced loop-branch overhead (1.06×)."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0094,
+          "optimizedMs": 0.0012,
+          "speedup": 7.83,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.008 ms of per-task instance/page initialization (7.83× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.0026,
+          "optimizedMs": 0.0013,
+          "speedup": 2,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.003 ms to 0.001 ms (2.00×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 8 v128 SIMD instructions (0.81× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 7.83× faster than instantiating per task (0.001 ms vs 0.009 ms)."
+    },
+    {
+      "manifestSlug": "text-diff-patch",
+      "manifestPath": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+      "workloadId": "text.diff-patch.v1",
+      "kernel": "myers_diff",
+      "kernelLabel": "Myers O(ND) diff — 512-line base, 30 interleaved edits",
+      "oracleDigest": "0xc040d82f",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
+        "artifact": "public/artifacts/autoresearch/text-diff-patch_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/text-diff-patch_c_simd128.wasm",
+        "bytes": 4756,
+        "sha256": "04e1268447de526492c0034a32b5189afb851c21474dc9dd0b833d7fdf2810e5",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o public/artifacts/autoresearch/text-diff-patch_c_simd128.wasm benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
+        "v128InstructionCount": 66,
+        "topSimdOps": [
+          "i32x4.add×18",
+          "v128.store×17",
+          "v128.const×16",
+          "i32x4.splat×12"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0xc040d82f"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (66 v128 ops)",
+          "baselineMs": 0.0207,
+          "optimizedMs": 0.0115,
+          "speedup": 1.8,
+          "status": "pass",
+          "finding": "LLVM emitted 66 v128 SIMD ops (i32x4.add×18, v128.store×17, v128.const×16, i32x4.splat×12). Measured 1.80× speedup with verified oracle output."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0202,
+          "optimizedMs": 0.0202,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.020 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.02,
+          "optimizedMs": 0.0201,
+          "speedup": 0.99,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.99×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.032,
+          "optimizedMs": 0.022,
+          "speedup": 1.45,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.010 ms of per-task instance/page initialization (1.45× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 0.0681,
+          "optimizedMs": 0.0422,
+          "speedup": 1.61,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 0.068 ms to 0.042 ms (1.61×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 66 v128 SIMD instructions (1.80× vs Track A scalar) and matched oracle 0xc040d82f. Caching WebAssembly.Instance & linear memory across tasks is 1.45× faster than instantiating per task (0.022 ms vs 0.032 ms)."
+    },
+    {
+      "manifestSlug": "text-gc-document-edit",
+      "manifestPath": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
+      "workloadId": "text.gc-document-edit.v1",
+      "kernel": "gc_document_edit_trace",
+      "kernelLabel": "GC-rich document edit — 256 initial nodes + 10,000 frozen edits (fixture.v1.txt)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.c",
+        "artifact": "public/artifacts/autoresearch/text-gc-document-edit_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/text-gc-document-edit_c_simd128.wasm",
+        "bytes": 5725,
+        "sha256": "d066360de4daabc3e8958a7e3d4923172ea176cf09fcb124f2bff801bb69ec76",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=655360 -o public/artifacts/autoresearch/text-gc-document-edit_c_simd128.wasm benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.c",
+        "v128InstructionCount": 9,
+        "topSimdOps": [
+          "v128.store×6",
+          "v128.const×3"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (9 v128 ops)",
+          "baselineMs": 0.1632,
+          "optimizedMs": 0.1588,
+          "speedup": 1.03,
+          "status": "neutral",
+          "finding": "LLVM emitted 9 v128 SIMD ops (v128.store×6, v128.const×3). Measured 1.03× (0.159 ms vs 0.163 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.1541,
+          "optimizedMs": 0.154,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.154 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.1616,
+          "optimizedMs": 0.1616,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.1704,
+          "optimizedMs": 0.159,
+          "speedup": 1.07,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.011 ms of per-task instance/page initialization (1.07× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 7.498,
+          "optimizedMs": 5.8988,
+          "speedup": 1.27,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 7.498 ms to 5.899 ms (1.27×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 9 v128 SIMD instructions (1.03× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "text-markdown-cms",
+      "manifestPath": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
+      "workloadId": "text.markdown-cms.v1",
+      "kernel": "markdown_cms_render",
+      "kernelLabel": "500-document Markdown CMS pipeline — parse + transform + sanitize + render every document (text-markdown-cms-multilang/fixture.bin)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.c",
+        "artifact": "public/artifacts/autoresearch/text-markdown-cms_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/text-markdown-cms_c_simd128.wasm",
+        "bytes": 10576,
+        "sha256": "91c5a78b4faa8bc2959c9ed300df06c8582cbc8e3ab8ac60c20c2c8da54dbb32",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=33554432 -o public/artifacts/autoresearch/text-markdown-cms_c_simd128.wasm benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.c",
+        "v128InstructionCount": 0,
+        "topSimdOps": [],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (0 v128 ops)",
+          "baselineMs": 29.825,
+          "optimizedMs": 29.6472,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "LLVM emitted 0 v128 SIMD ops (loop-carried dependencies or scalar control flow prevented auto-vectorization). Measured 1.01× (29.647 ms vs 29.825 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (4× Amortization)",
+          "baselineLabel": "4 Individual Call Dispatches",
+          "optLabel": "Batched 4× Loop",
+          "baselineMs": 29.3984,
+          "optimizedMs": 29.3121,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (29.312 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 29.2817,
+          "optimizedMs": 30.2374,
+          "speedup": 0.97,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (0.97×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 28.967,
+          "optimizedMs": 28.9325,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Kernel compute time (28.93 ms) dominates WebAssembly.Instance allocation cost (1.00×)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 74.2018,
+          "optimizedMs": 77.0375,
+          "speedup": 0.96,
+          "status": "neutral",
+          "finding": "First call and steady-state median were within 5% (74.202 ms vs 77.037 ms)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 0 v128 SIMD instructions (1.01× vs Track A scalar) and matched oracle oracle-verified."
+    },
+    {
+      "manifestSlug": "text-regex-log-scan",
+      "manifestPath": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+      "workloadId": "text.regex-log-scan.v1",
+      "kernel": "scan_log",
+      "kernelLabel": "log-scan pattern matcher — 640 records, 64 events",
+      "oracleDigest": "0x398e37ee",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.c",
+        "artifact": "public/artifacts/autoresearch/text-regex-log-scan_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/text-regex-log-scan_c_simd128.wasm",
+        "bytes": 4089,
+        "sha256": "38937a5e5083bee8456eb18e1e6bf06903ac24a223127c6558f8e1ac8dcc5057",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=4390912 -o public/artifacts/autoresearch/text-regex-log-scan_c_simd128.wasm benchmarks/multilang-wasm/text-regex-log-scan/scan_log.c",
+        "v128InstructionCount": 9,
+        "topSimdOps": [
+          "i32x4.extract_lane×4",
+          "v128.const×3",
+          "i32x4.mul×1",
+          "i32x4.add×1"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "0x398e37ee"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (9 v128 ops)",
+          "baselineMs": 0.2675,
+          "optimizedMs": 0.2665,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "LLVM emitted 9 v128 SIMD ops (i32x4.extract_lane×4, v128.const×3, i32x4.mul×1, i32x4.add×1). Measured 1.00× (0.267 ms vs 0.268 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.2711,
+          "optimizedMs": 0.2671,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "Single kernel call (0.267 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.01×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.2736,
+          "optimizedMs": 0.2725,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.00×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.2888,
+          "optimizedMs": 0.2662,
+          "speedup": 1.08,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.023 ms of per-task instance/page initialization (1.08× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1.6711,
+          "optimizedMs": 0.5162,
+          "speedup": 3.24,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1.671 ms to 0.516 ms (3.24×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 9 v128 SIMD instructions (1.00× vs Track A scalar) and matched oracle 0x398e37ee."
+    },
+    {
+      "manifestSlug": "vdom-diff-patch",
+      "manifestPath": "/benchmarks/multilang-wasm/vdom-diff-patch.manifest.json",
+      "workloadId": "dom.vdom-diff-patch.v1",
+      "kernel": "vdom_diff_trace",
+      "kernelLabel": "Virtual-DOM diff and patch — 1,000 nodes / 250 frozen edits (SplitMix64 seed 3976273958)",
+      "oracleDigest": "oracle-verified",
+      "staticTrackBVariants": [],
+      "simdArtifact": {
+        "engineKey": "c",
+        "lang": "c",
+        "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.c",
+        "artifact": "public/artifacts/autoresearch/vdom-diff-patch_c_simd128.wasm",
+        "servedUrl": "/artifacts/autoresearch/vdom-diff-patch_c_simd128.wasm",
+        "bytes": 6760,
+        "sha256": "585f40ef508dbe6b4dfba2a17600850089ba1dd614b16aee65d9400c120de88f",
+        "command": "clang --target=wasm32 -O3 -msimd128 -funroll-loops -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=131072 -o public/artifacts/autoresearch/vdom-diff-patch_c_simd128.wasm benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.c",
+        "v128InstructionCount": 150,
+        "topSimdOps": [
+          "i32x4.extract_lane×67",
+          "v128.load×12",
+          "v128.store×10",
+          "i32x4.extend_low_i16x8_u×8"
+        ],
+        "oracleVerified": true,
+        "oracleDigest": "oracle-verified"
+      },
+      "probes": [
+        {
+          "id": "simd",
+          "name": "SIMD128 & Loop Auto-Vectorization",
+          "baselineLabel": "Track A C Scalar (-O3)",
+          "optLabel": "C -O3 -msimd128 -funroll-loops (150 v128 ops)",
+          "baselineMs": 0.0395,
+          "optimizedMs": 0.0388,
+          "speedup": 1.02,
+          "status": "neutral",
+          "finding": "LLVM emitted 150 v128 SIMD ops (i32x4.extract_lane×67, v128.load×12, v128.store×10, i32x4.extend_low_i16x8_u×8). Measured 1.02× (0.039 ms vs 0.040 ms); kernel is memory-latency or branch-dependency bound."
+        },
+        {
+          "id": "batching",
+          "name": "Call-Boundary Batching (16× Amortization)",
+          "baselineLabel": "16 Individual Call Dispatches",
+          "optLabel": "Batched 16× Loop",
+          "baselineMs": 0.0295,
+          "optimizedMs": 0.0296,
+          "speedup": 1,
+          "status": "neutral",
+          "finding": "Single kernel call (0.030 ms) already dwarfs JS↔Wasm trampoline overhead (~ns), so call batching is neutral (1.00×)."
+        },
+        {
+          "id": "unroll",
+          "name": "4× Dispatch Unrolling & ILP",
+          "baselineLabel": "Loop-Branched 4× Dispatch",
+          "optLabel": "Unrolled 4× Straight-Line Calls",
+          "baselineMs": 0.0299,
+          "optimizedMs": 0.0296,
+          "speedup": 1.01,
+          "status": "neutral",
+          "finding": "CPU branch predictor already predicts the outer dispatch loop (1.01×); inner-loop unrolling lives inside the -funroll-loops probe above."
+        },
+        {
+          "id": "memoryReuse",
+          "name": "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+          "baselineLabel": "Fresh WebAssembly.Instance + Call",
+          "optLabel": "Reused Instance & Pinned Linear Memory",
+          "baselineMs": 0.0385,
+          "optimizedMs": 0.0288,
+          "speedup": 1.34,
+          "status": "pass",
+          "finding": "Reusing the pre-instantiated WebAssembly.Instance and linear memory arena avoids 0.010 ms of per-task instance/page initialization (1.34× faster)."
+        },
+        {
+          "id": "jitTierUp",
+          "name": "JIT / Liftoff→TurboFan Warmup Tier-Up",
+          "baselineLabel": "1st Cold Invocation",
+          "optLabel": "Warm Post-Tier-Up Median",
+          "baselineMs": 1.5894,
+          "optimizedMs": 0.4694,
+          "speedup": 3.39,
+          "status": "pass",
+          "finding": "Warm tier-up reduced execution time from 1.589 ms to 0.469 ms (3.39×)."
+        }
+      ],
+      "verdict": "Isolated C -O3 -msimd128 -funroll-loops emitted 150 v128 SIMD instructions (1.02× vs Track A scalar) and matched oracle oracle-verified. Caching WebAssembly.Instance & linear memory across tasks is 1.34× faster than instantiating per task (0.029 ms vs 0.038 ms)."
+    }
+  ]
+}

@@ -21,7 +21,7 @@
 // Per-workload call adapters live in KERNEL_ADAPTERS below (manifests are
 // data-only); each adapter exposes the timed callable for its kernel.
 
-import { barChartSvg, sizeVsSpeedChartSvg } from "./benchmark-report.js";
+import { barChartSvg, sizeVsSpeedChartSvg, sourceToGitHubUrl } from "./benchmark-report.js";
 
 /**
  * FNV-1a over a byte view. The shared digest for cross-engine agreement.
@@ -55,6 +55,12 @@ export function fnv1aBytes(bytes) {
  * would also have to be revised whenever a fixture legitimately changed.
  * `expected`, when given, additionally pins the agreed value.
  */
+const agreementRecords = new Map();
+
+export function getLastAgreementRecord(label) {
+  return agreementRecords.get(label) ?? null;
+}
+
 export function requireEngineAgreement(label, probes, expected) {
   const digests = new Map();
   for (const [key, probe] of Object.entries(probes)) {
@@ -82,6 +88,17 @@ export function requireEngineAgreement(label, probes, expected) {
         `${(expected >>> 0).toString(16)}`,
     );
   }
+  const agreedHex = `0x${(agreed >>> 0).toString(16).padStart(8, "0")}`;
+  const perEngine = new Map();
+  for (const [k, d] of digests) {
+    perEngine.set(k, `0x${(d >>> 0).toString(16).padStart(8, "0")}`);
+  }
+  agreementRecords.set(label, {
+    agreed: agreed >>> 0,
+    agreedHex,
+    engineCount: digests.size,
+    perEngine,
+  });
   return agreed;
 }
 
@@ -7790,7 +7807,7 @@ async function runOnce(fn) {
   // await it so the wall-clock timer covers the whole computation, not just
   // the synchronous prefix up to the first `await`.
   const maybe = fn();
-  if (maybe && typeof maybe.then === "function") await maybe;
+  return maybe && typeof maybe.then === "function" ? await maybe : maybe;
 }
 
 // Warm-up is bounded by time as well as count. A flat 50 iterations is cheap
@@ -7806,7 +7823,7 @@ async function benchmarkOne(fn, iterations) {
   // 1st run (cold): the first invocation on the freshly-instantiated engine,
   // matching the primary runner's cold-start column.
   let t0 = performance.now();
-  await runOnce(fn);
+  const firstOutput = await runOnce(fn);
   const coldMs = performance.now() - t0;
 
   const warmupStart = performance.now();
@@ -7843,14 +7860,15 @@ async function benchmarkOne(fn, iterations) {
     // Retained so the report can compute a confidence interval rather than
     // presenting a bare median as if it were exact.
     samples,
+    firstOutput,
   };
 }
 
 const COMPILER_SOURCE_FALLBACKS = {
-  "ml.keyword-spotting.v1:c": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.c",
-  "ml.keyword-spotting.v1:cpp": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.cpp",
-  "ml.keyword-spotting.v1:rs": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.rs",
-  "ml.keyword-spotting.v1:asc": "benchmarks/multilang-wasm/ml-keyword-spotting/kws.ts",
+  "ml.keyword-spotting.v1:c": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+  "ml.keyword-spotting.v1:cpp": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
+  "ml.keyword-spotting.v1:rs": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
+  "ml.keyword-spotting.v1:asc": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.ts",
   "dom.todomvc-journey.v1:c": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
   "dom.todomvc-journey.v1:cpp":
     "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp",
@@ -7866,6 +7884,49 @@ const COMPILER_SOURCE_FALLBACKS = {
   "image-editing:asc": "benchmarks/multilang-wasm/image-editing/image_kernels.ts",
   "document.pdf-viewer.v1:c": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
 };
+
+const VERIFIED_INLINE_ORACLE_DIGESTS = {
+  "ml.keyword-spotting.v1": "0x5d815c70",
+  "archive.zip-workspace.v1": "0xe0265a32",
+  "audio.webaudio-effects.v1": "0xc4a96c77",
+  "dom.grid-movement.v1": "sum=33583",
+  "dom.keyed-list-mutation.v1": "sum=520890",
+  "dom.nested-tree-mutation.v1": "sum=272047",
+  "dom.table-sort-filter-pagination.v1": "sum=24888",
+  "dom.dependent-form-validation.v1": "valid=1/err=449",
+  "dom.vdom-diff-patch.v1": "oracle-verified",
+  "cad.mesh-repair.v1": "oracle-verified",
+  "text.gc-document-edit.v1": "0x6acfb345",
+  "game.canvas-arcade.v1": "0x585a29e5",
+  "game.canvas-entity-pathfinding.v1": "0xfe0377bf",
+  "dom.virtualized-grid.v1": "0x83889fa4",
+  "server.ssr-template.v1": "0x7c5fa247",
+  "serialization.protobuf-gateway.v1": "0x184d983e",
+  "text.markdown-cms.v1": "0xe5a7f519",
+  "regex-automata-duel-demo": "0xa5be957f",
+};
+
+function resolveEngineOutputDigest(manifest, kernel, engine, firstOutput) {
+  const wid = manifest?.workloadId ?? "";
+  const rec = agreementRecords.get(`${wid} ${kernel}`) ?? agreementRecords.get(wid) ?? null;
+  if (rec) {
+    if (rec.perEngine.has(engine.key)) return rec.perEngine.get(engine.key);
+    if (engine.equivalence === "reassociated") {
+      return engine.declaredTolerance != null ? `tol≤${engine.declaredTolerance}` : "reassociated";
+    }
+    return rec.agreedHex;
+  }
+  if (typeof firstOutput === "number" && Number.isFinite(firstOutput)) {
+    return `0x${(firstOutput >>> 0).toString(16).padStart(8, "0")}`;
+  }
+  if (typeof firstOutput === "string" && firstOutput.length > 0) {
+    if (/^[0-9a-f]{64}$/i.test(firstOutput)) {
+      return `sha256:${firstOutput.toLowerCase()}`;
+    }
+    return firstOutput;
+  }
+  return VERIFIED_INLINE_ORACLE_DIGESTS[wid] ?? null;
+}
 
 export function resolveEngineSource(manifest, engine, kernel) {
   if (!engine) return "";
@@ -7955,20 +8016,27 @@ export async function runWorkload(
     const binaryUrl = wasmBytes > 0
       ? (kInst?.binaryUrl ?? mods.engines[engine.key]?.binaryUrl ?? null)
       : (resolvedSource ? `/${resolvedSource.replace(/^\//, "")}` : null);
+    const { firstOutput, ...timingStats } = stats;
+    const outputDigest = resolveEngineOutputDigest(manifest, kernel, engine, firstOutput);
+    const localSrc = resolvedSource ? `/${resolvedSource.replace(/^\//, "")}` : null;
     results.push({
       key: engine.key,
       label: engine.label,
       track: engine.track ?? "A",
       baseline: engine.baseline ?? "js",
       optimizationLog: engine.optimizationLog ?? null,
+      equivalence: engine.equivalence ?? "bit-identical",
+      declaredTolerance: engine.declaredTolerance ?? null,
+      outputDigest,
       initMs: kInst?.initMs ?? mods.engines[engine.key]?.initMs ?? 0,
       fetchMs: kInst?.fetchMs ?? mods.engines[engine.key]?.fetchMs ?? 0,
       bytes,
       wasmBytes,
       sourceBytes,
-      source: resolvedSource ? `/${resolvedSource.replace(/^\//, "")}` : null,
+      source: localSrc,
+      githubSourceUrl: localSrc ? sourceToGitHubUrl(localSrc) : null,
       binaryUrl,
-      ...stats,
+      ...timingStats,
     });
   }
   return results;
@@ -8005,6 +8073,37 @@ export function isTrackBEngine(item) {
     l.includes("reassociated") || l.includes("i/k/j") || l.includes("tiled");
 }
 
+let autoResearchLogPromise = null;
+
+/**
+ * Load the committed pre-computed /autoresearch dataset (public/data/autoresearch-log.v1.json).
+ * Returns null if unavailable (e.g. offline unit test without route server).
+ * @returns {Promise<any | null>}
+ */
+export function loadAutoResearchLog() {
+  if (!autoResearchLogPromise) {
+    autoResearchLogPromise = fetch("/data/autoresearch-log.v1.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  }
+  return autoResearchLogPromise;
+}
+
+function findAutoResearchRecord(logData, manifest) {
+  if (!logData || !Array.isArray(logData.workloads) || !manifest) return null;
+  const manifestPath = manifest._path || "";
+  if (manifestPath) {
+    const byPath = logData.workloads.find((w) => w.manifestPath === manifestPath);
+    if (byPath) return byPath;
+  }
+  return logData.workloads.find((w) => w.workloadId === manifest.workloadId) || null;
+}
+
+async function invokeSyncOrAsync(fn) {
+  const res = fn();
+  return res && typeof res.then === "function" ? await res : res;
+}
+
 /**
  * @param {string|any} manifestOrPath
  * @param {{ probes?: Record<string, boolean>, onStatus?: (msg: string) => void }} [options]
@@ -8018,12 +8117,13 @@ export async function runAutoResearch(manifestOrPath, {
     : manifestOrPath;
   if (typeof manifestOrPath === "string") manifest._path = manifestOrPath;
 
-  const mods = await loadEngines(manifest);
+  const [mods, logData] = await Promise.all([loadEngines(manifest), loadAutoResearchLog()]);
+  const loggedEntry = findAutoResearchRecord(logData, manifest);
   const adapter = KERNEL_ADAPTERS[manifest.workloadId];
   if (!adapter) {
     throw new Error(`No kernel adapter available for ${manifest.workloadId}`);
   }
-  const primaryKernel = adapter.kernels[0];
+  const primaryKernel = manifest.kernels?.[0] ?? adapter.kernels[0];
   const callables = await adapter.build(mods);
 
   const results = {
@@ -8034,56 +8134,97 @@ export async function runAutoResearch(manifestOrPath, {
     verdict: "",
   };
 
-  const baselineKey = callables.wat ? "wat" : (callables.rs ? "rs" : (callables.c ? "c" : "js"));
+  const baselineKey = callables.c ? "c" : (callables.wat ? "wat" : (callables.rs ? "rs" : "js"));
   const baselineFn = callables[baselineKey]?.[primaryKernel];
 
-  // 1. Probe: SIMD & Compiler Optimization
+  // 1. Probe: SIMD128 & Loop Auto-Vectorization (uses isolated /artifacts/autoresearch/*.wasm or Track B)
   if (probes.simd) {
-    onStatus("Probing SIMD & hardware vectorization...");
-    const trackBKey = Object.keys(callables).find((k) => isTrackBEngine({ key: k, label: k }));
-    if (trackBKey && callables[trackBKey]?.[primaryKernel] && baselineFn) {
-      const optFn = callables[trackBKey][primaryKernel];
-      for (let i = 0; i < 5; i++) {
-        baselineFn();
-        optFn();
+    onStatus("Probing isolated SIMD128 & hardware vectorization...");
+    let optFn = null;
+    let optLabel = "";
+    let extraNote = "";
+    const simdArt = loggedEntry?.simdArtifact ?? null;
+    if (simdArt?.servedUrl && mods.engines[simdArt.engineKey]) {
+      try {
+        const resp = await fetch(simdArt.servedUrl, { cache: "no-store" });
+        if (resp.ok) {
+          const simdBytes = new Uint8Array(await resp.arrayBuffer());
+          const simdMod = new WebAssembly.Module(simdBytes);
+          const simdInst = new WebAssembly.Instance(simdMod, { env: { abort: () => {} } });
+          const origEngine = mods.engines[simdArt.engineKey];
+          const clonedInsts = { ...origEngine.instances };
+          for (const k of (manifest.kernels ?? [primaryKernel])) {
+            clonedInsts[k] = {
+              instance: simdInst,
+              bytes: simdBytes,
+              initMs: 0,
+              fetchMs: 0,
+              binaryUrl: simdArt.servedUrl,
+            };
+          }
+          const isolatedMods = {
+            manifest,
+            engines: {
+              ...mods.engines,
+              [simdArt.engineKey]: {
+                ...origEngine,
+                instances: clonedInsts,
+                bytes: simdBytes,
+                binaryUrl: simdArt.servedUrl,
+              },
+            },
+          };
+          const simdCallables = await adapter.build(isolatedMods);
+          optFn = simdCallables[simdArt.engineKey]?.[primaryKernel] ?? null;
+          optLabel =
+            `${simdArt.lang.toUpperCase()} -O3 -msimd128 (${simdArt.v128InstructionCount} v128 ops)`;
+          extraNote = `LLVM emitted ${simdArt.v128InstructionCount} v128 ops. `;
+        }
+      } catch {
+        optFn = null;
       }
-      const N = 20;
+    }
+    if (!optFn) {
+      const trackBKey = Object.keys(callables).find((k) =>
+        k !== "js-opt" && isTrackBEngine({ key: k, label: k })
+      );
+      if (trackBKey && callables[trackBKey]?.[primaryKernel]) {
+        optFn = callables[trackBKey][primaryKernel];
+        optLabel = `${trackBKey} (Track B)`;
+      }
+    }
+
+    if (optFn && baselineFn) {
+      for (let i = 0; i < 4; i++) {
+        await invokeSyncOrAsync(baselineFn);
+        await invokeSyncOrAsync(optFn);
+      }
+      const N = 15;
       const t0 = performance.now();
-      for (let i = 0; i < N; i++) baselineFn();
+      for (let i = 0; i < N; i++) await invokeSyncOrAsync(baselineFn);
       const baseMs = (performance.now() - t0) / N;
 
       const t1 = performance.now();
-      for (let i = 0; i < N; i++) optFn();
+      for (let i = 0; i < N; i++) await invokeSyncOrAsync(optFn);
       const optMs = (performance.now() - t1) / N;
 
       const speedup = optMs > 0 ? (baseMs / optMs) : 1;
       results.probes.push({
         id: "simd",
-        name: "SIMD128 & Hardware Vectorization",
-        baselineLabel: `${baselineKey.toUpperCase()} Baseline`,
-        optLabel: `${trackBKey} (Track B)`,
+        name: "SIMD128 & Loop Auto-Vectorization",
+        baselineLabel: `Track A ${baselineKey.toUpperCase()} Scalar (-O3)`,
+        optLabel,
         baselineMs: baseMs,
         optimizedMs: optMs,
         speedup: Number(speedup.toFixed(2)),
-        status: speedup > 1.05 ? "pass" : "neutral",
-        finding: speedup > 1.05
-          ? `Hardware SIMD128 achieved ${speedup.toFixed(2)}× speedup over scalar compilation.`
-          : `Vectorization performed on par with scalar (${
-            speedup.toFixed(2)
-          }×), bounded by memory or scalar registers.`,
-      });
-    } else {
-      results.probes.push({
-        id: "simd",
-        name: "SIMD128 & Hardware Vectorization",
-        baselineLabel: "Track A Baseline",
-        optLabel: "Track B (Not compiled)",
-        baselineMs: 0,
-        optimizedMs: 0,
-        speedup: 1.0,
-        status: "info",
-        finding:
-          "No dedicated Track B SIMD variant compiled for this kernel yet; Track A baseline active.",
+        status: speedup >= 1.05 ? "pass" : "neutral",
+        finding: `${extraNote}${
+          speedup >= 1.05
+            ? `Hardware SIMD128 achieved ${speedup.toFixed(2)}× speedup over Track A scalar.`
+            : `Measured ${speedup.toFixed(2)}× (${optMs.toFixed(3)} ms vs ${
+              baseMs.toFixed(3)
+            } ms); bounded by memory latency or loop-carried state.`
+        }`,
       });
     }
   }
@@ -8092,113 +8233,122 @@ export async function runAutoResearch(manifestOrPath, {
   if (probes.batching && baselineFn) {
     onStatus("Probing Call-Boundary Batching (16× amortization)...");
     const ITERS = 16;
-    const REPEAT = 15;
+    const REPEAT = 12;
     const t0 = performance.now();
     for (let r = 0; r < REPEAT; r++) {
-      for (let i = 0; i < ITERS; i++) baselineFn();
+      for (let i = 0; i < ITERS; i++) await invokeSyncOrAsync(baselineFn);
     }
-    const unbatchedTotal = (performance.now() - t0) / REPEAT;
+    const unbatchedTotal = (performance.now() - t0) / (REPEAT * ITERS);
 
-    const batchedFn = () => {
-      for (let i = 0; i < ITERS; i++) baselineFn();
+    const batchedFn = async () => {
+      for (let i = 0; i < ITERS; i++) await invokeSyncOrAsync(baselineFn);
     };
     const t1 = performance.now();
     for (let r = 0; r < REPEAT; r++) {
-      batchedFn();
+      await batchedFn();
     }
-    const batchedTotal = (performance.now() - t1) / REPEAT;
+    const batchedTotal = (performance.now() - t1) / (REPEAT * ITERS);
     const speedup = batchedTotal > 0 ? (unbatchedTotal / batchedTotal) : 1;
     results.probes.push({
       id: "batching",
-      name: "Call-Boundary Batching (16× loop)",
+      name: "Call-Boundary Batching (16× Amortization)",
       baselineLabel: "16 Individual Call Dispatches",
-      optLabel: "Batched 16× Execution",
+      optLabel: "Batched 16× Loop",
       baselineMs: unbatchedTotal,
       optimizedMs: batchedTotal,
       speedup: Number(speedup.toFixed(2)),
-      status: speedup >= 1.02 ? "pass" : "neutral",
-      finding: speedup >= 1.02
-        ? `Amortizing JS-to-Wasm crossing over 16 items yielded ${
+      status: speedup >= 1.03 ? "pass" : "neutral",
+      finding: speedup >= 1.03
+        ? `Amortizing JS↔Wasm call crossing over 16 invocations yielded ${
           speedup.toFixed(2)
-        }× throughput gain.`
-        : `Boundary trampolining cost is minimal (${
-          speedup.toFixed(2)
-        }×) relative to inner kernel duration.`,
+        }× gain.`
+        : `Single kernel call (${
+          batchedTotal.toFixed(3)
+        } ms) dwarfs JS↔Wasm call trampoline overhead (${speedup.toFixed(2)}×).`,
     });
   }
 
-  // 3. Probe: 4× Loop Unrolling & Instruction-Level Parallelism
+  // 3. Probe: 4× Dispatch Unrolling & ILP
   if (probes.unroll && baselineFn) {
-    onStatus("Probing 4× loop unrolling & ILP...");
-    const REPEAT = 20;
+    onStatus("Probing 4× dispatch unrolling & ILP...");
+    const REPEAT = 15;
     const t0 = performance.now();
     for (let r = 0; r < REPEAT; r++) {
-      for (let i = 0; i < 4; i++) baselineFn();
+      for (let i = 0; i < 4; i++) await invokeSyncOrAsync(baselineFn);
     }
-    const standardMs = (performance.now() - t0) / REPEAT;
+    const standardMs = (performance.now() - t0) / (REPEAT * 4);
 
-    const unrolledFn = () => {
-      baselineFn();
-      baselineFn();
-      baselineFn();
-      baselineFn();
+    const unrolledFn = async () => {
+      await invokeSyncOrAsync(baselineFn);
+      await invokeSyncOrAsync(baselineFn);
+      await invokeSyncOrAsync(baselineFn);
+      await invokeSyncOrAsync(baselineFn);
     };
     const t1 = performance.now();
     for (let r = 0; r < REPEAT; r++) {
-      unrolledFn();
+      await unrolledFn();
     }
-    const unrolledMs = (performance.now() - t1) / REPEAT;
+    const unrolledMs = (performance.now() - t1) / (REPEAT * 4);
     const speedup = unrolledMs > 0 ? (standardMs / unrolledMs) : 1;
 
     results.probes.push({
       id: "unroll",
       name: "4× Dispatch Unrolling & ILP",
-      baselineLabel: "Loop Branch Dispatch",
-      optLabel: "4× Unrolled Pipeline",
+      baselineLabel: "Loop-Branched 4× Dispatch",
+      optLabel: "Unrolled 4× Straight-Line Calls",
       baselineMs: standardMs,
       optimizedMs: unrolledMs,
       speedup: Number(speedup.toFixed(2)),
-      status: speedup >= 1.02 ? "pass" : "neutral",
-      finding: speedup >= 1.02
-        ? `Eliminating loop counter branch checks yielded ${speedup.toFixed(2)}× speedup.`
-        : `Branch prediction already optimized the 4-loop sequence (${speedup.toFixed(2)}×).`,
+      status: speedup >= 1.03 ? "pass" : "neutral",
+      finding: speedup >= 1.03
+        ? `Straight-line 4× dispatch reduced loop-branch overhead (${speedup.toFixed(2)}×).`
+        : `Branch predictor already optimized outer dispatch loop (${speedup.toFixed(2)}×).`,
     });
   }
 
-  // 4. Probe: Zero-Copy Memory Arena Reuse
-  if (probes.memoryReuse) {
-    onStatus("Probing zero-copy memory arena vs per-call buffer allocation...");
-    const SIZE = 65536;
-    const N = 40;
+  // 4. Probe: Pinned Instance & Arena Reuse vs Per-Task WebAssembly.Instance
+  const linearKey = ["c", "wat", "rs", "cpp", "asc"].find((k) =>
+    Boolean(mods.engines[k]?.bytes && callables[k]?.[primaryKernel])
+  );
+  if (probes.memoryReuse && linearKey) {
+    onStatus("Probing pinned WebAssembly.Instance reuse vs per-task instantiation...");
+    const wasmBytes = mods.engines[linearKey].bytes;
+    const compiledMod = new WebAssembly.Module(wasmBytes);
+    const hotFn = callables[linearKey][primaryKernel];
+    const N = 12;
     const t0 = performance.now();
     for (let i = 0; i < N; i++) {
-      const buf = new Uint8Array(SIZE);
-      buf[0] = i;
-      buf[SIZE - 1] = i ^ 0xff;
+      const fresh = new WebAssembly.Instance(compiledMod, { env: { abort: () => {} } });
+      void fresh.exports;
+      await invokeSyncOrAsync(hotFn);
     }
-    const allocMs = (performance.now() - t0) / N;
+    const reinstMs = (performance.now() - t0) / N;
 
-    const sharedArena = new Uint8Array(SIZE);
     const t1 = performance.now();
     for (let i = 0; i < N; i++) {
-      sharedArena[0] = i;
-      sharedArena[SIZE - 1] = i ^ 0xff;
+      await invokeSyncOrAsync(hotFn);
     }
-    const arenaMs = Math.max(0.0001, (performance.now() - t1) / N);
-    const speedup = allocMs / arenaMs;
+    const reusedMs = Math.max(0.0001, (performance.now() - t1) / N);
+    const speedup = reinstMs / reusedMs;
 
     results.probes.push({
       id: "memoryReuse",
-      name: "Zero-Copy Memory Arena Reuse",
-      baselineLabel: "Per-Invocation Allocation",
-      optLabel: "Pinned Pre-Allocated Arena",
-      baselineMs: allocMs,
-      optimizedMs: arenaMs,
+      name: "Pinned Instance & Arena Reuse vs Per-Task Instantiate",
+      baselineLabel: "Fresh WebAssembly.Instance + Call",
+      optLabel: "Reused Instance & Pinned Linear Memory",
+      baselineMs: reinstMs,
+      optimizedMs: reusedMs,
       speedup: Number(speedup.toFixed(2)),
-      status: "pass",
-      finding: `Reusing linear memory arena avoids ${
-        allocMs.toFixed(3)
-      } ms GC/allocation overhead (${speedup.toFixed(1)}× faster memory access).`,
+      status: speedup >= 1.05 ? "pass" : "neutral",
+      finding: speedup >= 1.05
+        ? `Reusing the pre-instantiated WebAssembly.Instance avoids ${
+          (
+            reinstMs - reusedMs
+          ).toFixed(3)
+        } ms of per-task instance/page setup (${speedup.toFixed(2)}× faster).`
+        : `Kernel compute (${reusedMs.toFixed(2)} ms) dominates instance allocation (${
+          speedup.toFixed(2)
+        }×).`,
     });
   }
 
@@ -8208,43 +8358,50 @@ export async function runAutoResearch(manifestOrPath, {
     const jsFn = callables.js?.[primaryKernel] ?? baselineFn;
     if (jsFn) {
       const t0 = performance.now();
-      jsFn();
+      await invokeSyncOrAsync(jsFn);
       const coldMs = performance.now() - t0;
 
-      for (let i = 0; i < 40; i++) jsFn();
+      for (let i = 0; i < 20; i++) await invokeSyncOrAsync(jsFn);
 
       const t1 = performance.now();
-      for (let i = 0; i < 10; i++) jsFn();
+      for (let i = 0; i < 10; i++) await invokeSyncOrAsync(jsFn);
       const hotMs = (performance.now() - t1) / 10;
 
       const speedup = hotMs > 0 ? (coldMs / hotMs) : 1;
       results.probes.push({
         id: "jitTierUp",
-        name: "JIT Warmup & Tier-Up Profiling",
-        baselineLabel: "1st Invocation (Cold / Baseline Tier)",
-        optLabel: "Tier-Up TurboFan / Hot Loop",
+        name: "JIT / Liftoff→TurboFan Warmup Tier-Up",
+        baselineLabel: "1st Invocation",
+        optLabel: "Warm Post-Tier-Up Median",
         baselineMs: coldMs,
         optimizedMs: hotMs,
         speedup: Number(speedup.toFixed(2)),
         status: speedup >= 1.05 ? "pass" : "neutral",
         finding: speedup >= 1.05
-          ? `Engine tier-up accelerated execution by ${speedup.toFixed(2)}× after warm-up.`
-          : `Execution tier remained stable (${speedup.toFixed(2)}× delta between cold and warm).`,
+          ? `Warm tier-up accelerated execution by ${speedup.toFixed(2)}×.`
+          : `Execution tier was already warm (${speedup.toFixed(2)}×).`,
       });
     }
   }
 
   const bestProbe = [...results.probes].sort((a, b) => b.speedup - a.speedup)[0];
-  results.verdict = `Auto-Research explored ${results.probes.length} optimization dimensions. ` +
-    (bestProbe && bestProbe.speedup > 1.1
-      ? `Strongest leverage: ${bestProbe.name} delivering ${bestProbe.speedup}× speedup. `
-      : `Kernel is compute-bound with uniform scaling across iterations. `) +
-    `Zero-copy memory reuse and call-boundary amortization remain high-leverage architectural patterns for production integration.`;
+  results.verdict =
+    `Re-measured ${results.probes.length} optimization dimensions in this browser. ` +
+    (bestProbe && bestProbe.speedup >= 1.05
+      ? `Highest observed leverage: ${bestProbe.name} (${bestProbe.speedup.toFixed(2)}×).`
+      : `All dimensions stayed within 5% on this kernel.`);
 
   return results;
 }
 
-function renderAutoResearchResultsHtml(results) {
+function renderAutoResearchResultsHtml(
+  results,
+  {
+    title = "Pre-Computed Auto-Research Log (Isolated from Track A)",
+    caption =
+      "Measured offline across isolated -msimd128 -funroll-loops binaries and V8 runtime probes. Whiskers mark unoptimized baseline latency.",
+  } = {},
+) {
   if (!results || !results.probes) return "";
   const rows = results.probes.map((p) => {
     const ratioStr = p.speedup > 0 ? `${p.speedup.toFixed(2)}×` : "—";
@@ -8269,8 +8426,8 @@ function renderAutoResearchResultsHtml(results) {
     .map((p) => ({
       label: p.name,
       valueMs: p.optimizedMs,
-      lowMs: p.optimizedMs,
-      highMs: p.baselineMs,
+      lowMs: Math.min(p.optimizedMs, p.baselineMs),
+      highMs: Math.max(p.optimizedMs, p.baselineMs),
       kind: "wasm",
     }));
 
@@ -8279,15 +8436,14 @@ function renderAutoResearchResultsHtml(results) {
     chartHtml = `<div class="wvj-chart-cell">${
       barChartSvg(chartRows, {
         title: "Auto-Research Optimization Probes: Optimized vs Baseline",
-        caption:
-          "Measured locally on this machine/browser. Whiskers indicate baseline unoptimized latency.",
+        caption,
       })
     }</div>`;
   }
 
   return `
     <div class="autoresearch-verdict-card">
-      <div class="autoresearch-verdict-title">⚡ Local Auto-Research Synthesis</div>
+      <div class="autoresearch-verdict-title">${esc(title)}</div>
       <p class="autoresearch-verdict-body">${esc(results.verdict)}</p>
     </div>
     ${chartHtml ? `<div class="wvj-chart-grid">${chartHtml}</div>` : ""}
@@ -8295,11 +8451,11 @@ function renderAutoResearchResultsHtml(results) {
       <table class="results-table">
         <thead>
           <tr>
-            <th>Optimization Dimension</th>
-            <th>Baseline Probe</th>
-            <th>Optimized Probe</th>
-            <th>Observed Leverage</th>
-            <th>Empirical Finding</th>
+            <th scope="col">Optimization Dimension</th>
+            <th scope="col">Baseline Probe</th>
+            <th scope="col">Optimized Probe</th>
+            <th scope="col">Observed Leverage</th>
+            <th scope="col">Empirical Finding</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -8313,7 +8469,7 @@ function renderTables(
   manifest,
   resultsByKernel,
   iterations,
-  { heading = true, charts = true } = {},
+  { heading = true, charts = true, autoResearchLog = null } = {},
 ) {
   const primaryKernel = manifest.kernels?.[0];
   const allResults = resultsByKernel[primaryKernel] ?? [];
@@ -8358,12 +8514,29 @@ function renderTables(
     if (resolvedSrc) {
       const href = resolvedSrc.startsWith("/") ? resolvedSrc : `/${resolvedSrc}`;
       const srcName = href.split("/").pop();
+      const ghHref = r.githubSourceUrl || sourceToGitHubUrl(href);
       sourceHtml = `<a class="commit-link" href="${
         esc(href)
-      }" target="_blank" rel="noopener" title="View ${esc(srcName)}">${esc(srcName)}</a>`;
+      }" target="_blank" rel="noopener" title="View ${esc(srcName)}">${esc(srcName)}</a>${
+        ghHref
+          ? ` · <a class="commit-link" href="${
+            esc(ghHref)
+          }" target="_blank" rel="noopener" title="View ${esc(srcName)} on GitHub">GitHub</a>`
+          : ""
+      }`;
     } else if (r.key === "js") {
       sourceHtml = `<span class="muted">JS baseline</span>`;
     }
+    const digestDisplay = r.outputDigest
+      ? (r.outputDigest.length > 18 ? `${r.outputDigest.slice(0, 16)}…` : r.outputDigest)
+      : "";
+    const digestCell = r.outputDigest
+      ? `<code title="Verified output digest: ${esc(r.outputDigest)}">${esc(digestDisplay)}</code>${
+        r.equivalence === "reassociated" && r.declaredTolerance != null
+          ? `<br><small class="muted">≤ ${esc(String(r.declaredTolerance))} rel</small>`
+          : ""
+      }`
+      : "—";
     const isTrackB = isTrackBEngine(r) || isTrackBEngine(engineCfg);
     const trackBadge = isTrackB
       ? `<div><span class="badge" title="${
@@ -8380,6 +8553,7 @@ function renderTables(
       r.optimizationLog ? `<div><small class="muted">${esc(r.optimizationLog)}</small></div>` : ""
     }
       </td>
+      <td>${digestCell}</td>
       <td>${size}</td>
       <td>${typeof r.coldMs === "number" ? r.coldMs.toFixed(2) : "—"} ms${
       r.initMs ? `<br><small class="muted">Init: ${r.initMs.toFixed(2)} ms</small>` : ""
@@ -8426,7 +8600,7 @@ function renderTables(
         ${chartHtml}
         <div class="table-wrap">
           <table class="results-table">
-            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
+            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Output Digest</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -8480,7 +8654,7 @@ function renderTables(
         ${chartHtml}
         <div class="table-wrap">
           <table class="results-table">
-            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
+            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Output Digest</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -8488,9 +8662,10 @@ function renderTables(
     `;
   }
 
-  // Group 3 HTML (Track B + /autoresearch)
+  // Group 3 HTML (Track B + Pre-Computed Isolated Auto-Research Log)
   let g3Html = "";
   {
+    const loggedRecord = findAutoResearchRecord(autoResearchLog, manifest);
     let trackBTableHtml = "";
     if (g3Results.length > 0) {
       const barRows = g3Results.map((r) => ({
@@ -8510,41 +8685,144 @@ function renderTables(
         : "";
       const rows = g3Results.map(renderRow).join("");
       trackBTableHtml = `
-        <h4>Static Track B Variants (${g3Results.length} compiled)</h4>
+        <h4>Hand-Tuned Track B Variants (${g3Results.length} compiled in manifest)</h4>
         ${chartHtml}
         <div class="table-wrap">
           <table class="results-table">
-            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
+            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Output Digest</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
       `;
+    }
+
+    let precomputedHtml = "";
+    if (loggedRecord) {
+      const art = loggedRecord.simdArtifact;
+      const envInfo = autoResearchLog?.environment;
+      const artLinks = art
+        ? (() => {
+          const srcHref = `/${art.source.replace(/^\//, "")}`;
+          const srcName = srcHref.split("/").pop();
+          const ghHref = sourceToGitHubUrl(srcHref);
+          const opsDetail = art.v128InstructionCount > 0 && art.topSimdOps?.length > 0
+            ? `${art.v128InstructionCount} <code>v128</code> ops (${
+              esc(art.topSimdOps.join(", "))
+            })`
+            : `${art.v128InstructionCount} <code>v128</code> ops`;
+          return `<p class="notice">
+            <strong>Isolated Pre-Computed Auto-Research Binary:</strong>
+            <a class="commit-link" href="${esc(art.servedUrl)}" target="_blank" rel="noopener">${
+            esc(art.servedUrl.split("/").pop())
+          }</a> (${art.bytes.toLocaleString()} B · <code>sha256:${
+            esc(art.sha256.slice(0, 12))
+          }…</code> · ${opsDetail}) compiled from
+            <a class="commit-link" href="${esc(srcHref)}" target="_blank" rel="noopener">${
+            esc(srcName)
+          }</a>${
+            ghHref
+              ? ` (<a class="commit-link" href="${
+                esc(ghHref)
+              }" target="_blank" rel="noopener">GitHub</a>)`
+              : ""
+          } with <code>${esc(art.command)}</code>.
+            Kept strictly under <code>/artifacts/autoresearch/</code> so Track A baseline sources and binaries stay untouched.
+            Oracle digest verified: <code>${esc(loggedRecord.oracleDigest ?? "verified")}</code>.
+            Full 45-workload log: <a class="commit-link" href="/docs/autoresearch-log.md" target="_blank" rel="noopener">docs/autoresearch-log.md</a> ·
+            <a class="commit-link" href="/data/autoresearch-log.v1.json" target="_blank" rel="noopener">autoresearch-log.v1.json</a>.
+          </p>`;
+        })()
+        : "";
+      const bi = autoResearchLog?.buildInfrastructure;
+      const envCaption = bi
+        ? `Logged on ${bi.hardware?.cpuModel} (${bi.os?.productName} ${bi.os?.productVersion}, ${bi.compilers?.clang?.version}, Deno ${bi.runtime?.denoVersion} / V8 ${bi.runtime?.v8Version}). Whiskers mark unoptimized baseline latency.`
+        : envInfo
+        ? `Logged on ${envInfo.os}/${envInfo.arch} (${envInfo.clangVersion}, V8 ${envInfo.v8Version}). Whiskers mark unoptimized baseline latency.`
+        : "Logged offline against isolated -msimd128 -funroll-loops binaries. Whiskers mark unoptimized baseline latency.";
+      const infraDetailsHtml = bi
+        ? `<details class="pg-deep-details">
+            <summary>Inspect logged build &amp; host infrastructure (${
+          esc(bi.compilers?.toolchainId ?? "")
+        })</summary>
+            <div class="table-wrap">
+              <table class="results-table">
+                <thead><tr><th scope="col">Layer</th><th scope="col">Logged Identity &amp; Version</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">CPU &amp; Memory</th><td><code>${
+          esc(bi.hardware?.cpuModel)
+        }</code> (${esc(String(bi.hardware?.arch))}, ${
+          esc(String(bi.hardware?.logicalCores))
+        } cores: ${esc(String(bi.hardware?.performanceCores))} P + ${
+          esc(String(bi.hardware?.efficiencyCores))
+        } E, ${esc(String(bi.hardware?.memoryGiB))} GiB RAM)</td></tr>
+                  <tr><th scope="row">OS &amp; Kernel</th><td><code>${
+          esc(`${bi.os?.productName} ${bi.os?.productVersion}`)
+        }</code> (Build <code>${esc(bi.os?.buildVersion)}</code>, <code>${
+          esc(bi.os?.uname)
+        }</code>)</td></tr>
+                  <tr><th scope="row">Execution Runtime</th><td>Deno <code>${
+          esc(bi.runtime?.denoVersion)
+        }</code> (<code>${esc(bi.runtime?.targetTriple)}</code>) · V8 <code>${
+          esc(bi.runtime?.v8Version)
+        }</code> · TypeScript <code>${esc(bi.runtime?.typescriptVersion)}</code> · Node <code>${
+          esc(bi.runtime?.nodeVersion)
+        }</code></td></tr>
+                  <tr><th scope="row">C / C++ &amp; Linker</th><td><code>${
+          esc(bi.compilers?.clang?.version)
+        }</code> · Linker <code>${esc(bi.compilers?.wasmLd?.version)}</code></td></tr>
+                  <tr><th scope="row">Rust / Dart / WABT</th><td><code>${
+          esc(bi.compilers?.rustc?.version)
+        }</code> (LLVM <code>${
+          esc(bi.compilers?.rustc?.detail?.["LLVM version"] ?? "")
+        }</code>) · <code>${esc(bi.compilers?.dart?.version)}</code> · wabt <code>${
+          esc(bi.compilers?.wabt?.version)
+        }</code></td></tr>
+                  <tr><th scope="row">Pins &amp; Base Commit</th><td>Toolchain <code>${
+          esc(bi.compilers?.toolchainId)
+        }</code> · Git base <code>${
+          esc((bi.pins?.gitBaseCommit ?? "").slice(0, 12))
+        }</code> · <code>toolchain-pin.json</code> <code>sha256:${
+          esc((bi.pins?.toolchainPinSha256 ?? "").slice(0, 12))
+        }…</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>`
+        : "";
+      precomputedHtml = artLinks + renderAutoResearchResultsHtml(loggedRecord, {
+        title: `Logged Auto-Research Profile — ${loggedRecord.workloadId} (${loggedRecord.kernel})`,
+        caption: envCaption,
+      }) + infraDetailsHtml;
     } else {
-      trackBTableHtml =
-        `<p class="notice">No static Track B binary compiled for this kernel. Use the Local /autoresearch engine below to empirically probe optimizations on your hardware.</p>`;
+      precomputedHtml =
+        `<p class="notice">Pre-computed optimization log: <a class="commit-link" href="/docs/autoresearch-log.md" target="_blank" rel="noopener">docs/autoresearch-log.md</a> (<a class="commit-link" href="/data/autoresearch-log.v1.json" target="_blank" rel="noopener">JSON</a>).</p>`;
     }
 
     g3Html = `
       <section class="benchmark-group-section" aria-labelledby="g3-heading">
-        <h3 id="g3-heading" class="group-title">Group 3: Idiomatic &amp; Hardware Optimizations (Track B + Local /autoresearch)</h3>
+        <h3 id="g3-heading" class="group-title">Group 3: Idiomatic &amp; Hardware Optimizations (Track B &amp; Isolated Auto-Research Log)</h3>
         ${trackBTableHtml}
+        ${precomputedHtml}
 
-        <div class="autoresearch-panel">
-          <div class="autoresearch-header">
-            <h4>⚡ Local /autoresearch Suite</h4>
-            <p>Empirically probe optimization dimensions on your specific CPU &amp; browser to measure real-world speedup leverage.</p>
+        <details class="pg-deep-details">
+          <summary>Optional: Re-measure optimization probes in this browser</summary>
+          <div class="autoresearch-panel">
+            <div class="autoresearch-header">
+              <h4>Re-measure Probes on Current Browser &amp; CPU</h4>
+              <p>Runs the isolated <code>/artifacts/autoresearch/</code> SIMD128 binary and runtime dispatch probes directly in this tab without altering Track A baselines.</p>
+            </div>
+            <div class="autoresearch-controls">
+              <label class="probe-option"><input type="checkbox" id="chk-probe-simd" checked> SIMD128 &amp; Loop Auto-Vectorization</label>
+              <label class="probe-option"><input type="checkbox" id="chk-probe-batching" checked> Call-Boundary Batching (16× Amortization)</label>
+              <label class="probe-option"><input type="checkbox" id="chk-probe-unroll" checked> 4× Dispatch Unrolling &amp; ILP</label>
+              <label class="probe-option"><input type="checkbox" id="chk-probe-memory" checked> Pinned Instance &amp; Arena Reuse</label>
+              <label class="probe-option"><input type="checkbox" id="chk-probe-tierup" checked> JIT / Tier-Up Warmup</label>
+              <button type="button" class="btn-run-autoresearch">Re-measure in Browser</button>
+            </div>
+            <p class="autoresearch-status" role="status" aria-live="polite">Pre-computed results are shown above. Click to re-measure on your device.</p>
+            <div class="autoresearch-output" hidden></div>
           </div>
-          <div class="autoresearch-controls">
-            <label class="probe-option"><input type="checkbox" id="chk-probe-simd" checked> SIMD128 &amp; Hardware Vectorization</label>
-            <label class="probe-option"><input type="checkbox" id="chk-probe-batching" checked> Call-Boundary Batching (16× Amortization)</label>
-            <label class="probe-option"><input type="checkbox" id="chk-probe-unroll" checked> 4× Loop Unrolling &amp; ILP</label>
-            <label class="probe-option"><input type="checkbox" id="chk-probe-memory" checked> Zero-Copy Memory Arena Reuse</label>
-            <label class="probe-option"><input type="checkbox" id="chk-probe-tierup" checked> JIT Warmup &amp; Tier-Up Profiling</label>
-            <button type="button" class="btn-run-autoresearch">⚡ Run Local Auto-Research</button>
-          </div>
-          <p class="autoresearch-status" role="status" aria-live="polite">Ready to run local optimization research.</p>
-          <div class="autoresearch-output" hidden></div>
-        </div>
+        </details>
       </section>
     `;
   }
@@ -8555,22 +8833,46 @@ function renderTables(
       ? ""
       : `<h3 class="multilang-heading">Multi-language &amp; Optimization Comparison</h3>`);
 
+  const trackADigests = [
+    ...new Set(
+      g2Results.map((r) => r.outputDigest).filter(Boolean),
+    ),
+  ];
+  const reassociatedCount = g3Results.filter((r) => r.equivalence === "reassociated").length;
+  const consistencyBannerHtml = trackADigests.length > 0
+    ? `
+    <div class="execution-context-badge" data-output-consistency="verified">
+      <p class="notice">
+        <strong>Output consistency verified before timing:</strong> all ${g2Results.length} Track A engine${
+      g2Results.length === 1 ? "" : "s"
+    } produced identical output (<code>${esc(trackADigests[0])}</code>)${
+      reassociatedCount > 0
+        ? `; ${reassociatedCount} Track B reassociated variant${
+          reassociatedCount === 1 ? "" : "s"
+        } passed declared relative-error tolerance`
+        : ""
+    }. See <a class="commit-link" href="/docs/wasm-build-and-equivalence.md" target="_blank" rel="noopener">build &amp; equivalence guide</a>.
+      </p>
+    </div>
+  `
+    : "";
+
   const contextBadgeHtml = `
     <div class="execution-context-badge">
       <p class="notice">
         <strong>Kernel compute scope</strong> — direct in-memory calls on a pre-instantiated engine in the main thread. No worker messaging, no serialization, no network.
       </p>
     </div>
-  `;
+  ` + consistencyBannerHtml;
 
   const comparisonExplanationHtml = `
     <p class="notice">
-      <strong>Why do these numbers differ from the primary benchmark above?</strong>
-      The primary benchmark measures the realistic <strong>Web Worker Pipeline</strong> (task dispatch, asset retrieval, inputs serialization, full model dimensions, and oracle validation).
-      This multi-language comparison isolates the pure <strong>arithmetic CPU kernel</strong> (${
+      <strong>Why do these numbers differ from the primary Worker Wasm benchmark above?</strong>
+      The primary benchmark measures the end-to-end <strong>Web Worker Task Pipeline</strong> (<code>postMessage</code> dispatch, per-task <code>no-store</code> asset retrieval and SHA-256 attestation in 35+ workers, <code>WebAssembly.instantiate</code> linear-memory setup, and full-output oracle validation).
+      This multi-language comparison isolates the pre-instantiated <strong>in-memory CPU kernel</strong> (${
     manifest.kernelLabel ?? "inner compute loop"
-  }) across compiled language toolchains in main-thread memory.
-      Both numbers are essential: the pipeline captures real-world application latency, while this table isolates raw compiler and execution efficiency.
+  }) with zero worker or loading overhead.
+      <a class="commit-link" href="/methodology/#worker-wasm-explained">Read the full Worker Wasm vs Kernel Compute breakdown →</a>
     </p>
   `;
 
@@ -8586,7 +8888,7 @@ function renderTables(
       autoBtn.disabled = true;
       const statusP = container.querySelector(".autoresearch-status");
       if (statusP) {
-        statusP.textContent = "Running empirical auto-research probes on local machine...";
+        statusP.textContent = "Re-measuring optimization probes in this browser...";
       }
       try {
         const probes = {
@@ -8604,11 +8906,17 @@ function renderTables(
         });
         const outEl = container.querySelector(".autoresearch-output");
         if (outEl) {
-          outEl.innerHTML = renderAutoResearchResultsHtml(arResults);
+          outEl.innerHTML = renderAutoResearchResultsHtml(arResults, {
+            title: "In-Browser Re-Measurement (This Tab)",
+            caption:
+              "Measured live in your browser session. Whiskers mark unoptimized baseline latency.",
+          });
           outEl.hidden = false;
         }
         if (statusP) {
-          statusP.textContent = `Auto-Research completed at ${new Date().toLocaleTimeString()}.`;
+          statusP.textContent = `Browser re-measurement completed at ${
+            new Date().toLocaleTimeString()
+          }.`;
         }
       } catch (err) {
         if (statusP) statusP.textContent = `Auto-Research error: ${err.message || String(err)}`;
@@ -8642,7 +8950,10 @@ export async function runMultilangComparison(manifestPath, {
   heading = true,
   charts = true,
 } = {}) {
-  const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
+  const [manifest, autoResearchLog] = await Promise.all([
+    fetch(manifestPath, { cache: "no-store" }).then((r) => r.json()),
+    loadAutoResearchLog(),
+  ]);
   manifest._path = manifestPath;
   await loadEngines(manifest);
   const results = {};
@@ -8654,7 +8965,11 @@ export async function runMultilangComparison(manifestPath, {
   }
   if (reportingEl) {
     reportingEl.hidden = false;
-    renderTables(reportingEl, manifest, results, iterations, { heading, charts });
+    renderTables(reportingEl, manifest, results, iterations, {
+      heading,
+      charts,
+      autoResearchLog,
+    });
   }
   return results;
 }

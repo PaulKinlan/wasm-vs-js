@@ -76,25 +76,86 @@
         "dart.path": "/Users/paulkinlan/.local/toolchains/dart-sdk/bin/dart",
         "wasm-ld.path": "/opt/homebrew/bin/wasm-ld"
       }
+    },
+    "tc-4d072f3781dd": {
+      "id": "tc-4d072f3781dd",
+      "os": "darwin",
+      "arch": "aarch64",
+      "tools": {
+        "clang": {
+          "version": "Homebrew clang version 22.1.8",
+          "detail": {
+            "Target": "arm64-apple-darwin24.6.0",
+            "Thread model": "posix"
+          }
+        },
+        "clang++": {
+          "version": "Homebrew clang version 22.1.8",
+          "detail": {
+            "Target": "arm64-apple-darwin24.6.0",
+            "Thread model": "posix"
+          }
+        },
+        "wasm-ld": {
+          "version": "Homebrew LLD 22.1.8"
+        },
+        "rustc": {
+          "version": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+          "detail": {
+            "commit-hash": "8bab26f4f68e0e26f0bb7960be334d5b520ea452",
+            "host": "aarch64-apple-darwin",
+            "LLVM version": "22.1.6"
+          }
+        },
+        "dart": {
+          "version": "Dart SDK version: 3.12.2 (stable) (Tue Jun 9 01:11:39 2026 -0700) on \"macos_arm64\""
+        },
+        "node": {
+          "version": "v25.3.0"
+        },
+        "asc": {
+          "version": "unavailable",
+          "unavailableReason": "not probed: asc is resolved per build through npx"
+        }
+      },
+      "host": {
+        "clang.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+        "clang.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+        "clang++.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+        "clang++.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+        "denoVersion": "2.9.0",
+        "osRelease": "24.6.0",
+        "clang.path": "/opt/homebrew/opt/llvm@22/bin/clang",
+        "rustc.path": "/Users/paulkinlan/.cargo/bin/rustc",
+        "dart.path": "/Users/paulkinlan/.local/toolchains/dart-sdk/bin/dart",
+        "wasm-ld.path": "/opt/homebrew/bin/wasm-ld"
+      }
     }
   },
-  "kernelCount": 196,
-  "reproducesCommittedBytes": 92,
-  "doesNotReproduceCommittedBytes": 104,
+  "kernelCount": 210,
+  "reproducesCommittedBytes": 94,
+  "doesNotReproduceCommittedBytes": 116,
   "reproductionsByToolchain": {
     "tc-unrecorded": {
       "identical": 26,
       "differs": 128,
       "notCommitted": 0,
       "buildFailed": 0,
-      "notObserved": 42
+      "notObserved": 56
     },
     "tc-9890abef9b5a": {
       "identical": 86,
       "differs": 110,
       "notCommitted": 0,
       "buildFailed": 0,
-      "notObserved": 0
+      "notObserved": 14
+    },
+    "tc-4d072f3781dd": {
+      "identical": 3,
+      "differs": 14,
+      "notCommitted": 0,
+      "buildFailed": 0,
+      "notObserved": 193
     }
   },
   "kernels": [
@@ -2143,6 +2204,116 @@
       ]
     },
     {
+      "workload": "image-editing",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.ts",
+      "sourceSha256": "7dd6a55e672d47256b59577717b59c9233b67d85f1d3322f05722bbf0dc143c6",
+      "artifact": "image_kernels_asc.wasm",
+      "artifactSha256": "219c5a527d9452b07bc561ad3100336a9dec0097574ed69fafc671059d844e80",
+      "artifactBytes": 1661,
+      "reproducesCommittedBytes": false,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/image-editing/image_kernels.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/image_kernels_asc.wasm",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "8ffca5d945bc23a7078b4f72266aafd2454cbb6f7966fa03cab1d6d971ac2e77",
+          "recipeSha256": "93f01ef86e1205aa07e4bf13e207cb5a04e7a1a0bf536178c8d20559cb9cdf2c",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "image-editing",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.c",
+      "sourceSha256": "d3a4fbd7dc917cf110dbc1ef72b49d747d6714e31a9076f70f869a42d16b6704",
+      "artifact": "image_kernels_c.wasm",
+      "artifactSha256": "0905e2be6868422b095a55279572e63b5978d05536089f2efa20767dded825dc",
+      "artifactBytes": 3093,
+      "reproducesCommittedBytes": false,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/image_kernels_c.wasm benchmarks/multilang-wasm/image-editing/image_kernels.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "38b1792c09a81cb070cdb07d71dd0754971c95333503332cb7b9fcb575ac9b2c",
+          "recipeSha256": "b36de2e32bccb050dca92f832156ae86e3cd26f071da49bb03ff63ddfde7cc17",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "image-editing",
+      "engine": "cpp",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.cpp",
+      "sourceSha256": "1e9f47e19386ff4fe8149bb98f5c4d30fe9f07e9928457c4e6b9f395e66153cf",
+      "artifact": "image_kernels_cpp.wasm",
+      "artifactSha256": "6858d934ef9d0770b8da30db835dae4edebe060f80a36dc10b89402e19abfd98",
+      "artifactBytes": 3095,
+      "reproducesCommittedBytes": false,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/image_kernels_cpp.wasm benchmarks/multilang-wasm/image-editing/image_kernels.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "e4844d5af53ab77109b8380f897218a2d21b88b0952e31e3cb1da1869ef4aff3",
+          "recipeSha256": "830a84daeef0f9c5d31a64ca974b19447487f7203da0cdb2ba91b3e883890422",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "image-editing",
+      "engine": "dart",
+      "lang": "dart",
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.dart",
+      "sourceSha256": "1b47baca89f2c8bf6a2acd43ba3d3e6530b0c19ac8f1c700375b719b444d6bfb",
+      "artifact": "image_kernels_dart.wasm",
+      "artifactSha256": "d66ff2182e836f4976f403c28ef3aae2edffd3c5ed0d5a5038fe6a798ba8ce61",
+      "artifactBytes": 43780,
+      "reproducesCommittedBytes": true,
+      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/image-editing/image_kernels.dart -o <out>/image_kernels_dart.wasm",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "identical",
+          "artifactSha256": "d66ff2182e836f4976f403c28ef3aae2edffd3c5ed0d5a5038fe6a798ba8ce61",
+          "recipeSha256": "de87af23b8ab9204c621c4d669317c6a1e544f44da88099fe5efa69cb0652c52",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "image-editing",
+      "engine": "rs",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/image-editing/image_kernels.rs",
+      "sourceSha256": "bdbbbd364c4db0ff898858c844247dbc9c40f20d00fcf03747e08ae80c32a5f7",
+      "artifact": "image_kernels_rs.wasm",
+      "artifactSha256": "7aa05f24b70c4070034fb1a4a610a1efe55b1948b56d3d8ed19efce3c5d9bfc0",
+      "artifactBytes": 1862,
+      "reproducesCommittedBytes": false,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=16777216 -o <out>/image_kernels_rs.wasm benchmarks/multilang-wasm/image-editing/image_kernels.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "15bc5dab630614b8b77adfc5c940f5e280dd3c89a96b03a873ea772edbe5976e",
+          "recipeSha256": "98698de6799953ab68df6f90f37b02eee210fcb72b4e0ff8a62ea642486b337b",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
       "workload": "dom-keyed-list-mutation",
       "engine": "asc",
       "lang": "asc",
@@ -2259,6 +2430,94 @@
           "recipeSha256": "525f6c24719b7e3b515cce57859cb28df478a18ca8b8ef1f3578b0ce40b90c1c",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-keyword-spotting-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.ts",
+      "sourceSha256": "67e34a9592980d3078f453c138aa8867faa7de5d9194c8b3114e7f0726107893",
+      "artifact": "kws_kernel_asc.wasm",
+      "artifactSha256": "bddccb8a757ca2e484eddf1c51e98c4faca92c9a40bdc7789c46de51e32aba23",
+      "artifactBytes": 12373,
+      "reproducesCommittedBytes": false,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/kws_kernel_asc.wasm",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "5a85783c868010e278e571fc4e00fe177ac57317fa3172a566a764226bbb03e8",
+          "recipeSha256": "6e2575b667ae9b2e02537c5e9bfd203c1ca311ab42d2987a26d2b3593f76939b",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "ml-keyword-spotting-v1",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+      "sourceSha256": "7cb841ea3593bd99d207107154c59c54acbb0b54b6007c347c3f5c53b386568d",
+      "artifact": "kws_kernel_c.wasm",
+      "artifactSha256": "031ad7960567e441182d7b4cf5fdfd70ec2e00cb6caa1c079d599d6669dd550e",
+      "artifactBytes": 21640,
+      "reproducesCommittedBytes": false,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/kws_kernel_c.wasm benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "d04c2be7834969551d2c0eb2c5ecaf8232ede7cd2c036e3d0cf76eaa27a9fc6f",
+          "recipeSha256": "da15895c975dc675108742ae3987969416a80d828c21d328264d8e1e449a03c7",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "ml-keyword-spotting-v1",
+      "engine": "cpp",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
+      "sourceSha256": "1228b7112bb770826c0c57172fbe644060e9bab4f27b87167e3e3227b01fc6e2",
+      "artifact": "kws_kernel_cpp.wasm",
+      "artifactSha256": "07e7f49883c175d11b835de61eb43c913eb08ec458a54a779526ca175acd32ce",
+      "artifactBytes": 20010,
+      "reproducesCommittedBytes": false,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/kws_kernel_cpp.wasm benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "26b8808bf19a58e05c7fe182f5d321a401527dfb0861dca43c4cf76537b21646",
+          "recipeSha256": "3eab121276376f79b5e8781897e75766de2e6bb3415cd757d7164f3af60d75fb",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "ml-keyword-spotting-v1",
+      "engine": "rs",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
+      "sourceSha256": "9193c563186123cd12ea5d4af1310a5ea9fec81843a2ac4ab8b9371f7abfb02d",
+      "artifact": "kws_kernel_rs.wasm",
+      "artifactSha256": "f7a6239bd618957fc86b9c231be66cf4533f3dbb54994d0f72bc16aedee00f8e",
+      "artifactBytes": 615900,
+      "reproducesCommittedBytes": false,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=16777216 -o <out>/kws_kernel_rs.wasm benchmarks/multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "48a0af44e7bda1b7fc53cce3344410d797ba9c180adc721f4d1c956ce0bf3403",
+          "recipeSha256": "6a248a3ca4a2e8c7ce686c7182815191abeb3d6a38cf4ef073533800e226c4bd",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
         }
       ]
     },
@@ -3632,6 +3891,28 @@
     },
     {
       "workload": "document-pdf-viewer",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
+      "sourceSha256": "9fc42fe4d59f9cc63df4966b3b1d860df8d55695307f3a598139b917208d93be",
+      "artifact": "pdf_engine_c.wasm",
+      "artifactSha256": "6988ffc4062c9884a0dbac33586fe46421fd72257a2b251ce48ce7493f7b2d77",
+      "artifactBytes": 19785,
+      "reproducesCommittedBytes": false,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/pdf_engine_c.wasm benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "6f16c765a6d035cd516558731b6c1882040ed6f1f6d860463b30015d3d92912b",
+          "recipeSha256": "0ed19e6f3b5b59427ec590579e8760482e5b23d3967ea31f5ff5ec70b0675e5c",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "document-pdf-viewer",
       "engine": "cpp",
       "lang": "cpp",
       "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.cpp",
@@ -3657,6 +3938,14 @@
           "recipeSha256": "e6525610805fd5f1c2eca6c995a2ca021b5fea1b792f53ccb517994e251847dc",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
+        },
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "455039fa11d88fc58c233820ddb496441a7d9ed8a515ccf0e810059d6bbe1480",
+          "recipeSha256": "e6525610805fd5f1c2eca6c995a2ca021b5fea1b792f53ccb517994e251847dc",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
         }
       ]
     },
@@ -3679,6 +3968,14 @@
           "recipeSha256": "5ef45fcb3ebe5916651a87a7a7415d284ab2001363c46845328b69b51c8fd78e",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
+        },
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "identical",
+          "artifactSha256": "dc29c8db4ef7c2b89ebf55126dcae24c1712204a3cbcd9ed3c21b767361ba725",
+          "recipeSha256": "5ef45fcb3ebe5916651a87a7a7415d284ab2001363c46845328b69b51c8fd78e",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
         }
       ]
     },
@@ -3709,6 +4006,14 @@
           "recipeSha256": "91b279c87f7569a9294821c376c3901fa63a4accc1a63ecb528fb3fb4e23200a",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
+        },
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "0e40f86cf20c6aaa3dbc341ac8992fd3d5116c0a3b2e517333ec6353c2a57efb",
+          "recipeSha256": "91b279c87f7569a9294821c376c3901fa63a4accc1a63ecb528fb3fb4e23200a",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
         }
       ]
     },
@@ -5339,6 +5644,94 @@
           "recipeSha256": "f68461b69ee72f9c7dc50b6a306de96f707e41fc358c8695b7693e61af40e300",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "base-dom-todomvc-journey",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+      "sourceSha256": "8233adc72de88160a62cf0c47f987e1b1b5195aef656c7fb9181d5885e426453",
+      "artifact": "todomvc_engine_c.wasm",
+      "artifactSha256": "7fa47112ab88c8b35e523a232faeb97ad565fdf7851fe13298e08dd7a6efaf84",
+      "artifactBytes": 1608,
+      "reproducesCommittedBytes": false,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/todomvc_engine_c.wasm benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "705b12f1c9285abe2460a3adc3c583abb91df4af52dd2885a0677c42503e97b5",
+          "recipeSha256": "871150052807406d0db68fd8db7d69a614c0896e0451309a869ea475a9ff8a35",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "base-dom-todomvc-journey",
+      "engine": "cpp",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp",
+      "sourceSha256": "7c133b4167ebf13e08499e49e158d9793e02c6c35049665d9fd097812fdaf0ae",
+      "artifact": "todomvc_engine_cpp.wasm",
+      "artifactSha256": "93b99aa131dc6205262d728b5ae8523003385e54ca1bfcf3a57b377b27dc26c9",
+      "artifactBytes": 1610,
+      "reproducesCommittedBytes": false,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/todomvc_engine_cpp.wasm benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "e2056dbb253d2c760683b565b925aa4f7f4835161f2a7099d9c0d43c01cc7d2a",
+          "recipeSha256": "c048ba83bce59b627a7b2121d55d7faa80c0c79c036500bcdd27027424be1ad9",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "base-dom-todomvc-journey",
+      "engine": "dart",
+      "lang": "dart",
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.dart",
+      "sourceSha256": "ea7332ec465c07bde55741e73c117f13034bbd2711660eef3a3dfb5cbe695d38",
+      "artifact": "todomvc_engine_dart.wasm",
+      "artifactSha256": "5dc0c820316e94c8ffdb43b89f50e105e2e927e39ef2dde51eeb39c0dd68d004",
+      "artifactBytes": 45825,
+      "reproducesCommittedBytes": true,
+      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.dart -o <out>/todomvc_engine_dart.wasm",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "identical",
+          "artifactSha256": "5dc0c820316e94c8ffdb43b89f50e105e2e927e39ef2dde51eeb39c0dd68d004",
+          "recipeSha256": "fc6f9e511d99a87c4bc040a756693965720626f5a2267dd77db12d085eaa7f13",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "workload": "base-dom-todomvc-journey",
+      "engine": "rs",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs",
+      "sourceSha256": "c7378ede76c73e529c9e6ab1bc80e5d62dc67448de8f2a8804eb4f129df23830",
+      "artifact": "todomvc_engine_rs.wasm",
+      "artifactSha256": "3228b519a26ae44e01778cbee1f8aa2db9771525e231d20f507019e5ebf2ec62",
+      "artifactBytes": 917,
+      "reproducesCommittedBytes": false,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=16777216 -o <out>/todomvc_engine_rs.wasm benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-4d072f3781dd",
+          "result": "differs",
+          "artifactSha256": "94c220f4cfe11b21b22d129426ded28785096bb13501a88ef6e24d71f4c03443",
+          "recipeSha256": "851eff91b9bf882142f741756b7f3fb33b00e48fbf09f3489c684febd00fe694",
+          "firstObserved": "2026-11-04",
+          "lastObserved": "2026-11-04"
         }
       ]
     },
