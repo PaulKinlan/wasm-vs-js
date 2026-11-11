@@ -21,6 +21,7 @@ import {
 import {
   amortizationChartSvg,
   barChartSvg,
+  classifyWorkloadArchetype,
   csvExportElement,
   decisionPanelHtml,
   deliveryTableHtml,
@@ -1696,9 +1697,11 @@ export function buildExplorerRows({
     const srcHref = resolvedSource
       ? (resolvedSource.startsWith("/") ? resolvedSource : `/${resolvedSource}`)
       : null;
+    const isJsEngine = engineCfg?.kind === "js" || r.key === "js" || r.key.startsWith("js-");
     byScope.kernel.push({
       key: r.key,
       label: r.label,
+      kind: isJsEngine ? "js" : "wasm",
       toolchain: ENGINE_TOOLCHAINS[r.key] ?? "—",
       source: srcHref,
       githubSourceUrl: r.githubSourceUrl ?? (srcHref ? sourceToGitHubUrl(srcHref) : null),
@@ -1710,7 +1713,7 @@ export function buildExplorerRows({
       fetchMs: r.fetchMs ?? 0,
       initMs: r.initMs ?? 0,
       coldMs: r.coldMs ?? null,
-      track: r.track ?? "A",
+      track: r.track ?? engineCfg?.track ?? "A",
       samples: r.samples ?? [],
       summary: summarize(r.samples ?? [], { scope: "kernel", label: r.label }),
     });
@@ -1882,11 +1885,14 @@ function renderUnifiedExplorer({
   wrap.dataset.stage = "explorer";
   wrap.className = "stage-result explorer-section";
 
-  // Best kernel engine drives both the decision panel and the amortization view.
+  // Best Track A kernel engine drives both the decision panel and the amortization view.
+  // Keep Track A and Track B strictly separate (PLAN.md fairness contract).
   const kernelRows = (byScope.kernel ?? []).filter((r) => r.summary);
-  const jsKernel = kernelRows.find((r) => r.key === "js");
-  const bestWasmKernel = kernelRows
-    .filter((r) => r.key !== "js")
+  const trackAKernelRows = kernelRows.filter((r) => (r.track ?? "A") !== "B");
+  const jsKernel = trackAKernelRows.find((r) => r.key === "js") ??
+    kernelRows.find((r) => r.key === "js");
+  const bestWasmKernel = trackAKernelRows
+    .filter((r) => r.key !== "js" && r.kind !== "js")
     .sort((a, b) => a.summary.p50Ms - b.summary.p50Ms)[0];
   const pipelineRows = (byScope.pipeline ?? []).filter((r) => r.summary);
   const jsPipeline = pipelineRows.find((r) => r.key === "js");
@@ -1936,6 +1942,7 @@ function renderUnifiedExplorer({
       baselineBytes: deliveryBaselineBytes,
       candidateBytes: deliveryCandidateBytes,
     },
+    workerLifecycleClass: catalogSpec?.workerLifecycleClass ?? null,
     contamination: primaryStats?.wasmStats?.contamination ??
       primaryStats?.jsStats?.contamination,
   });
@@ -1998,20 +2005,21 @@ function renderUnifiedExplorer({
   const chartGrid = document.createElement("div");
   chartGrid.className = "wvj-chart-grid";
 
-  if (kernelRows.length > 1) {
+  if (trackAKernelRows.length > 1) {
     const chartHost = document.createElement("div");
     chartHost.className = "wvj-chart-cell";
     chartHost.innerHTML = barChartSvg(
-      kernelRows.map((r) => ({
+      trackAKernelRows.map((r) => ({
         label: r.label,
         valueMs: r.summary.p50Ms,
         lowMs: r.summary.ci95?.lowMs ?? null,
         highMs: r.summary.ci95?.highMs ?? null,
-        kind: r.key === "js" ? "js" : "wasm",
+        kind: r.kind ?? (r.key === "js" ? "js" : "wasm"),
       })),
       {
-        title: "Kernel compute across every language",
-        caption: "Same algorithm, same input, pre-instantiated engines, warmed up before timing. " +
+        title: "Kernel compute across every language (Track A)",
+        caption:
+          "Same algorithm, same input, pre-instantiated Track A engines, warmed up before timing. " +
           "Whiskers are 95% confidence intervals for the median.",
       },
     );
@@ -2440,6 +2448,71 @@ function initUnifiedRunner() {
 }
 
 /**
+ * Ensure consistent primary navigation links and workload breadcrumbs across
+ * benchmark detail pages without modifying frozen HTML source bytes.
+ *
+ * @param {any} spec
+ * @param {string} workloadSlug
+ */
+function ensureSiteNavigationAndBreadcrumb(spec, workloadSlug) {
+  const masthead = q("header.masthead");
+  if (masthead && !masthead.dataset.wvjNavNormalized) {
+    masthead.dataset.wvjNavNormalized = "1";
+    const ensureLink = (href, label, beforeEl) => {
+      const exists = [...masthead.querySelectorAll("a")].some((a) =>
+        a.getAttribute("href") === href
+      );
+      if (exists) return;
+      const link = document.createElement("a");
+      link.href = href;
+      link.textContent = label;
+      if (beforeEl && beforeEl.parentNode === masthead) {
+        masthead.insertBefore(link, beforeEl);
+      } else {
+        masthead.appendChild(link);
+      }
+    };
+    const anchor = masthead.querySelector('a[href="/experiments/"]') ??
+      masthead.querySelector("strong");
+    ensureLink("/methodology/", "Methodology", anchor);
+    ensureLink("/benchmarks/track-b/", "Track B", anchor);
+    ensureLink("/coverage/", "Coverage", anchor);
+    ensureLink("/results/", "Results", anchor);
+  }
+
+  const mainEl = document.querySelector("main");
+  if (mainEl && !mainEl.querySelector('[data-wvj-breadcrumb="1"]')) {
+    const crumbNav = document.createElement("nav");
+    crumbNav.setAttribute("aria-label", "Breadcrumb");
+    crumbNav.className = "eyebrow";
+    crumbNav.dataset.wvjBreadcrumb = "1";
+
+    const homeLink = document.createElement("a");
+    homeLink.href = "/";
+    homeLink.textContent = "Playground";
+
+    const catLink = document.createElement("a");
+    catLink.href = "/benchmarks/";
+    catLink.textContent = "Catalog";
+
+    crumbNav.append(homeLink, document.createTextNode(" › "), catLink);
+    if (spec?.category) {
+      crumbNav.append(document.createTextNode(` › ${spec.category}`));
+    }
+    const pageTitle = spec?.title || document.querySelector("h1")?.textContent?.trim() ||
+      workloadSlug;
+    if (pageTitle) {
+      crumbNav.append(document.createTextNode(" › "));
+      const cur = document.createElement("span");
+      cur.setAttribute("aria-current", "page");
+      cur.textContent = pageTitle;
+      crumbNav.appendChild(cur);
+    }
+    mainEl.prepend(crumbNav);
+  }
+}
+
+/**
  * Render an inspectable panel below the run controls linking to the benchmark's
  * original JS source, Wasm/WAT/C/Rust/Dart sources, GitHub views, build command,
  * and oracle equivalence test suite.
@@ -2458,8 +2531,32 @@ async function renderSourceAndBuildPanel(workloadSlug, mlManifestPath, anchorEl)
         .catch(() => null)
       : Promise.resolve(null),
   ]);
+  ensureSiteNavigationAndBreadcrumb(spec, workloadSlug);
   if (!spec && !manifest) return;
   if (document.querySelector('[data-source-inspectability="1"]')) return;
+
+  const archetype = classifyWorkloadArchetype(
+    spec?.id || workloadSlug,
+    spec?.category || "",
+    spec?.pageType || "",
+  );
+  const contextBox = document.createElement("p");
+  contextBox.className = "notice";
+  contextBox.dataset.workloadContext = "1";
+  const archStrong = document.createElement("strong");
+  archStrong.textContent = `Bottleneck archetype — ${archetype.label}: `;
+  contextBox.appendChild(archStrong);
+  contextBox.appendChild(document.createTextNode(`${archetype.mechanism} `));
+  if (spec?.workerLifecycleBadge) {
+    const lcStrong = document.createElement("strong");
+    lcStrong.textContent = `Worker pipeline: ${spec.workerLifecycleBadge}. `;
+    contextBox.appendChild(lcStrong);
+    const methLink = document.createElement("a");
+    methLink.className = "commit-link";
+    methLink.href = "/methodology/#worker-wasm-explained";
+    methLink.textContent = "Scope & worker methodology →";
+    contextBox.appendChild(methLink);
+  }
 
   const details = document.createElement("details");
   details.className = "scope-legend";
@@ -2629,6 +2726,7 @@ async function renderSourceAndBuildPanel(workloadSlug, mlManifestPath, anchorEl)
 
   details.appendChild(dl);
   anchorEl.insertAdjacentElement("afterend", details);
+  anchorEl.insertAdjacentElement("afterend", contextBox);
 }
 
 function initComposedRunner() {

@@ -44,6 +44,31 @@ function appendExternalLink(parent, label, href) {
 const benchmarksById = new Map();
 const benchmarksByRoute = new Map();
 
+const catalogMasthead = document.querySelector("header.masthead");
+if (catalogMasthead) {
+  const resultsLink = catalogMasthead.querySelector('a[href="/results/"]');
+  for (
+    const [href, label] of [
+      ["/methodology/", "Methodology"],
+      ["/benchmarks/track-b/", "Track B"],
+      ["/coverage/", "Coverage"],
+    ]
+  ) {
+    const exists = [...catalogMasthead.querySelectorAll("a")].some((a) =>
+      a.getAttribute("href") === href
+    );
+    if (!exists) {
+      const navLink = element("a", label);
+      navLink.href = href;
+      if (resultsLink && resultsLink.parentNode === catalogMasthead) {
+        catalogMasthead.insertBefore(navLink, resultsLink);
+      } else {
+        catalogMasthead.append(navLink);
+      }
+    }
+  }
+}
+
 function renderEntry(entry) {
   const route = WORKLOAD_DEMO_ROUTES[entry.id];
   const benchMeta = benchmarksById.get(entry.id) ??

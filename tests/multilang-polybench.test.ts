@@ -225,6 +225,15 @@ Deno.test(
     const dJb = jf.b.slice();
     kernels.jacobi2d(dJa, dJb, jf.n, STEPS);
     assertBitIdentical("Dart Jacobi2D", dJa, jacobiRef);
+
+    const { createPolybenchOptWorkspace, runPolybenchOptF64 } = await import(
+      "../benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.js"
+    );
+    const ws = createPolybenchOptWorkspace(NI, NJ, N_CHOLESKY, N_GRID);
+    const jsOpt = runPolybenchOptF64(gf, cf, jf, NI, NJ, NK, STEPS, ws);
+    assertBitIdentical("JS Track B GEMM", jsOpt.gemm, gemmRef);
+    assertBitIdentical("JS Track B Cholesky", jsOpt.cholesky, cholRef);
+    assertBitIdentical("JS Track B Jacobi2D", jsOpt.jacobi, jacobiRef);
   },
 );
 

@@ -5,7 +5,7 @@
 // this script then starts itself via `deno task public`).
 //
 // Checks:
-//   1. homepage evidence summary renders (Playground Demos 38 / Run Unattended 37)
+//   1. homepage evidence summary renders (Playground Demos 48 / Run Unattended 47)
 //   2. every playground card demo route returns 200
 //   3. three representative cards run to "✓ Complete" with zero console errors
 //      (fast: sum-u32 · wasm-heavy: graphics-cpu-path-tracer-v1 · bespoke worker:
@@ -230,12 +230,12 @@ try {
     };
     return { demos: dd("Playground Demos"), unattended: dd("Run Unattended"), catalog: dd("Catalog Workloads"), v2: dd("v2 Proposals") };
   })()`) as Record<string, string | null>;
-  const summaryOk = summary.demos === "38" && summary.unattended === "37" &&
+  const summaryOk = summary.demos === "48" && summary.unattended === "47" &&
     summary.catalog === "38" && summary.v2 === "20";
   report(
     "homepage-evidence-summary",
     summaryOk,
-    `demos=${summary.demos} unattended=${summary.unattended} catalog=${summary.catalog} v2=${summary.v2} (expect 38/37/38/20)`,
+    `demos=${summary.demos} unattended=${summary.unattended} catalog=${summary.catalog} v2=${summary.v2} (expect 48/47/38/20)`,
   );
 
   // --- check 2b: catalog page (/benchmarks/) renders JS-driven content, zero console errors

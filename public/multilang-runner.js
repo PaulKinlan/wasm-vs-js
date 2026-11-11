@@ -6242,24 +6242,29 @@ export const KERNEL_ADAPTERS = {
         jsGemm(a, b, c0, out);
         return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
       };
+      const jsOptOut = new Float32Array(M * N);
       const jsOptGemm = (a, b, c0, out) => {
         out.set(c0);
         for (let i = 0; i < M; i++) {
           const iOff = i * N;
+          const iA = i * K;
           for (let k = 0; k < K; k++) {
-            const aik = a[i * K + k];
+            const aik = a[iA + k];
             const kOff = k * N;
             for (let j = 0; j < N; j++) {
               out[iOff + j] = Math.fround(out[iOff + j] + Math.fround(aik * b[kOff + j]));
             }
           }
         }
+        for (let idx = 0; idx < M * N; idx++) {
+          out[idx] = out[idx] + 0;
+        }
       };
       if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
         callables["js-opt"] = {
           gemm: () => {
             const { a, b, c0 } = inputs();
-            jsOptGemm(a, b, c0, new Float32Array(M * N));
+            jsOptGemm(a, b, c0, jsOptOut);
           },
         };
         probes["js-opt"] = () => {
@@ -6662,6 +6667,69 @@ export const KERNEL_ADAPTERS = {
         const out = jsPolybench();
         return panelDigest(out.gemm, out.cholesky, out.jacobi);
       };
+
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        const scratchGemm = new Float64Array(NI * NJ);
+        const scratchChol = new Float64Array(N_CHOLESKY * N_CHOLESKY);
+        const scratchJa = new Float64Array(N_GRID * N_GRID);
+        const scratchJb = new Float64Array(N_GRID * N_GRID);
+        const jsPolybenchOpt = () => {
+          const gf = makeGemmFixture();
+          const cf = makeCholeskyFixture();
+          const jf = makeGridFixture();
+          scratchGemm.set(gf.c);
+          const a = gf.a, b = gf.b, alpha = gf.alpha, beta = gf.beta;
+          for (let i = 0; i < NI; i++) {
+            const iOut = i * NJ, iA = i * NK;
+            for (let j = 0; j < NJ; j++) scratchGemm[iOut + j] *= beta;
+            for (let k = 0; k < NK; k++) {
+              const alphaAik = alpha * a[iA + k], kB = k * NJ;
+              for (let j = 0; j < NJ; j++) scratchGemm[iOut + j] += alphaAik * b[kB + j];
+            }
+          }
+          scratchChol.set(cf.a);
+          const n = cf.n;
+          for (let i = 0; i < n; i++) {
+            const iRow = i * n;
+            for (let j = 0; j <= i; j++) {
+              const jRow = j * n;
+              let sum = scratchChol[iRow + j];
+              for (let k = 0; k < j; k++) sum -= scratchChol[iRow + k] * scratchChol[jRow + k];
+              scratchChol[iRow + j] = i === j ? Math.sqrt(sum) : sum / scratchChol[jRow + j];
+            }
+            scratchChol.fill(0, iRow + i + 1, iRow + n);
+          }
+          scratchJa.set(jf.a);
+          scratchJb.set(jf.b);
+          const jn = jf.n, limit = jn - 1;
+          for (let t = 0; t < STEPS; t++) {
+            for (let i = 1; i < limit; i++) {
+              const row = i * jn;
+              for (let j = 1; j < limit; j++) {
+                const p = row + j;
+                scratchJb[p] = 0.2 *
+                  (scratchJa[p] + scratchJa[p - 1] + scratchJa[p + 1] + scratchJa[p - jn] +
+                    scratchJa[p + jn]);
+              }
+            }
+            for (let i = 1; i < limit; i++) {
+              const row = i * jn;
+              for (let j = 1; j < limit; j++) {
+                const p = row + j;
+                scratchJa[p] = 0.2 *
+                  (scratchJb[p] + scratchJb[p - 1] + scratchJb[p + 1] + scratchJb[p - jn] +
+                    scratchJb[p + jn]);
+              }
+            }
+          }
+          return { gemm: scratchGemm, cholesky: scratchChol, jacobi: scratchJa };
+        };
+        callables["js-opt"] = { polybench: jsPolybenchOpt };
+        probes["js-opt"] = () => {
+          const out = jsPolybenchOpt();
+          return panelDigest(out.gemm, out.cholesky, out.jacobi);
+        };
+      }
 
       for (const key of ["wat", "c", "c-opt", "c-simd", "cpp", "rs", "rs-simd", "asc"]) {
         if (!mods.engines[key]) continue;
@@ -8538,10 +8606,20 @@ function renderTables(
       }`
       : "—";
     const isTrackB = isTrackBEngine(r) || isTrackBEngine(engineCfg);
+    const baseKey = isTrackB ? (engineCfg?.baseline || r.baseline || null) : null;
+    const baseRow = baseKey ? allResults.find((x) => x.key === baseKey) : null;
+    const ownBaselineRatio = isTrackB && baseRow && baseRow.medianMs > 0 && r.medianMs > 0
+      ? (baseRow.medianMs / r.medianMs).toFixed(2)
+      : null;
+    const ratioCellHtml = r.key === "js"
+      ? "<strong>1.00× (Baseline)</strong>"
+      : isTrackB && ownBaselineRatio
+      ? `<strong>${ownBaselineRatio}× vs <code>${esc(baseKey)}</code></strong>`
+      : `<strong>${ratio}×</strong>`;
     const trackBadge = isTrackB
-      ? `<div><span class="badge" title="${
-        esc(r.optimizationLog ?? "Track B")
-      }">Track B (Optimized)</span></div>`
+      ? `<div><span class="badge" title="${esc(r.optimizationLog ?? "Track B")}">Track B (vs ${
+        esc(baseKey ?? "baseline")
+      })</span></div>`
       : "";
     return `
     <tr${isTrackB ? ' class="track-b-row"' : ""}>
@@ -8565,9 +8643,7 @@ function renderTables(
     }</td>
       <td>${r.minMs.toFixed(2)} ms</td>
       <td>${r.maxMs.toFixed(2)} ms</td>
-      <td>${
-      r.key === "js" ? "<strong>1.00× (Baseline)</strong>" : `<strong>${ratio}×</strong>`
-    }</td>
+      <td>${ratioCellHtml}</td>
       <td><div class="perf-bar-track"><div class="perf-bar multilang-bar" data-pct="${pct}" title="${
       r.medianMs.toFixed(2)
     } ms"></div></div></td>
@@ -8668,28 +8744,33 @@ function renderTables(
     const loggedRecord = findAutoResearchRecord(autoResearchLog, manifest);
     let trackBTableHtml = "";
     if (g3Results.length > 0) {
-      const barRows = g3Results.map((r) => ({
-        label: r.label,
-        valueMs: r.medianMs,
-        lowMs: r.minMs,
-        highMs: r.maxMs,
-        kind: "wasm",
-      }));
+      const barRows = g3Results.map((r) => {
+        const cfg = manifest.engines?.find((e) => e.key === r.key);
+        const isJsVariant = r.key === "js" || r.key.startsWith("js-") || cfg?.kind === "js";
+        return {
+          label: r.label,
+          valueMs: r.medianMs,
+          lowMs: r.minMs,
+          highMs: r.maxMs,
+          kind: isJsVariant ? "js" : "wasm",
+        };
+      });
       const chartHtml = charts && barRows.length > 0
         ? `<div class="wvj-chart-grid"><div class="wvj-chart-cell">${
           barChartSvg(barRows, {
-            title: "Track B Idiomatic Optimizations",
-            caption: "Hand-tuned algorithms with SIMD128, loop reordering, and tiling.",
+            title: "Track B Idiomatic Optimizations (Measured in This Tab)",
+            caption:
+              "Independently tuned JS and Wasm variants; each row's speedup column compares against its own Track A baseline.",
           })
         }</div></div>`
         : "";
       const rows = g3Results.map(renderRow).join("");
       trackBTableHtml = `
-        <h4>Hand-Tuned Track B Variants (${g3Results.length} compiled in manifest)</h4>
+        <h4>Hand-Tuned Track B Variants (${g3Results.length} in manifest — measured live in this browser)</h4>
         ${chartHtml}
         <div class="table-wrap">
           <table class="results-table">
-            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Output Digest</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
+            <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Output Digest</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Gain vs Own Baseline</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -8711,8 +8792,11 @@ function renderTables(
             })`
             : `${art.v128InstructionCount} <code>v128</code> ops`;
           return `<p class="notice">
-            <strong>Isolated Pre-Computed Auto-Research Binary:</strong>
-            <a class="commit-link" href="${esc(art.servedUrl)}" target="_blank" rel="noopener">${
+            <strong>Standalone CLI Reference Scope (Deno 2.9 / V8 — Non-Browser Diagnostic):</strong>
+            The pre-computed numbers below were captured offline in standalone Deno/V8 on Apple M4 Pro and are never pooled with browser-tab measurements.
+            Binary: <a class="commit-link" href="${
+            esc(art.servedUrl)
+          }" target="_blank" rel="noopener">${
             esc(art.servedUrl.split("/").pop())
           }</a> (${art.bytes.toLocaleString()} B · <code>sha256:${
             esc(art.sha256.slice(0, 12))

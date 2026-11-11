@@ -145,9 +145,9 @@ export async function initTrackB(selector) {
     ),
     `</div>`,
     `<p class="notice">
-      <strong>Isolated Pre-Computed Auto-Research Log:</strong>
-      Alongside the hand-authored Track B manifest entries below, all 45 multi-language kernels have pre-computed <code>-O3 -msimd128 -funroll-loops</code> binaries and 5-dimension runtime profiles isolated under <code>/artifacts/autoresearch/</code> so Track A baseline artifacts remain untouched.
-      Inspect <a class="commit-link" href="/docs/autoresearch-log.md">docs/autoresearch-log.md</a> and <a class="commit-link" href="/data/autoresearch-log.v1.json">autoresearch-log.v1.json</a>, or open Group 3 on any benchmark page.
+      <strong>Standalone CLI Reference Scope (Deno 2.9 / V8 — Non-Browser Diagnostic):</strong>
+      Alongside the hand-authored Track B manifest entries below (which run live in your browser), all 45 multi-language kernels have pre-computed <code>-O3 -msimd128 -funroll-loops</code> binaries and 5-dimension runtime profiles captured offline in standalone Deno/V8 on Apple M4 Pro and isolated under <code>/artifacts/autoresearch/</code> so Track A baseline artifacts remain untouched. Standalone CLI evidence is never pooled with browser claims.
+      Inspect <a class="commit-link" href="/docs/autoresearch-log.md">docs/autoresearch-log.md</a> and <a class="commit-link" href="/data/autoresearch-log.v1.json">autoresearch-log.v1.json</a>, or open Group 3 on any benchmark page to re-measure in your browser.
     </p>`,
   ];
 

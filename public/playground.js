@@ -2,8 +2,17 @@
 // Runs JS vs Wasm benchmarks in multi-iteration loops to measure cold vs warm execution performance.
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
-import { barChartSvg } from "./benchmark-report.js";
+import { barChartSvg, classifyWorkloadArchetype, WORKLOAD_ARCHETYPES } from "./benchmark-report.js";
 import { fmtBytes, fmtMs } from "./measurement-model.js";
+
+const QUICK_TOUR_SLUGS = [
+  "sum-u32",
+  "ml-gemm",
+  "audio-fir",
+  "text-markdown-cms",
+  "text-gc-document-edit-v1",
+  "base-dom-todomvc-journey",
+];
 
 // Every workload card with a multi-language comparison lane: slug -> manifest.
 // Cards absent from this map have no multilang core (vendored/platform/meta).
@@ -539,8 +548,20 @@ function populateCardSourceLinks(card, config) {
   const slot = card.querySelector(".pg-source-links");
   if (!slot) return;
   const meta = benchmarkSourceMap.get(config.slug) || benchmarkSourceByHref.get(config.route);
-  if (!meta) return;
+  const archetype = classifyWorkloadArchetype(
+    meta?.id || config.slug,
+    config.category,
+    meta?.pageType || "",
+  );
   slot.textContent = "";
+  const archPrefix = document.createElement("strong");
+  archPrefix.textContent = "Archetype: ";
+  slot.appendChild(archPrefix);
+  slot.appendChild(document.createTextNode(`${archetype.label} · `));
+  if (!meta) {
+    slot.hidden = false;
+    return;
+  }
   const prefix = document.createElement("strong");
   prefix.textContent = "Source & build: ";
   slot.appendChild(prefix);
@@ -605,10 +626,13 @@ async function loadBenchmarkSourceRegistry() {
 }
 
 PLAYGROUND_WORKLOADS.forEach((cfg) => {
+  const arch = classifyWorkloadArchetype(cfg.slug, cfg.category, "");
   suiteStore.set(cfg.slug, {
     workKey: cfg.slug,
     title: cfg.title,
     category: cfg.category,
+    archetype: arch.id,
+    archetypeLabel: arch.label,
     href: cfg.route,
     manual: Boolean(cfg.manual),
     source: "unmeasured",
@@ -640,7 +664,10 @@ function getWorkloadComparison(entry, targetEngine = "best") {
   } else if (targetEngine === "best-opt") {
     const optCandidates = [];
     for (const [k, e] of Object.entries(engines)) {
-      if (k !== "js" && (e.track === "B" || k.endsWith("-opt")) && e.warmMs > 0) {
+      if (
+        k !== "js" && k !== "js-opt" && !k.startsWith("js-") &&
+        (e.track === "B" || k.endsWith("-opt")) && e.warmMs > 0
+      ) {
         optCandidates.push({
           label: e.label,
           warmMs: e.warmMs,
@@ -673,7 +700,10 @@ function getWorkloadComparison(entry, targetEngine = "best") {
     // fall back to Worker Task Pipeline comparison only when no kernel lane exists.
     const kernelCandidates = [];
     for (const [k, e] of Object.entries(engines)) {
-      if (k !== "js" && e.track !== "B" && !k.endsWith("-opt") && e.warmMs > 0) {
+      if (
+        k !== "js" && !k.startsWith("js-") && e.track !== "B" && !k.endsWith("-opt") &&
+        e.warmMs > 0
+      ) {
         kernelCandidates.push({
           label: e.label,
           warmMs: e.warmMs,
@@ -711,6 +741,7 @@ function getWorkloadComparison(entry, targetEngine = "best") {
 }
 
 const overviewState = {
+  archetype: "all",
   category: "all",
   search: "",
   engine: "best",
@@ -769,6 +800,9 @@ function renderHolisticOverview() {
   const categories = Array.from(new Set(PLAYGROUND_WORKLOADS.map((w) => w.category))).sort();
 
   let list = Array.from(suiteStore.values());
+  if (overviewState.archetype !== "all") {
+    list = list.filter((w) => w.archetype === overviewState.archetype);
+  }
   if (overviewState.category !== "all") {
     list = list.filter((w) => w.category === overviewState.category);
   }
@@ -777,6 +811,7 @@ function renderHolisticOverview() {
     list = list.filter((w) =>
       w.title.toLowerCase().includes(q) ||
       w.category.toLowerCase().includes(q) ||
+      (w.archetypeLabel || "").toLowerCase().includes(q) ||
       w.workKey.toLowerCase().includes(q)
     );
   }
@@ -866,6 +901,16 @@ function renderHolisticOverview() {
   const evenCount = measured.length - wasmFaster - jsFaster;
 
   // Build Toolbar
+  const archOptions = [
+    ["all", "All 4 Archetypes"],
+    ["simd", WORKLOAD_ARCHETYPES.simd.label],
+    ["stateful", WORKLOAD_ARCHETYPES.stateful.label],
+    ["memory", WORKLOAD_ARCHETYPES.memory.label],
+    ["dom", WORKLOAD_ARCHETYPES.dom.label],
+  ].map(([val, lbl]) =>
+    `<option value="${val}"${overviewState.archetype === val ? " selected" : ""}>${lbl}</option>`
+  ).join("");
+
   const catOptions = ['<option value="all">All Categories</option>']
     .concat(
       categories.map((c) =>
@@ -876,6 +921,9 @@ function renderHolisticOverview() {
   const toolbarHtml = `
     <div class="overview-toolbar">
       <div class="ov-control-group">
+        <label for="ov-archetype">Archetype:
+          <select id="ov-archetype">${archOptions}</select>
+        </label>
         <label for="ov-category">Category:
           <select id="ov-category">${catOptions}</select>
         </label>
@@ -913,7 +961,10 @@ function renderHolisticOverview() {
             <optgroup label="Group 3: Idiomatic &amp; Hardware Optimizations (Track B)">
               <option value="best-opt"${
     overviewState.engine === "best-opt" ? " selected" : ""
-  }>Fastest Track B (SIMD / Tiled / Hardware)</option>
+  }>Fastest Wasm Track B (SIMD / Tiled)</option>
+              <option value="js-opt"${
+    overviewState.engine === "js-opt" ? " selected" : ""
+  }>JavaScript Track B (i/k/j / Unrolled)</option>
               <option value="rs-opt"${
     overviewState.engine === "rs-opt" ? " selected" : ""
   }>Rust Track B (SIMD / Tuned)</option>
@@ -961,7 +1012,8 @@ function renderHolisticOverview() {
     overviewState.view === "table" ? " active" : ""
   }" data-view="table">Table</button>
         </div>
-        <button type="button" id="ov-run-filtered" class="btn-ov-run">▶ Run Filtered (${
+        <button type="button" id="ov-run-tour" class="btn-ov-run">▶ Quick Tour (6 Archetypes)</button>
+        <button type="button" id="ov-run-filtered" class="btn-ov-secondary">▶ Run Filtered (${
     list.filter((w) => !w.manual).length
   })</button>
         <button type="button" id="ov-export-csv" class="btn-ov-secondary">Export CSV</button>
@@ -975,28 +1027,30 @@ function renderHolisticOverview() {
       <div class="kpi-card">
         <span class="kpi-label">Workloads Matched</span>
         <strong class="kpi-val">${list.length} / ${PLAYGROUND_WORKLOADS.length}</strong>
-        <span class="kpi-sub">${measured.length} measured</span>
+        <span class="kpi-sub">${measured.length} measured in this tab</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Median Speedup</span>
+        <span class="kpi-label">Median Ratio vs JS</span>
         <strong class="kpi-val">${medianSpeedup ? medianSpeedup.toFixed(2) + "×" : "—"}</strong>
         <span class="kpi-sub">${
     overviewState.engine === "best"
-      ? "Fastest Wasm vs JS"
+      ? "Fastest Track A Wasm vs JS"
       : overviewState.engine.toUpperCase() + " vs JS"
   }</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Max Speedup</span>
+        <span class="kpi-label">Peak Observed Ratio</span>
         <strong class="kpi-val">${
     peakItem?.speedup ? peakItem.speedup.toFixed(2) + "×" : "—"
   }</strong>
-        <span class="kpi-sub">${peakItem?.title ? peakItem.title.slice(0, 22) : "None"}</span>
+        <span class="kpi-sub">${
+    peakItem?.title ? peakItem.title.slice(0, 24) : "Run Quick Tour to populate"
+  }</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Execution Advantage</span>
+        <span class="kpi-label">Observed Regime Split</span>
         <strong class="kpi-val">${wasmFaster} Wasm / ${jsFaster} JS</strong>
-        <span class="kpi-sub">${evenCount} within 5% parity</span>
+        <span class="kpi-sub">${evenCount} within ±5% parity</span>
       </div>
     </div>
   `;
@@ -1005,13 +1059,12 @@ function renderHolisticOverview() {
   let chartsGridHtml = "";
   if (overviewState.view !== "table") {
     if (measured.length === 0) {
-      if (overviewState.view === "charts") {
-        chartsGridHtml = `
-          <div class="notice">
-            No live runs recorded yet. Click <strong>▶ Run Filtered</strong> above or <strong>▶ Run</strong> on any workload below to benchmark in this browser.
-          </div>
-        `;
-      }
+      chartsGridHtml = `
+        <div class="notice">
+          <strong>0 of ${list.length} workloads measured in this tab so far.</strong>
+          Click <strong>▶ Quick Tour (6 Archetypes)</strong> above to sample 1 tight integer loop, 1 SIMD matrix multiply, 1 DSP filter, 1 stateful parser, 1 WasmGC object graph, and 1 real-DOM journey in ~15 seconds, or click <strong>▶ Run</strong> on any row below.
+        </div>
+      `;
     } else {
       // Chart 1: Top measured workloads comparison
       const topWorkloads = measured.slice(0, 10);
@@ -1029,20 +1082,26 @@ function renderHolisticOverview() {
             cmp.engineLabel.length > 10 ? cmp.engineLabel.slice(0, 9) + "…" : cmp.engineLabel
           })`,
           valueMs: cmp.wasmWarmMs,
-          kind: "wasm",
+          kind: overviewState.engine === "js-opt" ? "js" : "wasm",
         });
       });
 
       const leftChartHtml = chartRows.length > 0
         ? barChartSvg(chartRows, {
           title: `Workload Execution: JS vs ${
-            overviewState.engine === "best" ? "Fastest Wasm" : overviewState.engine.toUpperCase()
+            overviewState.engine === "best"
+              ? "Fastest Track A Wasm"
+              : overviewState.engine.toUpperCase()
           }`,
           caption: "Warm median execution duration in milliseconds (lower is faster).",
         })
         : '<p class="notice">No measured workloads matching the current filter.</p>';
 
-      // Chart 2: Suite-wide cross-language geometric mean
+      // Chart 2: Paired-ratio-normalized cross-language aggregate.
+      // Computing raw-ms geomMean across mismatched subsets distorts languages
+      // absent from long-running workloads (e.g. Dart absent from 18 manifests).
+      // Normalize each toolchain via its paired ratio (JS_i / Engine_i) against
+      // the shared Kernel JS geometric mean and print exact paired sample counts (n).
       const crossLangDefs = [
         { key: "js", label: "JavaScript (V8)", kind: "js" },
         { key: "wat", label: "Raw WAT", kind: "wasm" },
@@ -1052,27 +1111,42 @@ function renderHolisticOverview() {
         { key: "asc", label: "AssemblyScript", kind: "wasm" },
         { key: "dart", label: "Dart / WasmGC", kind: "wasm" },
       ];
+      const allMeasuredEntries = list.filter((w) =>
+        typeof w.engines?.js?.warmMs === "number" && w.engines.js.warmMs > 0
+      );
+      const anchorJsMs = geomMean(allMeasuredEntries.map((w) => w.engines.js.warmMs));
       const crossLangRows = [];
-      crossLangDefs.forEach((d) => {
-        const vals = [];
-        Array.from(suiteStore.values()).forEach((w) => {
-          const m = w.engines?.[d.key]?.warmMs;
-          if (typeof m === "number" && m > 0) vals.push(m);
+      if (anchorJsMs > 0) {
+        crossLangRows.push({
+          label: `JavaScript (n=${allMeasuredEntries.length})`,
+          valueMs: anchorJsMs,
+          kind: "js",
         });
-        if (vals.length > 0) {
-          crossLangRows.push({
-            label: d.label,
-            valueMs: geomMean(vals),
-            kind: d.kind,
+        crossLangDefs.filter((d) => d.key !== "js").forEach((d) => {
+          const pairedRatios = [];
+          allMeasuredEntries.forEach((w) => {
+            const jsM = w.engines?.js?.warmMs;
+            const engM = w.engines?.[d.key]?.warmMs;
+            if (typeof jsM === "number" && jsM > 0 && typeof engM === "number" && engM > 0) {
+              pairedRatios.push(jsM / engM);
+            }
           });
-        }
-      });
+          if (pairedRatios.length > 0) {
+            const gRatio = geomMean(pairedRatios);
+            crossLangRows.push({
+              label: `${d.label} (${gRatio.toFixed(2)}×, n=${pairedRatios.length})`,
+              valueMs: anchorJsMs / gRatio,
+              kind: d.kind,
+            });
+          }
+        });
+      }
 
       const rightChartHtml = crossLangRows.length > 1
         ? barChartSvg(crossLangRows, {
-          title: "Cross-Language Suite Aggregate",
+          title: "Paired Cross-Language Kernel Aggregate (Track A)",
           caption:
-            "Geometric mean execution duration in milliseconds across multi-language workloads.",
+            "Normalized equivalent duration (anchor JS geomMean ÷ paired JS/Engine geomMean); n shows paired workloads per toolchain so missing cells never skew averages.",
         })
         : '<p class="notice">Cross-language measurements loading...</p>';
 
@@ -1189,6 +1263,14 @@ function renderHolisticOverview() {
     tableHtml;
 
   // Wire Toolbar Listeners
+  const archSel = container.querySelector("#ov-archetype");
+  if (archSel) {
+    archSel.addEventListener("change", (e) => {
+      overviewState.archetype = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
   const catSel = container.querySelector("#ov-category");
   if (catSel) {
     catSel.addEventListener("change", (e) => {
@@ -1232,6 +1314,13 @@ function renderHolisticOverview() {
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
       exportOverviewCsv(list, overviewState.engine);
+    });
+  }
+
+  const runTourToolbarBtn = container.querySelector("#ov-run-tour");
+  if (runTourToolbarBtn) {
+    runTourToolbarBtn.addEventListener("click", () => {
+      runQuickTour(runTourToolbarBtn);
     });
   }
 
@@ -1371,7 +1460,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
         mlBox.appendChild(mlReporting);
         const { runMultilangComparison } = await import("/multilang-runner.js");
         mlData = await runMultilangComparison(mlManifest, {
-          iterations: Math.min(iterations, 3),
+          iterations: iterations <= 1 ? 1 : Math.min(iterations, 15),
           onStatus: (m) => {
             statusEl.textContent = m;
           },
@@ -1423,26 +1512,38 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
         for (const [, kResults] of Object.entries(mlData)) {
           for (const eng of (kResults ?? [])) {
             const isOpt = isTrackBVariant(eng.label, eng.track);
-            const k = isOpt ? `${eng.key}-opt` : eng.key;
-            entry.engines[k] = {
+            const k = isOpt ? (eng.key.endsWith("-opt") ? eng.key : `${eng.key}-opt`) : eng.key;
+            const rec = {
               label: eng.label,
               warmMs: eng.medianMs,
               coldMs: eng.coldMs ?? 0,
               bytes: eng.bytes ?? 0,
               track: isOpt ? "B" : "A",
             };
+            entry.engines[k] = rec;
+            if (isOpt) {
+              const langPrefix = String(eng.key).split("-")[0];
+              const bucketKey = `${langPrefix}-opt`;
+              const prev = entry.engines[bucketKey];
+              if (!prev || (rec.warmMs > 0 && rec.warmMs < prev.warmMs)) {
+                entry.engines[bucketKey] = rec;
+              }
+            }
           }
         }
       }
     }
     renderHolisticOverview();
 
-    // Render Compact Card Summary — keep Kernel Compute and Worker Task Pipeline strictly separate.
+    // Render Compact Card Summary — keep Kernel Compute (Track A) and Worker Task Pipeline strictly separate.
     const jsDigest = jsStats?.outputDigest || null;
     const wasmDigest = wasmStats?.outputDigest || null;
     const mlRowsRaw = mlData ? (mlData[Object.keys(mlData)[0]] ?? []) : [];
     const mlJsRow = mlRowsRaw.find((r) => r.key === "js" && r.medianMs > 0) || null;
-    const mlWasmRows = mlRowsRaw.filter((r) => r.key !== "js" && r.medianMs > 0);
+    const mlWasmRows = mlRowsRaw.filter((r) =>
+      r.key !== "js" && !r.key.startsWith("js-") && !isTrackBVariant(r.label, r.track) &&
+      r.medianMs > 0
+    );
     const bestMlWasm = mlWasmRows.length > 0
       ? [...mlWasmRows].sort((a, b) => a.medianMs - b.medianMs)[0]
       : null;
@@ -1659,8 +1760,68 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
   }
 }
 
+async function runQuickTour(triggerBtn) {
+  const container = document.getElementById("playground-cards");
+  const iterSelect = document.getElementById("pg-iterations");
+  const progressWrap = document.getElementById("pg-progress-wrap");
+  const progressBar = document.getElementById("pg-progress-bar");
+  const progressText = document.getElementById("pg-progress-text");
+  if (!container) return;
+
+  const iterations = Number(iterSelect ? iterSelect.value : 10);
+  const tourBtns = [
+    triggerBtn,
+    document.getElementById("pg-run-tour"),
+    document.getElementById("pg-run-all"),
+  ].filter(Boolean);
+  tourBtns.forEach((b) => {
+    b.disabled = true;
+  });
+  if (progressWrap) progressWrap.hidden = false;
+
+  const tourConfigs = QUICK_TOUR_SLUGS
+    .map((slug) => PLAYGROUND_WORKLOADS.find((w) => w.slug === slug))
+    .filter(Boolean);
+
+  let completed = 0;
+  let passedCount = 0;
+  for (const cfg of tourConfigs) {
+    if (progressText) {
+      progressText.textContent = `Quick Tour (${
+        completed + 1
+      }/${tourConfigs.length}): ${cfg.title} (${iterations}× loop)...`;
+    }
+    const card = container.querySelector(`[data-slug="${cfg.slug}"]`);
+    if (card) {
+      const res = await runBenchmarkForCard(cfg, card, iterations);
+      if (res.passed && res.mlResult?.passed !== false) passedCount++;
+    }
+    completed++;
+    if (progressBar) {
+      progressBar.style.width = `${Math.round((completed / tourConfigs.length) * 100)}%`;
+    }
+  }
+
+  overviewState.archetype = "all";
+  overviewState.category = "all";
+  renderHolisticOverview();
+
+  if (progressText) {
+    progressText.textContent =
+      `Quick Tour Complete: ${passedCount}/${tourConfigs.length} representative archetypes measured across ${iterations} iterations. Inspect the populated charts and table below.`;
+  }
+  const overviewEl = document.getElementById("playground-overview");
+  if (overviewEl) {
+    overviewEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  tourBtns.forEach((b) => {
+    b.disabled = false;
+  });
+}
+
 function initPlaygroundUI() {
   const container = document.getElementById("playground-cards");
+  const runTourBtn = document.getElementById("pg-run-tour");
   const runAllBtn = document.getElementById("pg-run-all");
   const iterSelect = document.getElementById("pg-iterations");
   const progressWrap = document.getElementById("pg-progress-wrap");
@@ -1725,6 +1886,12 @@ function initPlaygroundUI() {
     if (target) {
       requestAnimationFrame(() => target.scrollIntoView({ block: "start" }));
     }
+  }
+
+  if (runTourBtn) {
+    runTourBtn.addEventListener("click", () => {
+      runQuickTour(runTourBtn);
+    });
   }
 
   if (runAllBtn) {

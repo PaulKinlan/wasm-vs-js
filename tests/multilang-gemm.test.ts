@@ -113,6 +113,11 @@ Deno.test(
     const out = new Float32Array(M * N);
     kernels.gemm(a, b, c0, out, M, N, K);
     assertBitIdentical("Dart/WasmGC", out, ref);
+
+    const { gemmIkjF32 } = await import("../benchmarks/multilang-wasm/ml-gemm/gemm_ikj.js");
+    const jsOptOut = new Float32Array(M * N);
+    gemmIkjF32(a, b, c0, jsOptOut, M, N, K);
+    assertBitIdentical("JavaScript i/k/j (Track B)", jsOptOut, ref);
   },
 );
 

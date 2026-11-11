@@ -8,7 +8,13 @@ import { BENCHMARK_BUILD_SPECS, WASM_BUILD_LANES } from "../scripts/wasm-build-r
 import { verifyAutoResearchLog } from "../scripts/run-autoresearch.ts";
 import { verifyWorkerLifecycleAudit } from "../scripts/audit-worker-lifecycle.ts";
 import { createHandler } from "../server.ts";
-import { scopeTableHtml, sourceToGitHubUrl, toCsv } from "../public/benchmark-report.js";
+import {
+  classifyWorkloadArchetype,
+  decisionPanelHtml,
+  scopeTableHtml,
+  sourceToGitHubUrl,
+  toCsv,
+} from "../public/benchmark-report.js";
 import {
   getLastAgreementRecord,
   requireEngineAgreement,
@@ -20,6 +26,8 @@ import {
   explorerCsvRecords,
   extractOutputDigest,
 } from "../public/unified-runner.js";
+
+import { summarize } from "../public/measurement-model.js";
 
 const GITHUB_BLOB_PREFIX = "https://github.com/PaulKinlan/wasm-vs-js/blob/main/";
 
@@ -315,13 +323,14 @@ Deno.test("methodology page and runner diagnostics explain Worker Wasm task pipe
   const res = await handler(new Request("http://127.0.0.1/methodology/"));
   const html = await res.text();
   assertEquals(res.status, 200);
+  const ledger = JSON.parse(await Deno.readTextFile("public/data/worker-lifecycle.v1.json"));
   assert(html.includes('id="measurement-scopes"'));
   assert(html.includes('id="worker-wasm-explained"'));
   assert(html.includes("4 / 49"));
   assert(html.includes("33 / 49"));
   assert(html.includes("8 / 49"));
-  assert(html.includes("39 / 49"));
-  assert(html.includes("37 / 49"));
+  assert(html.includes(`${ledger.summary.perTaskNoStoreFetchCount} / 49`));
+  assert(html.includes(`${ledger.summary.perTaskSha256DigestCount} / 49`));
   assert(html.includes("45 / 49"));
   assert(html.includes("/docs/worker-lifecycle-audit.md"));
   assert(html.includes("/data/worker-lifecycle.v1.json"));
@@ -463,4 +472,96 @@ Deno.test("worker lifecycle audit stays synchronized with all 49 worker scripts,
     "wasm32 (no-store fetch + re-instantiated per task)",
   );
   assertEquals(asymRows.pipeline[1].note, "includes per-task WebAssembly.instantiate");
+
+  // Track A vs Track B & JS Track B classification in buildExplorerRows + decisionPanelHtml
+  const mixedRows = buildExplorerRows({
+    primaryStats: {
+      jsStats: {
+        samples: [3.0, 3.0],
+        pipelineSummary: summarize([3.0, 3.0], { scope: "pipeline", label: "JavaScript" }),
+      },
+      wasmStats: {
+        samples: [18.0, 18.0],
+        pipelineSummary: summarize([18.0, 18.0], { scope: "pipeline", label: "WebAssembly" }),
+      },
+    },
+    multilangResults: {
+      gemm: [
+        { key: "js", label: "JavaScript", samples: [3.0, 3.0, 3.0] },
+        {
+          key: "js-opt",
+          label: "JavaScript i/k/j (Track B)",
+          track: "B",
+          samples: [1.5, 1.5, 1.5],
+        },
+        { key: "c", label: "C / Wasm", samples: [0.9, 0.9, 0.9] },
+        {
+          key: "c-ikj-simd",
+          label: "C i/k/j + SIMD128",
+          track: "B",
+          samples: [0.2, 0.2, 0.2],
+        },
+      ],
+    },
+    domResults: null,
+    manifest: {
+      kernels: ["gemm"],
+      engines: [
+        { key: "js", kind: "js" },
+        { key: "js-opt", kind: "js", track: "B", baseline: "js" },
+        { key: "c", kind: "linear" },
+        { key: "c-ikj-simd", kind: "linear", track: "B", baseline: "c" },
+      ],
+    },
+    catalogSpec: {
+      workerLifecycleClass: "asymmetric-wasm-cold-per-task",
+      perTaskWasmInstantiate: true,
+    },
+  });
+  const jsOptRow = mixedRows.kernel.find((r) => r.key === "js-opt");
+  const cSimdRow = mixedRows.kernel.find((r) => r.key === "c-ikj-simd");
+  assertEquals(jsOptRow?.kind, "js");
+  assertEquals(jsOptRow?.track, "B");
+  assertEquals(cSimdRow?.kind, "wasm");
+  assertEquals(cSimdRow?.track, "B");
+
+  const coldDecisionHtml = decisionPanelHtml({
+    workloadLabel: "GEMM",
+    kernel: {
+      baseline: mixedRows.kernel[0].summary,
+      best: mixedRows.kernel[2].summary,
+      bestLabel: "C / Wasm",
+    },
+    pipeline: {
+      baseline: mixedRows.pipeline[0].summary,
+      best: mixedRows.pipeline[1].summary,
+      bestLabel: "WebAssembly",
+    },
+    delivery: { baselineMs: 1.0, candidateMs: 2.0 },
+    workerLifecycleClass: "asymmetric-wasm-cold-per-task",
+  });
+  assert(coldDecisionHtml.includes("Contract worker"));
+  assert(coldDecisionHtml.includes("re-instantiating .wasm per message"));
+  assert(!coldDecisionHtml.includes("This is what an application would feel"));
+
+  const warmDecisionHtml = decisionPanelHtml({
+    workloadLabel: "Sum",
+    kernel: null,
+    pipeline: {
+      baseline: mixedRows.pipeline[0].summary,
+      best: mixedRows.pipeline[1].summary,
+      bestLabel: "WebAssembly",
+    },
+    delivery: null,
+    workerLifecycleClass: "symmetric-warm",
+  });
+  assert(warmDecisionHtml.includes("Whole task"));
+
+  assertEquals(classifyWorkloadArchetype("ml-gemm", "Neural & AI", "compute").id, "simd");
+  assertEquals(classifyWorkloadArchetype("text-markdown-cms", "Text", "compute").id, "stateful");
+  assertEquals(
+    classifyWorkloadArchetype("text.gc-document-edit.v1", "Text", "dom").id,
+    "memory",
+  );
+  assertEquals(classifyWorkloadArchetype("dom-grid-movement", "DOM", "dom").id, "dom");
 });

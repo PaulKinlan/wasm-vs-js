@@ -159,24 +159,28 @@ manifests.
 
 ## Current status
 
-Eighteen Track B variants are built, verified, and wired across two workloads (`ml.gemm.v1`
-and `numeric.polybench-panel.v1`), spanning C, C++, Rust, AssemblyScript, and Dart/WasmGC.
-Seventeen are `bit-identical` to the pinned oracle and one (`c-simd-dot` on `ml.gemm.v1`)
-is `reassociated` with measured ULP and relative deviation bounds (`maxUlpDeviation: 31488`,
+Twenty-four Track B variants are built, verified, and wired across four workloads (`ml.gemm.v1`,
+`numeric.polybench-panel.v1`, `multilang-wasm` / `sum-u32`, and `dom.grid-movement.v1`), spanning
+JavaScript, handwritten WAT, C, C++, Rust, AssemblyScript, and Dart/WasmGC. Twenty-three are
+`bit-identical` to the pinned oracle and one (`c-simd-dot` on `ml.gemm.v1`) is `reassociated`
+with measured ULP and relative deviation bounds (`maxUlpDeviation: 31488`,
 `maxRelativeDeviation: 0.002152`, `declaredTolerance: 0.005`). Across the 45 multi-language
-manifests there are 250 Track A engine rows and 18 Track B variant rows. `/data/track-b.v1.json`
+manifests there are 287 Track A engine rows and 24 Track B variant rows. `/data/track-b.v1.json`
 reports the split.
 
 Track A baselines continue to use the controlled compiler flags, while Track B variants
-enable `targetFeatures: ["simd128"]` (`-msimd128` in Clang, `-C target-feature=+simd128`
-in `rustc`) or dart2wasm optimization levels (`-O2`, `-O3`, `-O4`):
+enable target-plausible JS loop/workspace tuning, `targetFeatures: ["simd128"]` (`-msimd128`
+in Clang, `-C target-feature=+simd128` in `rustc`, `v128` opcodes in WAT), or dart2wasm
+optimization levels (`-O2`, `-O3`, `-O4`):
 
-| Language       | Track A Flag            | Track B Flags / Features             |
-| -------------- | ----------------------- | ------------------------------------ |
-| C / C++        | `-O3 -ffp-contract=off` | `+ -msimd128` (via `targetFeatures`) |
-| Rust           | `-O`                    | `+ -C target-feature=+simd128`       |
-| AssemblyScript | `-O3`                   | loop-interchanged & tiled sources    |
-| Dart           | default `-O1`           | `-O2`, `-O3`, `-O4`                  |
+| Language       | Track A Flag            | Track B Flags / Features                           |
+| -------------- | ----------------------- | -------------------------------------------------- |
+| JavaScript     | Controlled baseline     | `i/k/j` row-streaming, loop unrolling, scratch buf |
+| Raw WAT        | Scalar opcodes          | Handwritten `v128` (`f32x4` / `i32x4`) SIMD        |
+| C / C++        | `-O3 -ffp-contract=off` | `+ -msimd128` (via `targetFeatures`)               |
+| Rust           | `-O`                    | `+ -C target-feature=+simd128`                     |
+| AssemblyScript | `-O3`                   | loop-interchanged & tiled sources                  |
+| Dart           | default `-O1`           | `-O2`, `-O3`, `-O4`                                |
 
 ## Optimization logs
 
@@ -302,10 +306,36 @@ Moving from the default `-O1` to `-O4` buys 1.3% on this kernel while reducing b
 size by 22% (`39,079 B → 30,487 B`). Dart's GEMM cost is the `f32`-emulation-in-`f64`
 arithmetic (`Math.fround` after every operation), not the dart2wasm optimization level.
 
+### JavaScript & Handwritten WAT Track B Variants (`ml.gemm.v1`, `numeric.polybench-panel.v1`, `multilang-wasm`, `dom.grid-movement.v1`)
+
+Giving WebAssembly cache-friendly loop order and SIMD while holding JavaScript at an unoptimized
+`i/j/k` baseline overstates the language gap. Four JavaScript Track B variants and two handwritten
+WAT `v128` SIMD variants isolate how much speedup comes from memory layout versus ISA vectorization:
+
+- **`ml.gemm.v1` `js-opt` (`bit-identical`):** `benchmarks/multilang-wasm/ml-gemm/gemm_ikj.js`
+  applies the exact `i/j/k` → `i/k/j` interchange and pre-allocated `Float32Array` workspace used
+  by `c-ikj`, keeping ascending `t = 0..k-1` `Math.fround` accumulation (0 ULP deviation). Measured
+  in Deno 2.9 / V8 on Apple M4 Pro (`128³`, 200 iterations): **`3.0100 ms → 1.5185 ms` (`1.98×`)**.
+  Half of the apparent gap between Track A JS (`3.01 ms`) and Track A C/Rust (`~0.90 ms`) was
+  column-strided cache behavior; the remaining gap to `c-ikj-simd` (`0.20 ms`) is explicit 4-wide
+  `f32x4` SIMD128, which JavaScript does not expose.
+- **`numeric.polybench-panel.v1` `js-opt` (`bit-identical`):**
+  `benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.js` reuses pre-allocated
+  `Float64Array` workspaces instead of `.slice()` allocations, hoists `alpha * A[i, k]` and row
+  base offsets, and uses `TypedArray.fill` on Cholesky's upper triangle. Measured **`0.0746 ms → 0.0705 ms` (`1.06×`)**
+  because Track A already streams rows in `i/k/j` order, whereas `c-simd` (`2.14×`) and `rs-simd`
+  (`1.70×`) gain 2-wide `f64x2` vectorization.
+- **`multilang-wasm` (`sum-u32`) `js-opt` & `wat-simd` (`bit-identical`):** 4-way loop-unrolled
+  JavaScript modulo-2³² accumulation alongside handwritten `i32x4.add` WAT SIMD (`sum_u32_simd.wat`).
+- **`ml.gemm.v1` `wat-simd` (`bit-identical`):** Handwritten `f32x4` `i/k/j` SIMD (`gemm_wat_simd.wat`).
+- **`dom.grid-movement.v1` `js-opt` (`bit-identical`):** Flat typed-array cell-state indexing.
+
 ## Summary of Built Track B Variants
 
 | Workload                     | Variant        | Technique                                      | Class         | State                  |
 | ---------------------------- | -------------- | ---------------------------------------------- | ------------- | ---------------------- |
+| `ml.gemm.v1`                 | `js-opt`       | JS `i/k/j` row-streaming + scratch workspace   | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `wat-simd`     | Handwritten WAT `i/k/j` + `f32x4` SIMD128      | bit-identical | **built and measured** |
 | `ml.gemm.v1`                 | `asc-ikj`      | loop interchange `i/j/k` to `i/k/j`            | bit-identical | **built and measured** |
 | `ml.gemm.v1`                 | `asc-tiled`    | `32×32` `i/j` panel tiling, `k` order kept     | bit-identical | **built and measured** |
 | `ml.gemm.v1`                 | `dart-o2/3/4`  | `dart2wasm` optimization levels `-O2/-O3/-O4`  | bit-identical | **built and measured** |
@@ -319,9 +349,13 @@ arithmetic (`Math.fround` after every operation), not the dart2wasm optimization
 | `ml.gemm.v1`                 | `rs-ikj`       | Rust `i/k/j` row-streaming loop interchange    | bit-identical | **built and measured** |
 | `ml.gemm.v1`                 | `rs-tiled`     | Rust `32×32` `i/j` panel tiling                | bit-identical | **built and measured** |
 | `ml.gemm.v1`                 | `rs-ikj-simd`  | Rust `i/k/j` + `+simd128` (`f32x4` across `j`) | bit-identical | **built and measured** |
+| `numeric.polybench-panel.v1` | `js-opt`       | JS reusable scratch `Float64Array` + hoisting  | bit-identical | **built and measured** |
 | `numeric.polybench-panel.v1` | `c-opt`        | C `__restrict` + `i/k/j` `2mm`/`3mm` hoisting  | bit-identical | **built and measured** |
 | `numeric.polybench-panel.v1` | `c-simd`       | C `polybench_opt.c` + `-msimd128` (`f64x2`)    | bit-identical | **built and measured** |
 | `numeric.polybench-panel.v1` | `rs-simd`      | Rust `polybench_opt.rs` + `+simd128` (`f64x2`) | bit-identical | **built and measured** |
+| `multilang-wasm`             | `js-opt`       | JS 4-way unrolled modulo-2³² accumulation      | bit-identical | **built and measured** |
+| `multilang-wasm`             | `wat-simd`     | Handwritten WAT `i32x4.add` SIMD128            | bit-identical | **built and measured** |
+| `dom.grid-movement.v1`       | `js-opt`       | JS flat typed-array grid indexing              | bit-identical | **built and measured** |
 
 ### simulation-nbody-cloth, image-editing, text-regex-log-scan
 

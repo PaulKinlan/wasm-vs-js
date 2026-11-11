@@ -17,10 +17,12 @@
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
       <a href="/benchmarks/">Browse Catalog</a>
-      <a href="/methodology/">Methodology</a>
+      <strong>methodology</strong>
+      <a href="/benchmarks/track-b/">Track B</a>
+      <a href="/coverage/">Coverage</a>
+      <a href="/results/">Results</a>
       <a href="/experiments/">Experiment</a>
       <a href="/evidence/">Evidence</a>
-      <strong>data v1</strong>
     </header>
     <main id="main">
       <section class="hero catalog-hero">
@@ -141,13 +143,13 @@
               <tr>
                 <th
                   scope="row">Calls <code>fetch(..., { cache: "no-store" })</code> inside <code>onmessage</code></th>
-                <td class="num">39 / 49</td>
+                <td class="num">36 / 49</td>
                 <td>Bypasses HTTP cache and fetches <code>.wasm</code> (and any binary reference fixtures) over loopback HTTP on every Wasm iteration.</td>
               </tr>
               <tr>
                 <th
                   scope="row">Runs <code>crypto.subtle.digest("SHA-256")</code> inside <code>onmessage</code></th>
-                <td class="num">37 / 49</td>
+                <td class="num">36 / 49</td>
                 <td>Hashes full <code>.wasm</code> binary, fixture, or output bytes during every timed Wasm task to attest provenance.</td>
               </tr>
               <tr>
@@ -194,16 +196,31 @@
             Implements the identical algorithm and data layout across C (<code>clang -O3</code>), C++ (<code>clang++ -O3</code>), Rust (<code>rustc -O</code>), AssemblyScript (<code>asc -O3</code>), and Dart (<code>dart compile wasm</code>) without target-specific SIMD intrinsics or loop re-tiling.
           </li>
           <li>
-            <strong>Stage 3 — Idiomatic &amp; Hardware Optimizations (Track B &amp; Pre-Computed Auto-Research):</strong>
-            Evaluates SIMD128 vectorization (<code>-msimd128 -funroll-loops</code>), cache-blocked loop tiling, call-boundary batching, and linear-memory arena reuse. To keep Track A baselines untouched, all <strong>45</strong> pre-computed auto-research SIMD128 binaries are compiled into an isolated directory (<code>/artifacts/autoresearch/</code>), verified against each workload's pinned output oracle, and logged in <a href="/data/autoresearch-log.v1.json"><code>/data/autoresearch-log.v1.json</code></a> and <a href="/docs/autoresearch-log.md"><code>/docs/autoresearch-log.md</code></a>. Visitors see the pre-computed empirical measurements immediately and can optionally re-measure probes in their own browser.
+            <strong>Stage 3 — Idiomatic &amp; Hardware Optimizations (Track B &amp; Isolated Standalone Auto-Research):</strong>
+            Evaluates JavaScript loop/workspace optimizations (<code>js-opt</code>), SIMD128 vectorization (<code>-msimd128 -funroll-loops</code>), cache-blocked loop tiling, call-boundary batching, and linear-memory arena reuse. Hand-tuned Track B entries run live in the browser tab and report speedup strictly against their own language's Track A baseline. Pre-computed auto-research SIMD128 binaries (<code>/artifacts/autoresearch/</code>) and 5-dimension profiles (<a href="/data/autoresearch-log.v1.json"><code>/data/autoresearch-log.v1.json</code></a>, <a href="/docs/autoresearch-log.md"><code>/docs/autoresearch-log.md</code></a>) were captured offline in standalone Deno 2.9 / V8 on Apple M4 Pro and remain explicitly labelled as non-browser CLI diagnostics.
           </li>
         </ol>
+      </section>
+
+      <section class="proposal-inventory" id="workload-archetypes"
+        aria-labelledby="archetypes-heading">
+        <p class="eyebrow">Mechanistic Taxonomy</p>
+        <h2 id="archetypes-heading">4. Four Bottleneck Archetypes</h2>
+        <p>
+          Across the 50 workloads, relative JavaScript and WebAssembly speed tracks four structural bottleneck classes:
+        </p>
+        <ul>
+          <li><strong>Data-Parallel Numeric &amp; SIMD:</strong> Tight typed-array loops without loop-carried dependencies (<code>ml-gemm</code>, <code>audio-fir</code>, <code>numeric-polybench-panel</code>, <code>sum-u32</code>). Contiguous memory layout helps both JS and Wasm (e.g., <code>ml-gemm</code> <code>js-opt</code> gains <code>1.98×</code> from <code>i/k/j</code> interchange alone), while Wasm <code>v128</code> SIMD adds 2–4× lane parallelism unavailable to standard JS.</li>
+          <li><strong>Sequential State-Machine &amp; Parsing:</strong> Branch-heavy codecs, hashes, regex automata, and wire parsers (<code>archive-zip-workspace</code>, <code>crypto-file-integrity</code>, <code>text-markdown-cms</code>). Loop-carried state prevents SIMD vectorization; V8 JIT and scalar Wasm frequently run near parity unless 64-bit integer bitwise rotations dominate (<code>ChaCha20-Poly1305</code>).</li>
+          <li><strong>Spatial, Graph &amp; WasmGC Heap:</strong> Pointer-chasing BVHs, meshes, physics solvers, and managed object graphs (<code>graphics-cpu-path-tracer</code>, <code>cad-mesh-repair</code>, <code>text.gc-document-edit</code>). Representation choices—flat linear-memory slot arrays vs. WasmGC struct graphs (<code>4.70×</code> delta on 10,000 document edits) and native <code>f32</code> vs. emulated <code>f64</code> rounding—dominate compiler differences.</li>
+          <li><strong>Real-DOM &amp; Host Boundary:</strong> Interactive UI workloads driving live iframe DOM trees (<code>base-dom-todomvc-journey</code>, <code>dom-keyed-list-mutation</code>, <code>vdom-diff-patch-demo</code>). UTF-16 string marshaling, command-stream decoding, and browser style/layout recalculation bound end-to-end latency.</li>
+        </ul>
       </section>
 
       <section class="proposal-inventory" id="reporting-and-charts"
         aria-labelledby="reporting-heading">
         <p class="eyebrow">Measurement Disciplines</p>
-        <h2 id="reporting-heading">4. Distributions, Cold Trajectories &amp; Visual Evidence</h2>
+        <h2 id="reporting-heading">5. Distributions, Cold Trajectories &amp; Visual Evidence</h2>
         <ul>
           <li>
             <strong>Static Payload Footprint:</strong>
@@ -224,7 +241,7 @@
         aria-labelledby="build-equivalence-heading">
         <p class="eyebrow">Reproducibility &amp; Verification</p>
         <h2
-          id="build-equivalence-heading">5. Build Recipes, Source Links &amp; Output Consistency</h2>
+          id="build-equivalence-heading">6. Build Recipes, Source Links &amp; Output Consistency</h2>
         <p>
           Every benchmark page links directly to its executed JavaScript source, authored WebAssembly Text (<code>.wat</code>) or compiled language kernel (<code>.c</code>, <code>.cpp</code>, <code>.rs</code>, <code>.ts</code>, <code>.dart</code>, <code>.kt</code>), and GitHub file view. Before any timing iteration runs, each engine executes a deterministic verification probe (32-bit FNV-1a digest, SHA-256 digest, or frozen state tuple) and aborts if outputs diverge; the agreed digest is displayed in every results table.
         </p>

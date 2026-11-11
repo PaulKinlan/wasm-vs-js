@@ -632,6 +632,116 @@ export function deliveryTableHtml(rows) {
   </div>`;
 }
 
+// ── Workload Archetypes ──────────────────────────────────────────────────
+
+export const WORKLOAD_ARCHETYPES = {
+  simd: {
+    id: "simd",
+    label: "Data-Parallel Numeric & SIMD",
+    mechanism:
+      "Dense typed-array loops without loop-carried data dependencies. Linear-memory Wasm avoids JS bounds/boxing checks, and SIMD128 (f32x4, f64x2, i32x4) processes 2–4 lanes per instruction when memory access is contiguous.",
+  },
+  stateful: {
+    id: "stateful",
+    label: "Sequential State-Machine & Parsing",
+    mechanism:
+      "Branch-heavy tokenizers, codecs, hashes, and wire parsers with loop-carried state transitions. Auto-vectorization emits few or zero arithmetic v128 ops; JS JIT and scalar Wasm often land near parity unless 64-bit bitwise math dominates.",
+  },
+  memory: {
+    id: "memory",
+    label: "Spatial, Graph & WasmGC Heap",
+    mechanism:
+      "Pointer-chasing BVHs, meshes, physics solvers, and managed object graphs. Cache locality, arena indexing vs WasmGC struct allocation, and numeric width (f32 vs f64) outweigh compiler choice.",
+  },
+  dom: {
+    id: "dom",
+    label: "Real-DOM & Host Boundary",
+    mechanism:
+      "Workloads whose product outcome mutates live browser DOM nodes across the JS↔Wasm boundary. UTF-16 string marshaling, command-buffer decoding, and browser layout/style work frequently match or exceed kernel savings.",
+  },
+};
+
+const SIMD_KEYS = new Set([
+  "sum-u32",
+  "multilang-wasm",
+  "multilang-wasm-dsp-panel",
+  "numeric-polybench-panel",
+  "numeric-polybench-panel-v1",
+  "numeric.polybench-panel.v1",
+  "numeric-fft-spectral-filter",
+  "numeric-fft-spectral-filter-v1",
+  "numeric.fft-spectral-filter.v1",
+  "audio-fft",
+  "audio.fft.v1",
+  "audio-fir",
+  "audio.fir.v1",
+  "audio-stft",
+  "audio.stft.v1",
+  "base-audio-webaudio-effects-v1",
+  "audio.webaudio-effects.v1",
+  "ml-gemm",
+  "ml.gemm.v1",
+  "ml-dense-mlp",
+  "ml.dense-mlp.v1",
+  "ml-numeric-kernels-v1",
+  "ml.numeric-kernels.v1",
+  "ml-keyword-spotting-v1",
+  "ml.keyword-spotting.v1",
+  "image-editing-demo",
+  "image.editing-pipeline.v1",
+  "simulation-nbody-cloth",
+  "simulation.nbody-cloth.v1",
+  "database-olap-chart",
+  "database.olap-chart.v1",
+]);
+
+const MEMORY_KEYS = new Set([
+  "graphics-cpu-path-tracer-v1",
+  "graphics.cpu-path-tracer.v1",
+  "base-gltf-viewer",
+  "graphics.gltf-viewer.v1",
+  "cad-mesh-repair-v1",
+  "cad.mesh-repair.v1",
+  "cad-parametric-bracket",
+  "cad.parametric-bracket.v1",
+  "simulation-rigid-body-2d-v1",
+  "simulation.rigid-body-2d.v1",
+  "game-ecs-frame-update",
+  "game.ecs-frame-update.v1",
+  "game-canvas-arcade",
+  "game.canvas-arcade.v1",
+  "game-canvas-entity-pathfinding",
+  "game.canvas-entity-pathfinding.v1",
+  "text-gc-document-edit-v1",
+  "text.gc-document-edit.v1",
+  "image-flood-fill-demo",
+  "image.flood-fill.v1",
+]);
+
+/**
+ * Classify a workload into one of the four empirical bottleneck archetypes.
+ * @param {string} [slugOrId]
+ * @param {string} [category]
+ * @param {string} [pageType]
+ */
+export function classifyWorkloadArchetype(slugOrId = "", category = "", pageType = "") {
+  const key = String(slugOrId).trim();
+  const cat = String(category).toLowerCase();
+  if (key === "text-gc-document-edit-v1" || key === "text.gc-document-edit.v1") {
+    return WORKLOAD_ARCHETYPES.memory;
+  }
+  if (
+    pageType === "dom" || key.startsWith("dom-") || key.startsWith("dom.") ||
+    key === "base-dom-todomvc-journey" || key === "vdom-diff-patch-demo" ||
+    key === "game-dom-tactics-grid" || cat.includes("dom")
+  ) {
+    return WORKLOAD_ARCHETYPES.dom;
+  }
+  if (SIMD_KEYS.has(key)) return WORKLOAD_ARCHETYPES.simd;
+  if (MEMORY_KEYS.has(key)) return WORKLOAD_ARCHETYPES.memory;
+  return WORKLOAD_ARCHETYPES.stateful;
+}
+
 // ── Decision panel ────────────────────────────────────────────────────────
 
 /**
@@ -645,10 +755,18 @@ export function deliveryTableHtml(rows) {
  *           delivery: { baselineMs: number|null, candidateMs: number|null,
  *                       baselineBytes?: number|null,
  *                       candidateBytes?: number|null } | null,
+ *           workerLifecycleClass?: string | null,
  *           contamination?: any }} input
  */
 export function decisionPanelHtml(
-  { workloadLabel, kernel, pipeline, delivery, contamination: cont },
+  {
+    workloadLabel,
+    kernel,
+    pipeline,
+    delivery,
+    workerLifecycleClass = null,
+    contamination: cont,
+  },
 ) {
   const cards = [];
 
@@ -661,16 +779,16 @@ export function decisionPanelHtml(
     const detail = isWasmFaster
       ? `${esc(kernel.bestLabel)} (${fmtMs(kernel.best.p50Ms)} median) vs JavaScript (${
         fmtMs(kernel.baseline.p50Ms)
-      } median) on the bare in-memory kernel${
+      } median) on the bare in-memory kernel (Track A controlled)${
         sep ? ", but the confidence intervals overlap — treat this as no measured difference" : ""
       }.`
       : `JavaScript (${fmtMs(kernel.baseline.p50Ms)} median) beats ${esc(kernel.bestLabel)} (${
         fmtMs(kernel.best.p50Ms)
-      } median) on the bare in-memory kernel${
+      } median) on the bare in-memory kernel (Track A controlled)${
         sep ? ", but the confidence intervals overlap — treat this as no measured difference" : ""
       }.`;
     cards.push(`<div class="decision-card${sep ? " is-inconclusive" : ""}">
-      <h4>${icon(sep ? "warn" : "check")} Algorithm</h4>
+      <h4>${icon(sep ? "warn" : "check")} Algorithm (Track A)</h4>
       <p class="decision-number">${speedupHeadline}</p>
       <p class="decision-detail">${detail}</p>
     </div>`);
@@ -681,15 +799,26 @@ export function decisionPanelHtml(
     const isWasmFaster = pipeRatio.value >= 1;
     const speedupVal = isWasmFaster ? pipeRatio.value : (1 / pipeRatio.value);
     const speedupHeadline = `${speedupVal.toFixed(2)}× faster in ${isWasmFaster ? "Wasm" : "JS"}`;
+    const isColdPerTask = workerLifecycleClass === "asymmetric-wasm-cold-per-task" ||
+      workerLifecycleClass === "per-task-verified-bundle" ||
+      workerLifecycleClass === "symmetric-cold-isolate";
+    const pipeHeading = isColdPerTask ? "Contract worker" : "Whole task";
+    const lifecycleSuffix = workerLifecycleClass === "asymmetric-wasm-cold-per-task"
+      ? " This contract worker keeps JS warm while re-fetching and re-instantiating .wasm per message for provenance; read Algorithm & Break-even for cached-instance behavior."
+      : workerLifecycleClass === "per-task-verified-bundle"
+      ? " This contract worker re-verifies bundles and re-instantiates .wasm on every message; read Algorithm & Break-even for cached-instance behavior."
+      : workerLifecycleClass === "symmetric-cold-isolate"
+      ? " This contract worker spawns a fresh OS thread and V8 isolate per sample; read Algorithm & Break-even for warm worker reuse."
+      : " Measured across warm cached worker dispatch, serialization, and validation.";
     const detail = isWasmFaster
       ? `WebAssembly (${fmtMs(pipeline.best.p50Ms)}) vs JavaScript (${
         fmtMs(pipeline.baseline.p50Ms)
-      }) once worker dispatch, serialization and validation are counted. This is what an application would feel.`
+      }) across worker dispatch, serialization, and validation.${lifecycleSuffix}`
       : `JavaScript (${fmtMs(pipeline.baseline.p50Ms)}) beats WebAssembly (${
         fmtMs(pipeline.best.p50Ms)
-      }) once worker dispatch, serialization and validation are counted. This is what an application would feel.`;
-    cards.push(`<div class="decision-card">
-      <h4>${icon("clock")} Whole task</h4>
+      }) across worker dispatch, serialization, and validation.${lifecycleSuffix}`;
+    cards.push(`<div class="decision-card${isColdPerTask ? " is-inconclusive" : ""}">
+      <h4>${icon("clock")} ${pipeHeading}</h4>
       <p class="decision-number">${speedupHeadline}</p>
       <p class="decision-detail">${detail}</p>
     </div>`);

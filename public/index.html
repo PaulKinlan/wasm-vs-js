@@ -14,6 +14,9 @@
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
       <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/methodology/">Methodology</a>
+      <a href="/benchmarks/track-b/">Track B</a>
+      <a href="/coverage/">Coverage</a>
       <a href="/results/">Results</a>
       <a href="/experiments/">Experiment</a>
       <a href="/evidence/">Evidence</a>
@@ -23,22 +26,62 @@
       <section class="intro narrative">
         <p class="eyebrow">Project Overview &amp; Harness Control</p>
         <h1>When does WebAssembly improve Web Applications?</h1>
-        <p>This benchmark suite compares JavaScript and WebAssembly across 38 real-world workloads—ranging from audio DSP, 3D graphics, and neural AI models to Virtual DOM diffing, regex engines, and database queries. The evidence measures transfer, compilation, initialization, fixed work, and sample trajectories.</p>
+        <p>This benchmark suite evaluates JavaScript, linear-memory WebAssembly, and WasmGC across 50 workload suites (48 interactive browser playground cards, 45 multi-language kernel manifests, 11 real-DOM iframe stages, and 38 frozen v1 catalog definitions). Every timing table separates delivery, worker dispatch, in-memory kernel compute, and real-DOM mutation after pre-timing oracle verification.</p>
         <p class="nav-links">
-          <a href="/benchmarks/">Browse 38 catalog workloads</a>
-          <a href="/results/">Explore results</a>
+          <a href="/benchmarks/">Browse catalog</a>
+          <a href="/methodology/">Read 4-scope methodology</a>
+          <a href="/benchmarks/track-b/">Compare Track B optimizations</a>
+          <a href="/coverage/">Inspect coverage matrix</a>
           <a href="/experiments/">Read frozen experiment</a>
           <a href="/evidence/">Check implementation evidence</a>
           <a
-            href="https://github.com/PaulKinlan/wasm-vs-js/blob/5303921420656fd6e37a333814b2132610dfce48/PLAN.md">Read methodology</a>
+            href="https://github.com/PaulKinlan/wasm-vs-js/blob/5303921420656fd6e37a333814b2132610dfce48/PLAN.md">Canonical PLAN.md</a>
         </p>
+      </section>
+
+      <section aria-labelledby="regimes-title">
+        <p class="eyebrow">Empirical Synthesis · Four Bottleneck Regimes</p>
+        <h2 id="regimes-title">What governs Wasm vs. JavaScript in practice</h2>
+        <p class="narrative">
+          No universal JavaScript-versus-Wasm ratio exists because four distinct runtime mechanisms govern different application shapes. Click any linked workload below to verify that regime in your own browser tab.
+        </p>
+        <div class="decision-grid">
+          <div class="decision-card">
+            <h4>1. Lifecycle &amp; Instantiation</h4>
+            <p class="decision-number">45 / 49 workers</p>
+            <p class="decision-detail">
+              In the <a href="/docs/worker-lifecycle-audit.md">50-test worker lifecycle audit</a>, 45 of 49 self-attesting contract workers compile a fresh <code>WebAssembly.Instance</code> per task while 33 keep JavaScript warm. Standalone Deno/V8 probes (<a href="/docs/autoresearch-log.md">M4 Pro</a>) measure up to <code>15.5×</code> overhead on <a href="#workload-network-pcap-decode-v1"><code>pcap-decode</code></a> and <code>7.8×</code> on <a href="#workload-sum-u32"><code>sum-u32</code></a> when instances are not reused.
+            </p>
+          </div>
+          <div class="decision-card">
+            <h4>2. Data-Parallel SIMD128</h4>
+            <p class="decision-number">12 / 45 ≥ 1.05×</p>
+            <p class="decision-detail">
+              Compiling 45 kernels with <code>-msimd128 -funroll-loops</code> emitted <code>v128</code> instructions in 36 binaries, yet accelerated 12 (<a href="#workload-audio-fir"><code>audio-fir</code></a> <code>3.20×</code>, <a href="#workload-ml-gemm"><code>ml-gemm</code></a> <code>2.37×</code>, <a href="#workload-base-gltf-viewer"><code>gltf-viewer</code></a> <code>2.03×</code> in standalone Deno/V8). Branchy state machines (<a href="#workload-crypto-file-integrity-v1"><code>sha256</code></a>, <a href="#workload-archive-zip-workspace-v1"><code>zip</code></a>, <a href="#workload-text-markdown-cms"><code>markdown-cms</code></a>) stay near <code>1.00×</code>.
+            </p>
+          </div>
+          <div class="decision-card">
+            <h4>3. Cache Stride vs. Language</h4>
+            <p class="decision-number">1.98× JS · 4.43× Wasm</p>
+            <p class="decision-detail">
+              On <a href="#workload-ml-gemm"><code>ml-gemm</code></a> (<code>128³</code> strict <code>f32</code>), Track A C, C++, and Rust sit within 6% (<code>0.86–0.92 ms</code>). Switching JavaScript to <code>i/k/j</code> row-streaming (<a href="/benchmarks/track-b/">Track B <code>js-opt</code></a>) halves JS latency (<code>3.01 → 1.52 ms</code>, 0 ULP drift); adding 4-wide <code>f32x4</code> SIMD128 (<code>c-ikj-simd</code>) reaches <code>0.20 ms</code>.
+            </p>
+          </div>
+          <div class="decision-card">
+            <h4>4. WasmGC &amp; Numeric Width</h4>
+            <p class="decision-number">4.70× heap cost</p>
+            <p class="decision-detail">
+              On <a href="#workload-text-gc-document-edit-v1"><code>text.gc-document-edit</code></a> (10,000 edits), Dart/WasmGC's managed <code>_Node</code> reference graph runs <code>4.70×</code> slower (<code>0.635 ms</code> vs <code>0.135 ms</code>) than non-allocating C slot arrays. On <code>ml-gemm</code>, emulating absent native <code>f32</code> scalars in <code>f64</code> costs ~40×.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section aria-labelledby="playground-title" class="playground-section">
         <div class="narrative">
           <h2
             id="playground-title">Interactive Benchmark Playground &amp; Performance Comparison</h2>
-          <p>Run JavaScript and WebAssembly benchmarks directly in browser workers across multi-iteration loops. Compare cold startup vs warm runtime optimizations and see real-time execution timing and speedup ratios.</p>
+          <p>Run JavaScript and WebAssembly benchmarks directly in this browser across four isolated scopes. Start with the 6-archetype Quick Tour (~15s) to populate the cross-language charts across compute, DSP, parser, WasmGC, and real-DOM workloads, or run individual suites below.</p>
           <p
             class="muted">“Cold start” here is the first iteration of a run in your current browser: worker load, Wasm compile and instantiate, input setup, then the first timed execution. Select 1 iteration to measure only that. <a href="https://github.com/PaulKinlan/wasm-vs-js/blob/79ae3d65cf4d012acdaac376512f86e26e918080/docs/cold-start-definition.md">What cold start includes</a>, and how the controlled experiment defines cold more strictly.</p>
         </div>
@@ -55,9 +98,11 @@
               </select>
             </label>
           </div>
-          <div>
+          <div class="actions">
+            <button type="button" id="pg-run-tour"
+              class="button-link">▶ Run 6-Archetype Quick Tour</button>
             <button type="button" id="pg-run-all"
-              class="button-link">Run Entire Benchmark Suite</button>
+              class="btn-ov-secondary">Run All 47 Automated Suites</button>
           </div>
         </div>
 
@@ -76,14 +121,8 @@
         </div>
       </section>
 
-      <section aria-labelledby="acceptance-title">
-        <h2 id="acceptance-title">Evidence available now</h2>
-        <p>Commit <code>ddc8886</code> passed <code>deno task check</code> with 635 verification tests (100% green) and an independent review with no blocker, high, or medium finding. <a href="/evidence/v1/acceptance.json">The acceptance package</a> records the source and artifact hashes.</p>
-        <p>A Chrome 150 validation completed the visible JavaScript/Wasm control and returned two HTTP 201 responses, according to a parent attestation. The records were removed and no replayable browser artifact remains, so the attestation is unverified and supplies no timing evidence.</p>
-      </section>
-
       <section aria-labelledby="summary-title">
-        <h2 id="summary-title">Evidence summary</h2>
+        <h2 id="summary-title">Suite &amp; evidence summary</h2>
         <dl class="metrics" id="metrics">
           <div>
             <dt>Catalog Workloads</dt>
@@ -91,21 +130,32 @@
           </div>
           <div>
             <dt>Playground Demos</dt>
-            <dd>38</dd>
+            <dd>48</dd>
           </div>
           <div>
             <dt>Run Unattended</dt>
-            <dd>37</dd>
+            <dd>47</dd>
           </div>
           <div>
             <dt>v2 Proposals</dt>
             <dd>20</dd>
           </div>
           <div>
-            <dt>Verification Test Gates</dt>
-            <dd>647 Passed</dd>
+            <dt>Multi-Language Manifests</dt>
+            <dd>45</dd>
+          </div>
+          <div>
+            <dt>Wasm Artifacts</dt>
+            <dd>345</dd>
           </div>
         </dl>
+      </section>
+
+      <section aria-labelledby="acceptance-title">
+        <p class="eyebrow">Preregistered M1 Corpus &amp; Local Store Inspector</p>
+        <h2 id="acceptance-title">Evidence available now</h2>
+        <p>The M1 implementation slice (<a href="/evidence/v1/acceptance.json">acceptance package</a>, commit <code>9c309c49</code>) and the 50-test / 345-binary suite pass <code>deno task check</code> with reproducible provenance manifests, pre-timing oracle checks, and live browser smoke verification. The preregistered 120-launch owned-Chrome corpus (<a href="/experiments/"><code>m1-chrome-sum-u32-v1</code></a>) has not been collected yet, so the local-pilot tables below remain empty on the read-only public service and populate when running <code>deno task local</code>.</p>
+        <p>A Chrome 150 validation completed the visible JavaScript/Wasm control and returned two HTTP 201 responses, according to a parent attestation. The records were removed and no replayable browser artifact remains, so the attestation is unverified and supplies no timing evidence.</p>
       </section>
 
       <section aria-labelledby="matrix-title">

@@ -316,13 +316,13 @@
     },
     {
       "key": "js-opt",
-      "label": "JavaScript i/k/j (Optimized)",
+      "label": "JavaScript i/k/j (Track B)",
       "kind": "js",
       "track": "B",
       "baseline": "js",
       "equivalence": "bit-identical",
-      "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns.",
-      "source": "benchmarks/v2/ml-gemm/workload.js"
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array with pre-allocated output workspace. Hoists A[i, k] into a scalar and streams contiguous 32-bit floats along row B[k, 0..n] while accumulating in strict ascending k = 0..K-1 order (0 ULP deviation, bit-identical). Measured 1.98x over the JS Track A baseline (3.0100 ms -> 1.5185 ms, 128^3, arm64 macOS).",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.js"
     },
     {
       "key": "wat-simd",

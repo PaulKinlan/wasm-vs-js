@@ -584,7 +584,7 @@
           "key": "js-opt",
           "baseline": "js",
           "equivalence": "bit-identical",
-          "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array. Hoists A[i,k] into a register and streams contiguous 32-bit floats along row B[k, j..j+n] instead of striding columns.",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j row-streaming on Float32Array with pre-allocated output workspace. Hoists A[i, k] into a scalar and streams contiguous 32-bit floats along row B[k, 0..n] while accumulating in strict ascending k = 0..K-1 order (0 ULP deviation, bit-identical). Measured 1.98x over the JS Track A baseline (3.0100 ms -> 1.5185 ms, 128^3, arm64 macOS).",
           "maxUlpDeviation": null,
           "maxRelativeDeviation": null,
           "declaredTolerance": null
@@ -752,6 +752,15 @@
           "maxUlpDeviation": null,
           "maxRelativeDeviation": null,
           "declaredTolerance": null
+        },
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Reuses pre-allocated Float64Array workspaces instead of per-call .slice() copies, hoists row base offsets and alpha * A[i, k] out of inner j loops, and zeroes upper-triangular Cholesky entries with TypedArray.fill. Preserves exact IEEE-754 f64 evaluation order (0 ULP deviation, bit-identical). Measured 1.06x over the JS Track A baseline (0.0746 ms -> 0.0705 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
         }
       ]
     },
@@ -914,10 +923,10 @@
   "summary": {
     "workloads": 45,
     "baselineEngineRows": 287,
-    "variantRows": 23,
+    "variantRows": 24,
     "workloadsWithVariants": 4,
     "workloadsWithoutVariants": 41,
-    "bitIdenticalVariants": 22,
+    "bitIdenticalVariants": 23,
     "reassociatedVariants": 1,
     "workloadsWithoutRoute": 1
   }

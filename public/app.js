@@ -21,18 +21,31 @@ function textCell(row, value) {
 }
 
 function renderMetrics(data) {
-  const dds = [...metrics.querySelectorAll("dd")];
-  if (dds.length === 5) {
-    dds[0].textContent = "38";
-    dds[1].textContent = "38";
-    dds[2].textContent = "37";
-    dds[3].textContent = "20";
-    dds[4].textContent = "647 Passed";
-  } else if (dds.length >= 4) {
-    const values = [data.runCount || "38", data.pairedBlockCount || "28", "sum-u32", "Controlled"];
-    dds.forEach((item, index) => {
-      if (values[index]) item.textContent = String(values[index]);
-    });
+  const byLabel = {
+    "Catalog Workloads": "38",
+    "Playground Demos": "48",
+    "Run Unattended": "47",
+    "v2 Proposals": "20",
+    "Multi-Language Manifests": "45",
+    "Wasm Artifacts": "345",
+  };
+  const dts = [...metrics.querySelectorAll("dt")];
+  const hasNamedSuiteMetrics = dts.some((dt) => dt.textContent.trim() in byLabel);
+  if (hasNamedSuiteMetrics) {
+    for (const dt of dts) {
+      const val = byLabel[dt.textContent.trim()];
+      if (val && dt.nextElementSibling) {
+        dt.nextElementSibling.textContent = val;
+      }
+    }
+  } else {
+    const dds = [...metrics.querySelectorAll("dd")];
+    if (dds.length >= 4) {
+      const values = [data.runCount || "0", data.pairedBlockCount || "0", "sum-u32", "Controlled"];
+      dds.forEach((item, index) => {
+        if (values[index]) item.textContent = String(values[index]);
+      });
+    }
   }
   if (claimStatus) {
     claimStatus.textContent = data.claimStatus === "no-runs"
