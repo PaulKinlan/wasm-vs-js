@@ -130,6 +130,9 @@ function scanPages(): Array<readonly [string, string, string, boolean?]> {
 // GENERATED_ROUTES is the backstop.
 // ---------------------------------------------------------------------------
 const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
+  // Symmetric warm-worker probe & reusable module worker (loaded by public/unified-runner.js).
+  "warm-worker-probe.js",
+  "warm-worker-probe-worker.js",
   // Track B registry, read by public/benchmarks/track-b/track-b.js.
   "data/track-b.v1.json",
   // Dart -O2/-O3/-O4 lane report (scripts/build-multilang-dart-opt.ts).

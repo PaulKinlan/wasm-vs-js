@@ -34,6 +34,12 @@ import {
   trajectoryChartSvg,
 } from "./benchmark-report.js";
 import { resolveEngineSource } from "./multilang-runner.js";
+import {
+  renderWarmWorkerScopeHtml,
+  runWarmWorkerProbe,
+  selectFastestTrackALinearEngine,
+  WARM_WORKER_SCOPE_ID,
+} from "./warm-worker-probe.js";
 
 export const WORKLOAD_CONFIGS = {
   "sum-u32": {
@@ -1068,7 +1074,7 @@ function composedStagePlanFromDom() {
 
 // Static multi-language pre-render (Paul directive 2026-08-06): every benchmark
 // page shows its measured multi-language comparison IMMEDIATELY (from the
-// committed report), not only after clicking Run. Run refreshes the numbers.
+// committed report) before clicking Run. Run refreshes the numbers.
 async function renderReportedComparison(flowEl, manifestPath) {
   const manifestResp = await fetch(manifestPath, { cache: "no-store" });
   if (!manifestResp.ok) return;
@@ -1311,6 +1317,7 @@ async function runComposedStages(
   // explorer never rendered.
   let multilangResults = null;
   let multilangManifest = null;
+  let warmWorkerResults = null;
   let domResults = null;
   // ONE results flow: every additional stage (multi-language, Track B) renders
   // as a labeled sub-block of the SAME run output inside the primary reporting
@@ -1352,10 +1359,38 @@ async function runComposedStages(
       multilangManifest = null;
     }
     statusEl.textContent = "Multi-language comparison complete.";
+
+    // Symmetric warm-worker probe: measures cached WebAssembly.Instance worker
+    // round-trips alongside the pinned contract worker without modifying frozen workers.
+    statusEl.textContent =
+      "Symmetric warm-worker probe: measuring cached WebAssembly.Instance round-trips…";
+    try {
+      const preferredWasm = selectFastestTrackALinearEngine(multilangManifest, multilangResults);
+      warmWorkerResults = await runWarmWorkerProbe(plan.multilangManifest, {
+        iterations,
+        manifest: multilangManifest,
+        multilangResults,
+        preferredWasmKey: preferredWasm?.key ?? null,
+        onStatus: (m) => {
+          statusEl.textContent = `Symmetric warm-worker probe: ${m}`;
+        },
+      });
+    } catch (warmErr) {
+      warmWorkerResults = {
+        status: "unavailable",
+        reason: warmErr instanceof Error ? warmErr.message : String(warmErr),
+        manifestPath: plan.multilangManifest,
+        workloadId: multilangManifest?.workloadId ?? "",
+        timings: null,
+      };
+    }
+    statusEl.textContent = warmWorkerResults?.status === "ok"
+      ? "Symmetric warm-worker probe complete."
+      : "Symmetric warm-worker probe skipped (capability unavailable).";
   }
   if (plan.domHost) {
     // Real-DOM stage (Paul directive 2026-08-06): DOM-family pages must
-    // actually drive a rendered UI — not just run the model engine. The page
+    // actually drive a rendered UI rather than stopping at the model engine. The page
     // loads itself in a hidden same-origin iframe; the iframe registers its
     // dom host (data-dom-host) and applies the frozen action trace to the
     // real DOM with real DOM APIs.
@@ -1555,6 +1590,7 @@ async function runComposedStages(
     workloadSlug,
     primaryStats,
     multilangResults,
+    warmWorkerResults,
     domResults,
     manifest: multilangManifest,
     catalogSpec,
@@ -1674,17 +1710,18 @@ const DOM_ENGINE_LABELS = {
  * `multilangResults is not defined` defect shipped precisely because this
  * logic had no test that executed it.
  *
- * @param {{ primaryStats?: any, multilangResults?: any, domResults?: any, manifest?: any, catalogSpec?: any }} opts
+ * @param {{ primaryStats?: any, multilangResults?: any, warmWorkerResults?: any, domResults?: any, manifest?: any, catalogSpec?: any }} opts
  */
 export function buildExplorerRows({
   primaryStats,
   multilangResults,
+  warmWorkerResults = null,
   domResults,
   manifest,
   catalogSpec = null,
 }) {
   /** @type {Record<string, any[]>} */
-  const byScope = { kernel: [], pipeline: [], domJourney: [] };
+  const byScope = { kernel: [], pipeline: [], warmWorker: [], domJourney: [] };
 
   // Kernel scope: the multi-language lane measures a pre-instantiated engine
   // in-page after warm-up, which is exactly the kernel scope.
@@ -1831,13 +1868,51 @@ export function buildExplorerRows({
     });
   }
 
+  // Symmetric Warm Worker scope: cached WebAssembly.Instance round-trips
+  // measured on one reusable module worker (kept separate from Contract Worker).
+  if (warmWorkerResults?.status === "ok" && warmWorkerResults.timings) {
+    const ww = warmWorkerResults;
+    if (ww.timings.jsRoundTrip) {
+      byScope.warmWorker.push({
+        key: "js",
+        label: ww.jsLabel,
+        kind: "js",
+        track: "A",
+        toolchain: "V8 JIT (warm module in reused worker)",
+        source: ww.jsSource ?? null,
+        githubSourceUrl: ww.jsGitHubUrl ?? null,
+        outputDigest: ww.oracleDigest ?? null,
+        binaryUrl: ww.jsSource ?? null,
+        bytes: null,
+        samples: ww.timings.jsRoundTripSamples ?? [],
+        summary: ww.timings.jsRoundTrip,
+      });
+    }
+    if (ww.timings.wasmRoundTrip) {
+      byScope.warmWorker.push({
+        key: ww.wasmKey || "wasm",
+        label: ww.wasmLabel,
+        kind: "wasm",
+        track: "A",
+        toolchain: `${ww.wasmToolchain || "wasm32 linear memory"} (cached instance)`,
+        source: ww.wasmSource ?? null,
+        githubSourceUrl: ww.wasmGitHubUrl ?? null,
+        outputDigest: ww.oracleDigest ?? null,
+        binaryUrl: ww.wasmBinaryUrl ?? null,
+        bytes: ww.wasmBytes ?? null,
+        samples: ww.timings.wasmRoundTripSamples ?? [],
+        summary: ww.timings.wasmRoundTrip,
+      });
+    }
+  }
+
   return byScope;
 }
 
 /** Flatten scoped rows into the long-format records the CSV writes. */
 export function explorerCsvRecords(byScope) {
   const out = [];
-  for (const scope of SCOPE_ORDER) {
+  for (const scope of [...SCOPE_ORDER, WARM_WORKER_SCOPE_ID]) {
     const rows = byScope[scope] ?? [];
     const present = rows.filter((r) => r.summary);
     if (present.length === 0) continue;
@@ -1863,6 +1938,7 @@ function renderUnifiedExplorer({
   workloadSlug,
   primaryStats,
   multilangResults,
+  warmWorkerResults = null,
   domResults,
   manifest,
   catalogSpec = null,
@@ -1874,12 +1950,13 @@ function renderUnifiedExplorer({
   const byScope = buildExplorerRows({
     primaryStats,
     multilangResults,
+    warmWorkerResults,
     domResults,
     manifest,
     catalogSpec,
   });
   const available = SCOPE_ORDER.filter((id) => (byScope[id] ?? []).some((r) => r.summary));
-  if (available.length === 0) return;
+  if (available.length === 0 && !warmWorkerResults) return;
 
   const wrap = document.createElement("section");
   wrap.dataset.stage = "explorer";
@@ -2047,6 +2124,28 @@ function renderUnifiedExplorer({
     chartGrid.appendChild(pipeHost);
   }
 
+  const warmWorkerRows = (byScope.warmWorker ?? []).filter((r) => r.summary);
+  if (warmWorkerRows.length > 1) {
+    const warmHost = document.createElement("div");
+    warmHost.className = "wvj-chart-cell";
+    warmHost.innerHTML = barChartSvg(
+      warmWorkerRows.map((r) => ({
+        label: r.label,
+        valueMs: r.summary.p50Ms,
+        lowMs: r.summary.ci95?.lowMs ?? null,
+        highMs: r.summary.ci95?.highMs ?? null,
+        kind: r.kind ?? (r.key === "js" ? "js" : "wasm"),
+      })),
+      {
+        title: "Symmetric warm worker — median per round-trip (Track A cached instance)",
+        caption:
+          "Persistent module worker with 1 WebAssembly.Instance across all tasks: postMessage -> warm compute -> onmessage. " +
+          "Whiskers are 95% confidence intervals for the median.",
+      },
+    );
+    chartGrid.appendChild(warmHost);
+  }
+
   const domRows = (byScope.domJourney ?? []).filter((r) => r.summary);
   if (domRows.length > 1) {
     const domHost = document.createElement("div");
@@ -2137,16 +2236,25 @@ function renderUnifiedExplorer({
   }
 
   const tables = document.createElement("div");
-  tables.innerHTML = available
-    .map((scopeId) =>
-      scopeTableHtml({
-        scopeId,
-        rows: byScope[scopeId],
-        baselineLabel: (byScope[scopeId].find((r) => r.key === "js")?.label) ?? "JavaScript",
-        iterations,
-      })
-    )
-    .join("");
+  const warmScopeHtml = warmWorkerResults
+    ? renderWarmWorkerScopeHtml(warmWorkerResults, {
+      primaryStats,
+      catalogSpec,
+      workloadSlug,
+    })
+    : "";
+  const renderedScopeBlocks = available.map((scopeId) =>
+    scopeTableHtml({
+      scopeId,
+      rows: byScope[scopeId],
+      baselineLabel: (byScope[scopeId].find((r) => r.key === "js")?.label) ?? "JavaScript",
+      iterations,
+    }) + (scopeId === "pipeline" ? warmScopeHtml : "")
+  );
+  if (warmScopeHtml && !available.includes("pipeline")) {
+    renderedScopeBlocks.push(warmScopeHtml);
+  }
+  tables.innerHTML = renderedScopeBlocks.join("");
   wrap.appendChild(tables);
 
   const missing = SCOPE_ORDER.filter((id) => !available.includes(id) && id !== "delivery");

@@ -406,4 +406,6 @@ export const GENERATED_ROUTES: ReadonlyArray<readonly [string, readonly [string,
   ["/docs/worker-lifecycle-audit.md", ["docs/worker-lifecycle-audit.md", "text/markdown; charset=utf-8"]],
   ["/methodology", ["public/methodology/index.html", "text/html; charset=utf-8"]],
   ["/methodology/", ["public/methodology/index.html", "text/html; charset=utf-8"]],
+  ["/warm-worker-probe-worker.js", ["public/warm-worker-probe-worker.js", "text/javascript; charset=utf-8"]],
+  ["/warm-worker-probe.js", ["public/warm-worker-probe.js", "text/javascript; charset=utf-8"]],
 ];
