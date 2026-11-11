@@ -83,6 +83,26 @@ Deno.test(
     const out = new Float32Array(ref.length);
     kernels.fir(input, taps, out, input.length, taps.length);
     assertBitIdentical("Dart FIR", out, ref);
+
+    // JavaScript Track B (js-opt): strict Object.is bit-identical agreement across shapes
+    const { createFirOptWorkspace, firOptF32 } = await import(
+      "../benchmarks/multilang-wasm/audio-fir/fir_opt.js"
+    );
+    for (const [sLen, tLen] of [[2048, 64], [8192, 256], [17, 64], [64, 2]] as const) {
+      const sig = genFirSignal(sLen);
+      const tp = genFirTaps(tLen);
+      const expected = firDirectConvolution(sig, tp);
+      const ws = createFirOptWorkspace(sLen, tLen);
+      const actual = firOptF32(sig, tp, ws.out, ws.tpRev);
+      for (let i = 0; i < expected.length; i++) {
+        assert(
+          Object.is(actual[i], expected[i]),
+          `JS Track B FIR Object.is mismatch (${sLen}x${tLen}) at ${i}: got=${actual[i]} ref=${
+            expected[i]
+          }`,
+        );
+      }
+    }
   },
 );
 

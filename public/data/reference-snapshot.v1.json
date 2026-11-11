@@ -1157,35 +1157,42 @@
       "perTaskWasmInstantiate": true,
       "multilangBatch": {
         "reportWorkload": "text-regex-log-scan",
-        "jsBatchWarmMs": 70.08,
+        "jsBatchWarmMs": 73.8,
         "engines": {
+          "wat": {
+            "label": "Raw WAT",
+            "batchWarmMs": 23.41,
+            "coldInstantiateMs": 0.0022,
+            "binarySizeBytes": 3688,
+            "pairedRatioVsJs": 3.1525
+          },
           "c": {
             "label": "C / Wasm",
-            "batchWarmMs": 36.75,
+            "batchWarmMs": 24.89,
             "coldInstantiateMs": 0.002,
             "binarySizeBytes": 3972,
-            "pairedRatioVsJs": 1.9069
+            "pairedRatioVsJs": 2.965
           },
           "cpp": {
             "label": "C++ / Wasm",
-            "batchWarmMs": 36.74,
+            "batchWarmMs": 23.62,
             "coldInstantiateMs": 0.002,
             "binarySizeBytes": 3974,
-            "pairedRatioVsJs": 1.9075
+            "pairedRatioVsJs": 3.1245
           },
           "rs": {
             "label": "Rust / Wasm",
-            "batchWarmMs": 31.71,
-            "coldInstantiateMs": 0.0023,
+            "batchWarmMs": 29.59,
+            "coldInstantiateMs": 0.0021,
             "binarySizeBytes": 6762,
-            "pairedRatioVsJs": 2.21
+            "pairedRatioVsJs": 2.4941
           },
           "dart": {
             "label": "Dart / WasmGC",
-            "batchWarmMs": 70.16,
-            "coldInstantiateMs": 0.0871,
+            "batchWarmMs": 70.59,
+            "coldInstantiateMs": 0.0894,
             "binarySizeBytes": 41385,
-            "pairedRatioVsJs": 0.9989
+            "pairedRatioVsJs": 1.0455
           }
         }
       }

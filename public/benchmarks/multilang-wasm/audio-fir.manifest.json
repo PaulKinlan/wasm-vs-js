@@ -67,6 +67,16 @@
       "file": "fir_dart.wasm",
       "glue": "fir_dart.mjs",
       "source": "benchmarks/multilang-wasm/audio-fir/fir.dart"
+    },
+    {
+      "key": "js-opt",
+      "label": "JavaScript 8x register-blocked (Track B)",
+      "kind": "js",
+      "track": "B",
+      "baseline": "js",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Reverses the 256-tap vector once into a pre-allocated Float32Array workspace and accumulates 8 adjacent outputs (acc0..acc7) in scalar registers over a sliding 8-sample window. Iterates k = 0..255 in strict ascending input-sample order i = (n - 255) + k with Math.fround per multiply and add (0 ULP deviation, Object.is bit-identical). Measured 1.78x over the JS Track A baseline (22.2990 ms -> 12.5525 ms, 131,072 samples x 256 taps, arm64 macOS).",
+      "source": "benchmarks/multilang-wasm/audio-fir/fir_opt.js"
     }
   ]
 }

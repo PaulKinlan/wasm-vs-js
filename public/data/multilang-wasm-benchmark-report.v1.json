@@ -228,28 +228,39 @@
     },
     {
       "name": "text-regex-log-scan",
-      "description": "Log-scan pattern matcher over the 20 fixed SAFE_PATTERNS (url-tail/ipv4/status classes, first-byte dispatch) on a reduced 640-record corpus with 64 pattern events; 200 warm iterations. C/C++/Rust/Dart variants are bit-identical to the JS scanControlled oracle (matches + candidateStarts + prefixComparisons + tailComparisons, test-verified).",
+      "description": "Log-scan pattern matcher over the 20 fixed SAFE_PATTERNS (url-tail/ipv4/status classes, first-byte dispatch) on a reduced 640-record corpus with 64 pattern events; 200 warm iterations. Raw WAT/C/C++/Rust/Dart variants are bit-identical to the JS scanControlled oracle (matches + candidateStarts + prefixComparisons + tailComparisons, FNV-1a 0x398e37ee, test-verified).",
       "variants": [
         {
           "language": "JavaScript",
           "toolchain": "V8 JIT Engine",
           "binarySizeBytes": 0,
           "coldInstantiateMs": 0,
-          "warmExecutionMs": 70.08,
+          "warmExecutionMs": 73.8,
           "memoryPageCount": 0,
           "importsCount": 0,
           "exportsCount": 1,
           "notes": "Exact oracle semantics."
         },
         {
+          "language": "Raw WAT",
+          "toolchain": "Handwritten WAT / Bytecode",
+          "binarySizeBytes": 3688,
+          "coldInstantiateMs": 0.0022,
+          "warmExecutionMs": 23.41,
+          "memoryPageCount": 67,
+          "importsCount": 0,
+          "exportsCount": 14,
+          "notes": "Hand-written WebAssembly text; linear memory with static pattern tables and caller scratch buckets."
+        },
+        {
           "language": "C / Wasm",
           "toolchain": "LLVM Clang (-O3 -nostdlib)",
           "binarySizeBytes": 3972,
           "coldInstantiateMs": 0.002,
-          "warmExecutionMs": 36.75,
-          "memoryPageCount": 1,
+          "warmExecutionMs": 24.89,
+          "memoryPageCount": 67,
           "importsCount": 0,
-          "exportsCount": 2,
+          "exportsCount": 14,
           "notes": "Linear memory; static pattern tables + caller scratch buckets."
         },
         {
@@ -257,19 +268,19 @@
           "toolchain": "LLVM Clang++ (-O3 -nostdlib)",
           "binarySizeBytes": 3974,
           "coldInstantiateMs": 0.002,
-          "warmExecutionMs": 36.74,
-          "memoryPageCount": 1,
+          "warmExecutionMs": 23.62,
+          "memoryPageCount": 67,
           "importsCount": 0,
-          "exportsCount": 2,
+          "exportsCount": 14,
           "notes": "Identical body to C in an extern \"C\" translation unit."
         },
         {
           "language": "Rust / Wasm",
           "toolchain": "rustc wasm32-unknown-unknown (-O cdylib, stripped)",
           "binarySizeBytes": 6762,
-          "coldInstantiateMs": 0.0023,
-          "warmExecutionMs": 31.71,
-          "memoryPageCount": 1,
+          "coldInstantiateMs": 0.0021,
+          "warmExecutionMs": 29.59,
+          "memoryPageCount": 67,
           "importsCount": 0,
           "exportsCount": 2,
           "notes": "no_std cdylib; raw-pointer arithmetic with #[used] static tables."
@@ -278,11 +289,11 @@
           "language": "Dart / WasmGC",
           "toolchain": "dart compile wasm (dart2wasm, Dart 3.12.2)",
           "binarySizeBytes": 41385,
-          "coldInstantiateMs": 0.0871,
-          "warmExecutionMs": 70.16,
+          "coldInstantiateMs": 0.0894,
+          "warmExecutionMs": 70.59,
           "memoryPageCount": 2,
           "importsCount": 396,
-          "exportsCount": 9,
+          "exportsCount": 8,
           "notes": "WasmGC; Uint8List/Uint32List views over zero-copy JS typed arrays."
         }
       ]
@@ -725,7 +736,7 @@
     }
   ],
   "summary": {
-    "totalVariantsTested": 51,
+    "totalVariantsTested": 60,
     "keyInsights": [
       "Raw WAT and AssemblyScript yield tiny linear-memory binaries (94-2,479 bytes) with near-instant cold instantiation.",
       "Rust no_std cdylibs are only slightly larger than equivalent C (-nostdlib) binaries (498 vs 757 bytes for sum_u32) with the same two exports.",

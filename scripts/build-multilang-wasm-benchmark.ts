@@ -264,7 +264,7 @@ for (const extra of ["myers_diff_dart.wasm.map", "myers_diff_dart.support.js"]) 
 }
 
 console.log(
-  "Compiling text-regex-log-scan scan_log variants (C/C++/Dart; Rust flagged in-progress)...",
+  "Compiling text-regex-log-scan scan_log variants (C/C++/Rust/Dart)...",
 );
 await run("clang", [
   "--target=wasm32",
@@ -1568,7 +1568,7 @@ const scanOut = {
 const scanRef = jsScanLog(scanCorpus, scanOut);
 if (scanRef.count === 0) throw new Error("scan corpus produced no matches");
 
-const scanLinear = ["c", "cpp", "rs"] as const;
+const scanLinear = ["wat", "c", "cpp", "rs"] as const;
 const scanMods: Record<string, WebAssembly.Instance> = {};
 for (const key of scanLinear) {
   scanMods[key] = await instantiateLinear(
@@ -1594,12 +1594,18 @@ function scanLinearFn(key: string): () => void {
   const inst = scanMods[key];
   const mem = inst.exports.memory as WebAssembly.Memory;
   return () => {
-    const dataOff = 4096, scratchOff = 1 << 20;
+    // Place scratch at 2 MiB and corpus at 4 MiB so neither collides with
+    // C/C++ .rodata ([65536, 65908]) or Rust .rodata ([1048576, 1049296]).
+    const dataOff = 4194304, scratchOff = 2097152;
     const idOff = scratchOff + 256 * 5 * 4;
     const stOff = idOff + scanCap * 4, enOff = stOff + scanCap * 4;
     const csOff = enOff + scanCap * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+    const need = Math.max(tcOff + 4, dataOff + scanCorpus.length);
+    if (mem.buffer.byteLength < need) {
+      mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+    }
     new Uint8Array(mem.buffer, dataOff, scanCorpus.length).set(scanCorpus);
-    (inst.exports.scan_log as (
+    const count = (inst.exports.scan_log as (
       b: number,
       l: number,
       i: number,
@@ -1622,6 +1628,11 @@ function scanLinearFn(key: string): () => void {
       pcOff,
       tcOff,
     );
+    if (count !== scanRef.count) {
+      throw new Error(
+        `scan_log ${key} match count mismatch: got=${count} expected=${scanRef.count}`,
+      );
+    }
   };
 }
 
@@ -1670,6 +1681,7 @@ const scanVariants: Record<string, number> = {};
 }
 
 const scanBytes = {
+  wat: await Deno.readFile(`${artifactsDir}/scan_log_wat.wasm`),
   c: await Deno.readFile(`${artifactsDir}/scan_log_c.wasm`),
   cpp: await Deno.readFile(`${artifactsDir}/scan_log_cpp.wasm`),
   rs: await Deno.readFile(`${artifactsDir}/scan_log_rs.wasm`),
@@ -2571,8 +2583,8 @@ const report = {
       description:
         "Log-scan pattern matcher over the 20 fixed SAFE_PATTERNS (url-tail/ipv4/status classes, " +
         "first-byte dispatch) on a reduced 640-record corpus with 64 pattern events; 200 warm " +
-        "iterations. C/C++/Rust/Dart variants are bit-identical to the JS scanControlled oracle " +
-        "(matches + candidateStarts + prefixComparisons + tailComparisons, test-verified).",
+        "iterations. Raw WAT/C/C++/Rust/Dart variants are bit-identical to the JS scanControlled oracle " +
+        "(matches + candidateStarts + prefixComparisons + tailComparisons, FNV-1a 0x398e37ee, test-verified).",
       variants: [
         {
           language: "JavaScript",
@@ -2586,14 +2598,34 @@ const report = {
           notes: "Exact oracle semantics.",
         },
         {
+          language: "Raw WAT",
+          toolchain: "Handwritten WAT / Bytecode",
+          binarySizeBytes: scanBytes.wat.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(scanBytes.wat),
+          warmExecutionMs: scanVariants.wat,
+          memoryPageCount: Math.round(
+            (scanMods.wat.exports.memory as WebAssembly.Memory).buffer.byteLength / 65536,
+          ),
+          importsCount: countImports(scanBytes.wat),
+          exportsCount: WebAssembly.Module.exports(
+            new WasmModuleCtor(scanBytes.wat as Uint8Array<ArrayBuffer>),
+          ).length,
+          notes:
+            "Hand-written WebAssembly text; linear memory with static pattern tables and caller scratch buckets.",
+        },
+        {
           language: "C / Wasm",
           toolchain: "LLVM Clang (-O3 -nostdlib)",
           binarySizeBytes: scanBytes.c.byteLength,
           coldInstantiateMs: benchmarkColdInstantiate(scanBytes.c),
           warmExecutionMs: scanVariants.c,
-          memoryPageCount: 1,
-          importsCount: 0,
-          exportsCount: 2,
+          memoryPageCount: Math.round(
+            (scanMods.c.exports.memory as WebAssembly.Memory).buffer.byteLength / 65536,
+          ),
+          importsCount: countImports(scanBytes.c),
+          exportsCount: WebAssembly.Module.exports(
+            new WasmModuleCtor(scanBytes.c as Uint8Array<ArrayBuffer>),
+          ).length,
           notes: "Linear memory; static pattern tables + caller scratch buckets.",
         },
         {
@@ -2602,9 +2634,13 @@ const report = {
           binarySizeBytes: scanBytes.cpp.byteLength,
           coldInstantiateMs: benchmarkColdInstantiate(scanBytes.cpp),
           warmExecutionMs: scanVariants.cpp,
-          memoryPageCount: 1,
-          importsCount: 0,
-          exportsCount: 2,
+          memoryPageCount: Math.round(
+            (scanMods.cpp.exports.memory as WebAssembly.Memory).buffer.byteLength / 65536,
+          ),
+          importsCount: countImports(scanBytes.cpp),
+          exportsCount: WebAssembly.Module.exports(
+            new WasmModuleCtor(scanBytes.cpp as Uint8Array<ArrayBuffer>),
+          ).length,
           notes: 'Identical body to C in an extern "C" translation unit.',
         },
         {
@@ -2613,9 +2649,13 @@ const report = {
           binarySizeBytes: scanBytes.rs.byteLength,
           coldInstantiateMs: benchmarkColdInstantiate(scanBytes.rs),
           warmExecutionMs: scanVariants.rs,
-          memoryPageCount: 1,
-          importsCount: 0,
-          exportsCount: 2,
+          memoryPageCount: Math.round(
+            (scanMods.rs.exports.memory as WebAssembly.Memory).buffer.byteLength / 65536,
+          ),
+          importsCount: countImports(scanBytes.rs),
+          exportsCount: WebAssembly.Module.exports(
+            new WasmModuleCtor(scanBytes.rs as Uint8Array<ArrayBuffer>),
+          ).length,
           notes: "no_std cdylib; raw-pointer arithmetic with #[used] static tables.",
         },
         {
@@ -2626,7 +2666,9 @@ const report = {
           warmExecutionMs: scanVariants.dart,
           memoryPageCount: 2,
           importsCount: countImports(scanBytes.dart),
-          exportsCount: 9,
+          exportsCount: WebAssembly.Module.exports(
+            new WasmModuleCtor(scanBytes.dart as Uint8Array<ArrayBuffer>, JS_STRING_BUILTINS),
+          ).length,
           notes: "WasmGC; Uint8List/Uint32List views over zero-copy JS typed arrays.",
         },
       ],
@@ -3095,7 +3137,7 @@ const report = {
     },
   ],
   summary: {
-    totalVariantsTested: 7 + 6 + 5 + 5 + 5 + 5 + 6 + 5 + 5 + 2,
+    totalVariantsTested: 60,
     keyInsights: [
       "Raw WAT and AssemblyScript yield tiny linear-memory binaries (94-2,479 bytes) with near-instant cold instantiation.",
       "Rust no_std cdylibs are only slightly larger than equivalent C (-nostdlib) binaries (498 vs 757 bytes for sum_u32) with the same two exports.",

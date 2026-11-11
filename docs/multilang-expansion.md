@@ -246,7 +246,7 @@ f32 fround-accumulation vs f64, etc.) exactly as the FFT rows do today.
 - **Wave 2 (in progress, 2026-08-05)** — text-diff-patch DONE (Myers diff kernels in
   C/C++/Rust/Dart, bit-identical to the oracle, comparison section live on the demo page;
   JS 0.12 / C 0.035 / C++ 0.035 / Rust 0.015 / Dart 0.185ms browser-measured). Remaining:
-  text-regex-log-scan DONE (C/C++/Dart bit-identical; Rust flagged in-progress), numeric-polybench-panel, audio-fir, audio-stft.
+  text-regex-log-scan DONE (Raw WAT/C/C++/Rust/Dart bit-identical), numeric-polybench-panel, audio-fir, audio-stft.
 - **Wave 3 (in progress, 2026-08-05)** — ml-dense-mlp DONE (mlp_forward in C/C++/Rust/Dart,
   bit-identical to the mlpControlled oracle on the full 32×512×8 shape; comparison section
   live; JS 4.8 / C 2.4 / C++ 2.4 / Rust 2.4 / Dart 73.4ms browser-measured). Remaining:
@@ -260,17 +260,22 @@ per merge; new artifacts add server.ts routes (rebind cascade required).
 
 ## Backlog / known issues
 
-- **Rust scan_log kernel (text-regex-log-scan) — in-progress.** The wasm build misbehaves
-  in a kernel-specific way (myers_diff's Rust is fine): slice-based versions panic with
-  empty-message/no-location panics (identical code works in a probe build); a raw-pointer
-  rewrite diverges on prefix-comparison counts despite the pattern tables being
-  wasm-verified correct (probe exports confirm all 20 prefixes + lengths). Trace notes:
-  /tmp scan_dbg/scan_ab/scan_trace probes were used during the 2026-08-05 session; the
-  C/C++/Dart reference is committed and bit-identical, so the fix is mechanical once the
-  root cause (suspected const/slice codegen quirk on wasm32-unknown-unknown) is pinned.
-  Suggested next steps: test the slice version built with `-C debug-assertions=off` and
-  `-C overflow-checks=off`; or compare the wasm disassembly of the working dbg3 probe vs
-  the failing scan_log from the same build.
+- **Rust scan_log kernel (text-regex-log-scan) — RESOLVED.** Both symptoms observed during
+  the 2026-08-05 bring-up traced to linear-memory layout collisions rather than `rustc`
+  codegen: `rustc --target wasm32-unknown-unknown` places its 1 MiB shadow stack at
+  `0..0x100000` (`1,048,576`) and emits `.rodata` (`PATTERN_PREFIX_BYTES`, `PATTERN_LENS`,
+  `PATTERN_MATCHERS`) at `[1048576, 1049296]`, whereas Clang `-nostdlib` emits `.rodata` at
+  `[65536, 65908]`. In `scripts/build-multilang-wasm-benchmark.ts`, `scratchOff = 1 << 20`
+  (`1,048,576`) zeroed `scratch[0..1280]` on bucket setup and overwrote Rust's static
+  pattern tables (diverging on prefix-comparison counts), while `dataOff = 4096` on the
+  640-record (`163,840`-byte) corpus overwrote C/C++ `.rodata` at `65,536`. Rebuilds
+  without `-C link-arg=--initial-memory=4194304` also trapped on `rustc`'s default 17-page
+  (`1,114,112`-byte) memory when buffers moved above 1 MiB. Setting
+  `-C link-arg=--initial-memory=4194304`, placing `scratchOff = 2097152` (2 MiB) and
+  `dataOff = 4194304` (4 MiB), and growing memory above `dataOff + corpus.length` keeps
+  all static tables intact: `js`, `wat`, `c`, `cpp`, `rs`, and `dart` agree on all 64
+  matches and all three counters (FNV-1a `0x398e37ee`, verified in
+  `tests/multilang-scanlog.test.ts` and `tests/multilang-engine-agreement.test.ts`).
 
 ## Constraints & risks
 

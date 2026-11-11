@@ -321,6 +321,8 @@ const GENERATED_REPO_SOURCE_ROUTES: ReadonlyArray<string> = [
   "benchmarks/dom-nested-tree-mutation/dom_nested_tree.c",
   "benchmarks/dom-table-sort-filter-pagination/dom_table_sort.c",
   "benchmarks/dom-virtualized-scrolling/dom_vscroll.c",
+  "benchmarks/multilang-wasm/audio-fir/fir_opt.js",
+  "benchmarks/multilang-wasm/ml-dense-mlp/mlp_opt.js",
   "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.js",
   "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.js",
   "benchmarks/sum-u32/sum-u32.wat",

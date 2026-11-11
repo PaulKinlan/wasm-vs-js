@@ -159,13 +159,13 @@ manifests.
 
 ## Current status
 
-Twenty-four Track B variants are built, verified, and wired across four workloads (`ml.gemm.v1`,
-`numeric.polybench-panel.v1`, `multilang-wasm` / `sum-u32`, and `dom.grid-movement.v1`), spanning
-JavaScript, handwritten WAT, C, C++, Rust, AssemblyScript, and Dart/WasmGC. Twenty-three are
-`bit-identical` to the pinned oracle and one (`c-simd-dot` on `ml.gemm.v1`) is `reassociated`
-with measured ULP and relative deviation bounds (`maxUlpDeviation: 31488`,
+Twenty-six Track B variants are built, verified, and wired across six workloads (`ml.gemm.v1`,
+`numeric.polybench-panel.v1`, `audio.fir.v1`, `ml.dense-mlp.v1`, `multilang-wasm` / `sum-u32`, and
+`dom.grid-movement.v1`), spanning JavaScript, handwritten WAT, C, C++, Rust, AssemblyScript, and
+Dart/WasmGC. Twenty-five are `bit-identical` to the pinned oracle and one (`c-simd-dot` on
+`ml.gemm.v1`) is `reassociated` with measured ULP and relative deviation bounds (`maxUlpDeviation: 31488`,
 `maxRelativeDeviation: 0.002152`, `declaredTolerance: 0.005`). Across the 45 multi-language
-manifests there are 287 Track A engine rows and 24 Track B variant rows. `/data/track-b.v1.json`
+manifests there are 287 Track A engine rows and 26 Track B variant rows. `/data/track-b.v1.json`
 reports the split.
 
 Track A baselines continue to use the controlled compiler flags, while Track B variants
@@ -306,11 +306,12 @@ Moving from the default `-O1` to `-O4` buys 1.3% on this kernel while reducing b
 size by 22% (`39,079 B → 30,487 B`). Dart's GEMM cost is the `f32`-emulation-in-`f64`
 arithmetic (`Math.fround` after every operation), not the dart2wasm optimization level.
 
-### JavaScript & Handwritten WAT Track B Variants (`ml.gemm.v1`, `numeric.polybench-panel.v1`, `multilang-wasm`, `dom.grid-movement.v1`)
+### JavaScript & Handwritten WAT Track B Variants (`ml.gemm.v1`, `numeric.polybench-panel.v1`, `audio.fir.v1`, `ml.dense-mlp.v1`, `multilang-wasm`, `dom.grid-movement.v1`)
 
 Giving WebAssembly cache-friendly loop order and SIMD while holding JavaScript at an unoptimized
-`i/j/k` baseline overstates the language gap. Four JavaScript Track B variants and two handwritten
-WAT `v128` SIMD variants isolate how much speedup comes from memory layout versus ISA vectorization:
+`i/j/k` or load-store-heavy baseline overstates the language gap. Six JavaScript Track B variants
+and two handwritten WAT `v128` SIMD variants isolate how much speedup comes from memory layout and
+register blocking versus ISA vectorization:
 
 - **`ml.gemm.v1` `js-opt` (`bit-identical`):** `benchmarks/multilang-wasm/ml-gemm/gemm_ikj.js`
   applies the exact `i/j/k` → `i/k/j` interchange and pre-allocated `Float32Array` workspace used
@@ -325,6 +326,27 @@ WAT `v128` SIMD variants isolate how much speedup comes from memory layout versu
   base offsets, and uses `TypedArray.fill` on Cholesky's upper triangle. Measured **`0.0746 ms → 0.0705 ms` (`1.06×`)**
   because Track A already streams rows in `i/k/j` order, whereas `c-simd` (`2.14×`) and `rs-simd`
   (`1.70×`) gain 2-wide `f64x2` vectorization.
+- **`audio.fir.v1` `js-opt` (`bit-identical`):** `benchmarks/multilang-wasm/audio-fir/fir_opt.js`
+  reverses the 256-tap filter once into a pre-allocated `Float32Array` workspace and register-blocks
+  8 adjacent output samples (`acc0..acc7`) in scalar variables over a sliding 8-sample window
+  (chosen for ARM64/x86-64 scalar FP register files; register pressure may rise on narrower targets).
+  Iterating `k = 0..255` visits `i = (n - 255) + k` in strict ascending input-sample order,
+  performing the identical sequence of `Math.fround` multiplies and adds as `firDirectConvolution`
+  (`Object.is` bit-identical across all 131,327 output samples, FNV-1a `0x8a9a963f`) while
+  eliminating 33.5M inner-loop `Float32Array` output loads and stores. Measured in Deno 2.9 / V8 on
+  Apple M4 Pro (`131,072` samples × `256` taps): **`22.2990 ms → 12.5525 ms` (`1.78×`)**, closing
+  within 15% of scalar Track A C (`10.9603 ms`).
+- **`ml.dense-mlp.v1` `js-opt` (`bit-identical`):**
+  `benchmarks/multilang-wasm/ml-dense-mlp/mlp_opt.js` interchanges each linear layer from
+  column-strided `(bi, o, i)` to row-streaming `(bi, i, o)` with hoisted row offsets and 4-way
+  column unrolling, reuses pre-allocated ping-pong `Float32Array` layer activations, and replaces
+  per-neuron `DataView` `pow2` scaling in frozen GELU with a precomputed 2,047-entry IEEE-754
+  exponent-bit table and unrolled Horner polynomial. Preserves ascending `i = 0..W-1` `Math.fround`
+  accumulation and `+0` normalization (`Object.is` bit-identical on both `16×128×4`, FNV-1a
+  `0x02f12fdb`, and the full `32×512×8` contract shape). Measured on Apple M4 Pro:
+  **`3.3908 ms → 1.3927 ms` (`2.43×`)** on the symmetric adapter (`2.5533 ms → 0.9179 ms`,
+  **`2.78×`**, on the isolated forward pass versus `mlpControlled`), approaching scalar Track A C
+  (`1.2796 ms`) and Rust (`1.3117 ms`).
 - **`multilang-wasm` (`sum-u32`) `js-opt` & `wat-simd` (`bit-identical`):** 4-way loop-unrolled
   JavaScript modulo-2³² accumulation alongside handwritten `i32x4.add` WAT SIMD (`sum_u32_simd.wat`).
 - **`ml.gemm.v1` `wat-simd` (`bit-identical`):** Handwritten `f32x4` `i/k/j` SIMD (`gemm_wat_simd.wat`).
@@ -353,6 +375,8 @@ WAT `v128` SIMD variants isolate how much speedup comes from memory layout versu
 | `numeric.polybench-panel.v1` | `c-opt`        | C `__restrict` + `i/k/j` `2mm`/`3mm` hoisting  | bit-identical | **built and measured** |
 | `numeric.polybench-panel.v1` | `c-simd`       | C `polybench_opt.c` + `-msimd128` (`f64x2`)    | bit-identical | **built and measured** |
 | `numeric.polybench-panel.v1` | `rs-simd`      | Rust `polybench_opt.rs` + `+simd128` (`f64x2`) | bit-identical | **built and measured** |
+| `audio.fir.v1`               | `js-opt`       | JS 8-output register blocking + reversed taps  | bit-identical | **built and measured** |
+| `ml.dense-mlp.v1`            | `js-opt`       | JS row-streaming `(bi,i,o)` + scratch + `pow2` | bit-identical | **built and measured** |
 | `multilang-wasm`             | `js-opt`       | JS 4-way unrolled modulo-2³² accumulation      | bit-identical | **built and measured** |
 | `multilang-wasm`             | `wat-simd`     | Handwritten WAT `i32x4.add` SIMD128            | bit-identical | **built and measured** |
 | `dom.grid-movement.v1`       | `js-opt`       | JS flat typed-array grid indexing              | bit-identical | **built and measured** |

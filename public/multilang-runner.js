@@ -2678,6 +2678,93 @@ export const KERNEL_ADAPTERS = {
         const out = jsFir(signal(), taps());
         return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
       };
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        const jsOptOut = new Float32Array(OUT_LEN);
+        const jsOptTpRev = new Float32Array(TAPS);
+        const jsFirOpt = (sig, tp, out) => {
+          const nSig = sig.length;
+          const nTaps = tp.length;
+          const outLen = nSig + nTaps - 1;
+          for (let k = 0; k < nTaps; k++) jsOptTpRev[k] = tp[nTaps - 1 - k];
+          const headEnd = Math.min(nTaps - 1, outLen);
+          for (let n = 0; n < headEnd; n++) {
+            const iMax = Math.min(n, nSig - 1);
+            let acc = 0;
+            for (let i = 0; i <= iMax; i++) {
+              acc = Math.fround(acc + Math.fround(sig[i] * tp[n - i]));
+            }
+            out[n] = acc;
+          }
+          const steadyEnd = nSig;
+          let n = headEnd;
+          for (; n + 7 < steadyEnd; n += 8) {
+            const base = n - nTaps + 1;
+            let acc0 = 0, acc1 = 0, acc2 = 0, acc3 = 0;
+            let acc4 = 0, acc5 = 0, acc6 = 0, acc7 = 0;
+            let s0 = sig[base],
+              s1 = sig[base + 1],
+              s2 = sig[base + 2],
+              s3 = sig[base + 3],
+              s4 = sig[base + 4],
+              s5 = sig[base + 5],
+              s6 = sig[base + 6];
+            for (let k = 0; k < nTaps; k++) {
+              const h = jsOptTpRev[k];
+              const s7 = sig[base + k + 7];
+              acc0 = Math.fround(acc0 + Math.fround(s0 * h));
+              acc1 = Math.fround(acc1 + Math.fround(s1 * h));
+              acc2 = Math.fround(acc2 + Math.fround(s2 * h));
+              acc3 = Math.fround(acc3 + Math.fround(s3 * h));
+              acc4 = Math.fround(acc4 + Math.fround(s4 * h));
+              acc5 = Math.fround(acc5 + Math.fround(s5 * h));
+              acc6 = Math.fround(acc6 + Math.fround(s6 * h));
+              acc7 = Math.fround(acc7 + Math.fround(s7 * h));
+              s0 = s1;
+              s1 = s2;
+              s2 = s3;
+              s3 = s4;
+              s4 = s5;
+              s5 = s6;
+              s6 = s7;
+            }
+            out[n] = acc0;
+            out[n + 1] = acc1;
+            out[n + 2] = acc2;
+            out[n + 3] = acc3;
+            out[n + 4] = acc4;
+            out[n + 5] = acc5;
+            out[n + 6] = acc6;
+            out[n + 7] = acc7;
+          }
+          for (; n < steadyEnd; n++) {
+            const base = n - nTaps + 1;
+            let acc = 0;
+            for (let k = 0; k < nTaps; k++) {
+              acc = Math.fround(acc + Math.fround(sig[base + k] * jsOptTpRev[k]));
+            }
+            out[n] = acc;
+          }
+          for (; n < outLen; n++) {
+            const iMin = Math.max(0, n - nTaps + 1);
+            const iMax = nSig - 1;
+            let acc = 0;
+            for (let i = iMin; i <= iMax; i++) {
+              acc = Math.fround(acc + Math.fround(sig[i] * tp[n - i]));
+            }
+            out[n] = acc;
+          }
+          return out;
+        };
+        callables["js-opt"] = {
+          fir: () => {
+            jsFirOpt(signal(), taps(), jsOptOut);
+          },
+        };
+        probes["js-opt"] = () => {
+          const out = jsFirOpt(signal(), taps(), new Float32Array(OUT_LEN));
+          return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+        };
+      }
       callables.dart = {
         fir: () =>
           mods.engines.dart.kernels.fir(
@@ -4426,6 +4513,100 @@ export const KERNEL_ADAPTERS = {
         const y = jsRun();
         return fnv1aBytes(new Uint8Array(y.buffer, y.byteOffset, y.byteLength));
       };
+      if (mods.manifest.engines.some((e) => e.key === "js-opt")) {
+        const pow2Table = new Float64Array(2047);
+        const pow2View = new DataView(new ArrayBuffer(8));
+        for (let k = -1022; k <= 1024; k++) {
+          pow2View.setUint32(0, 0, true);
+          pow2View.setUint32(4, (k + 1023) << 20, true);
+          pow2Table[k + 1022] = pow2View.getFloat64(0, true);
+        }
+        const geluOpt = (p) => {
+          const inner = 0.7978845608028654 * (p + 0.044715 * ((p * p) * p));
+          let t;
+          if (Number.isNaN(inner)) t = inner;
+          else if (inner >= 9.011) t = 1;
+          else if (inner <= -9.011) t = -1;
+          else {
+            const twoX = 2 * inner;
+            let ex;
+            if (twoX > 709.7827) ex = Infinity;
+            else if (twoX < -708.39) ex = 0;
+            else {
+              const k = Math.floor(twoX / LN2 + 0.5);
+              const r = twoX - k * LN2;
+              const poly =
+                (((((((((((EXP_COEFFS[12] * r + EXP_COEFFS[11]) * r + EXP_COEFFS[10]) * r +
+                                                    EXP_COEFFS[9]) * r + EXP_COEFFS[8]) * r +
+                                            EXP_COEFFS[7]) * r + EXP_COEFFS[6]) *
+                                      r + EXP_COEFFS[5]) * r + EXP_COEFFS[4]) * r + EXP_COEFFS[3]) *
+                          r +
+                        EXP_COEFFS[2]) * r + EXP_COEFFS[1]) * r + EXP_COEFFS[0];
+              ex = poly * pow2Table[k + 1022];
+            }
+            t = 1 - 2 / (ex + 1);
+          }
+          return 0.5 * p * (1 + t);
+        };
+        const jsOptSA = new Float32Array(B * W);
+        const jsOptSB = new Float32Array(B * W);
+        const jsOptY = new Float32Array(B * W);
+        const jsRunOpt = (outY) => {
+          const { x, w, bias } = inputs();
+          const total = B * W;
+          const width4 = W & ~3;
+          let input = x;
+          for (let layer = 0; layer < LAYERS; layer++) {
+            const out = layer === LAYERS - 1 ? outY : layer % 2 === 0 ? jsOptSA : jsOptSB;
+            const layerWOff = layer * W * W;
+            const biasOff = layer * W;
+            for (let bi = 0; bi < B; bi++) {
+              const rowOff = bi * W;
+              for (let o = 0; o < W; o++) out[rowOff + o] = bias[biasOff + o];
+              for (let i = 0; i < W; i++) {
+                const xVal = input[rowOff + i];
+                const wRow = layerWOff + i * W;
+                let o = 0;
+                for (; o < width4; o += 4) {
+                  out[rowOff + o] = Math.fround(out[rowOff + o] + Math.fround(xVal * w[wRow + o]));
+                  out[rowOff + o + 1] = Math.fround(
+                    out[rowOff + o + 1] + Math.fround(xVal * w[wRow + o + 1]),
+                  );
+                  out[rowOff + o + 2] = Math.fround(
+                    out[rowOff + o + 2] + Math.fround(xVal * w[wRow + o + 2]),
+                  );
+                  out[rowOff + o + 3] = Math.fround(
+                    out[rowOff + o + 3] + Math.fround(xVal * w[wRow + o + 3]),
+                  );
+                }
+                for (; o < W; o++) {
+                  out[rowOff + o] = Math.fround(out[rowOff + o] + Math.fround(xVal * w[wRow + o]));
+                }
+              }
+            }
+            if (layer < LAYERS - 1) {
+              for (let idx = 0; idx < total; idx++) {
+                out[idx] = Math.fround(geluOpt(out[idx] + 0)) + 0;
+              }
+            } else {
+              for (let idx = 0; idx < total; idx++) {
+                out[idx] = out[idx] + 0;
+              }
+            }
+            input = out;
+          }
+          return outY;
+        };
+        callables["js-opt"] = {
+          mlp_forward: () => {
+            jsRunOpt(jsOptY);
+          },
+        };
+        probes["js-opt"] = () => {
+          const y = jsRunOpt(new Float32Array(B * W));
+          return fnv1aBytes(new Uint8Array(y.buffer, y.byteOffset, y.byteLength));
+        };
+      }
       callables.dart = {
         mlp_forward: () => {
           const { x, w, bias } = inputs();

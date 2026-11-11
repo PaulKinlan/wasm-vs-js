@@ -1,5 +1,6 @@
-import { assert } from "./assert.ts";
+import { assert, assertEquals } from "./assert.ts";
 import { ARTIFACT_ROOT } from "./artifact-dir.ts";
+import { getLastAgreementRecord, KERNEL_ADAPTERS } from "../public/multilang-runner.js";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
 const ARTIFACTS = ARTIFACT_ROOT;
@@ -210,115 +211,183 @@ function assertBitIdentical(
 }
 
 Deno.test(
-  "multilang-scanlog: C, C++, and Dart/WasmGC scan_log kernels are bit-identical to the JS oracle",
+  "multilang-scanlog: Raw WAT, C, C++, Rust, and Dart/WasmGC scan_log kernels are bit-identical to the JS oracle",
   async () => {
-    const corpus = makeCorpus(40);
-    const ref = oracleJS(corpus);
+    for (const recordCount of [40, 640]) {
+      const corpus = makeCorpus(recordCount);
+      const ref = oracleJS(corpus);
 
-    const linear = [
-      ["scan_log_c.wasm", "C"],
-      ["scan_log_cpp.wasm", "C++"],
-      ["scan_log_rs.wasm", "Rust"],
-    ] as const;
-    for (const [file, label] of linear) {
-      const mod = (await WebAssembly.instantiate(
-        await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
-      )) as unknown as { instance: WebAssembly.Instance };
-      const mem = mod.instance.exports.memory as WebAssembly.Memory;
-      const dataOff = 4096, scratchOff = 2097152;
-      const cap = 1000;
-      const idOff = scratchOff + 256 * 5 * 4;
-      const stOff = idOff + cap * 4, enOff = stOff + cap * 4;
-      const csOff = enOff + cap * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
-      new Uint8Array(mem.buffer, dataOff, corpus.length).set(corpus);
-      const count = (mod.instance.exports.scan_log as (
-        b: number,
-        l: number,
-        i: number,
-        s: number,
-        e: number,
-        c: number,
-        sc: number,
-        cs: number,
-        pc: number,
-        tc: number,
-      ) => number)(
-        dataOff,
-        corpus.length,
-        idOff,
-        stOff,
-        enOff,
-        cap,
-        scratchOff,
-        csOff,
-        pcOff,
-        tcOff,
+      const linear = [
+        ["scan_log_wat.wasm", "Raw WAT"],
+        ["scan_log_c.wasm", "C"],
+        ["scan_log_cpp.wasm", "C++"],
+        ["scan_log_rs.wasm", "Rust"],
+      ] as const;
+      for (const [file, label] of linear) {
+        const mod = (await WebAssembly.instantiate(
+          await Deno.readFile(`${ARTIFACTS}/${file}`),
+          {},
+        )) as unknown as { instance: WebAssembly.Instance };
+        const mem = mod.instance.exports.memory as WebAssembly.Memory;
+        const dataOff = 4194304, scratchOff = 2097152;
+        const cap = 5000;
+        const idOff = scratchOff + 256 * 5 * 4;
+        const stOff = idOff + cap * 4, enOff = stOff + cap * 4;
+        const csOff = enOff + cap * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+        const need = Math.max(tcOff + 4, dataOff + corpus.length);
+        if (mem.buffer.byteLength < need) {
+          mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+        }
+        new Uint8Array(mem.buffer, dataOff, corpus.length).set(corpus);
+        const count = (mod.instance.exports.scan_log as (
+          b: number,
+          l: number,
+          i: number,
+          s: number,
+          e: number,
+          c: number,
+          sc: number,
+          cs: number,
+          pc: number,
+          tc: number,
+        ) => number)(
+          dataOff,
+          corpus.length,
+          idOff,
+          stOff,
+          enOff,
+          cap,
+          scratchOff,
+          csOff,
+          pcOff,
+          tcOff,
+        );
+        const ids = new Uint32Array(mem.buffer, idOff, cap);
+        const sts = new Uint32Array(mem.buffer, stOff, cap);
+        const ends = new Uint32Array(mem.buffer, enOff, cap);
+        const matches: Array<[number, number, number]> = [];
+        for (let i = 0; i < count; i++) matches.push([ids[i], sts[i], ends[i]]);
+        const cs = new Uint32Array(mem.buffer, csOff, 1)[0];
+        const pc = new Uint32Array(mem.buffer, pcOff, 1)[0];
+        const tc = new Uint32Array(mem.buffer, tcOff, 1)[0];
+        assertBitIdentical(`${label} (${recordCount} records)`, matches, cs, pc, tc, ref);
+      }
+
+      // Dart/WasmGC
+      const dartGlue = await import(`file://${ARTIFACTS}/scan_log_dart.mjs`);
+      const dartApp = await dartGlue.compile(
+        await Deno.readFile(`${ARTIFACTS}/scan_log_dart.wasm`),
       );
-      const ids = new Uint32Array(mem.buffer, idOff, cap);
-      const sts = new Uint32Array(mem.buffer, stOff, cap);
-      const ends = new Uint32Array(mem.buffer, enOff, cap);
+      const dartInst = await dartApp.instantiate({});
+      dartInst.invokeMain();
+      const kernels = (globalThis as Record<string, unknown>).dartKernels as {
+        scan_log: (
+          bytes: Uint8Array,
+          len: number,
+          ids: Uint32Array,
+          sts: Uint32Array,
+          ends: Uint32Array,
+          cap: number,
+          scratch: Uint32Array,
+          cs: Uint32Array,
+          pc: Uint32Array,
+          tc: Uint32Array,
+        ) => number;
+      };
+      assert(kernels && typeof kernels.scan_log === "function", "dartKernels not published");
+      const cap = 5000;
+      const ids = new Uint32Array(cap), sts = new Uint32Array(cap), ends = new Uint32Array(cap);
+      const cs = new Uint32Array(1), pc = new Uint32Array(1), tc = new Uint32Array(1);
+      const dCount = kernels.scan_log(
+        corpus,
+        corpus.length,
+        ids,
+        sts,
+        ends,
+        cap,
+        new Uint32Array(256 * 5),
+        cs,
+        pc,
+        tc,
+      );
       const matches: Array<[number, number, number]> = [];
-      for (let i = 0; i < count; i++) matches.push([ids[i], sts[i], ends[i]]);
-      const cs = new Uint32Array(mem.buffer, csOff, 1)[0];
-      const pc = new Uint32Array(mem.buffer, pcOff, 1)[0];
-      const tc = new Uint32Array(mem.buffer, tcOff, 1)[0];
-      assertBitIdentical(label, matches, cs, pc, tc, ref);
+      for (let i = 0; i < dCount; i++) matches.push([ids[i], sts[i], ends[i]]);
+      assertBitIdentical(`Dart/WasmGC (${recordCount} records)`, matches, cs[0], pc[0], tc[0], ref);
     }
-
-    // Dart/WasmGC
-    const dartGlue = await import(`file://${ARTIFACTS}/scan_log_dart.mjs`);
-    const dartApp = await dartGlue.compile(await Deno.readFile(`${ARTIFACTS}/scan_log_dart.wasm`));
-    const dartInst = await dartApp.instantiate({});
-    dartInst.invokeMain();
-    const kernels = (globalThis as Record<string, unknown>).dartKernels as {
-      scan_log: (
-        bytes: Uint8Array,
-        len: number,
-        ids: Uint32Array,
-        sts: Uint32Array,
-        ends: Uint32Array,
-        cap: number,
-        scratch: Uint32Array,
-        cs: Uint32Array,
-        pc: Uint32Array,
-        tc: Uint32Array,
-      ) => number;
-    };
-    assert(kernels && typeof kernels.scan_log === "function", "dartKernels not published");
-    const cap = 1000;
-    const ids = new Uint32Array(cap), sts = new Uint32Array(cap), ends = new Uint32Array(cap);
-    const cs = new Uint32Array(1), pc = new Uint32Array(1), tc = new Uint32Array(1);
-    const dCount = kernels.scan_log(
-      corpus,
-      corpus.length,
-      ids,
-      sts,
-      ends,
-      cap,
-      new Uint32Array(256 * 5),
-      cs,
-      pc,
-      tc,
-    );
-    const matches: Array<[number, number, number]> = [];
-    for (let i = 0; i < dCount; i++) matches.push([ids[i], sts[i], ends[i]]);
-    assertBitIdentical("Dart/WasmGC", matches, cs[0], pc[0], tc[0], ref);
   },
 );
 
-Deno.test("multilang-scanlog: report contains a measured text-regex-log-scan workload with 4+ variants", async () => {
+Deno.test(
+  "multilang-scanlog: KERNEL_ADAPTERS['text.regex-log-scan.v1'] agrees across all 6 manifest engines including Rust",
+  async () => {
+    const manifest = JSON.parse(
+      await Deno.readTextFile(
+        `${rootDir}/public/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json`,
+      ),
+    );
+    const engines: Record<string, unknown> = {};
+    for (const eng of manifest.engines) {
+      if (eng.kind === "js") {
+        engines[eng.key] = { cfg: eng };
+      } else if (eng.kind === "linear") {
+        const file = eng.files?.scan_log ?? `scan_log_${eng.key}.wasm`;
+        const mod = await WebAssembly.instantiate(await Deno.readFile(`${ARTIFACTS}/${file}`), {});
+        engines[eng.key] = { cfg: eng, instances: { scan_log: mod } };
+      } else if (eng.kind === "dart") {
+        const glue = await import(`file://${ARTIFACTS}/${eng.glue}`);
+        const app = await glue.compile(await Deno.readFile(`${ARTIFACTS}/${eng.file}`));
+        const inst = await app.instantiate({});
+        inst.invokeMain();
+        engines[eng.key] = {
+          cfg: eng,
+          kernels: (globalThis as Record<string, unknown>).dartKernels,
+        };
+      }
+    }
+    const callables = KERNEL_ADAPTERS["text.regex-log-scan.v1"].build({
+      manifest,
+      engines,
+    }) as unknown as Record<string, { scan_log: () => { count: number } }>;
+    for (const expectedKey of ["js", "wat", "c", "cpp", "rs", "dart"]) {
+      assert(typeof callables[expectedKey]?.scan_log === "function", `missing ${expectedKey}`);
+      const out = callables[expectedKey].scan_log();
+      assertEquals(out.count, 64, `${expectedKey} match count`);
+    }
+    const agreement = getLastAgreementRecord("text.regex-log-scan.v1");
+    assert(agreement !== null, "missing agreement record");
+    assertEquals(agreement.engineCount, 6);
+    assertEquals(agreement.agreedHex, "0x398e37ee");
+    assertEquals(agreement.perEngine.get("rs"), "0x398e37ee");
+  },
+);
+
+Deno.test("multilang-scanlog: report contains a measured text-regex-log-scan workload with 6 variants and real linear memoryPageCount", async () => {
   const report = JSON.parse(
     await Deno.readTextFile(`${rootDir}/public/data/multilang-wasm-benchmark-report.v1.json`),
   );
   const wl = report.workloads.find((w: { name: string }) => w.name === "text-regex-log-scan");
   assert(wl, "text-regex-log-scan workload missing from report");
-  assert(wl.variants.length >= 4, "text-regex-log-scan needs 4+ variants");
+  assert(wl.variants.length >= 6, "text-regex-log-scan needs 6 variants");
   for (const variant of wl.variants) {
     assert(typeof variant.warmExecutionMs === "number", `${variant.language} must be measured`);
+    if (["Raw WAT", "C / Wasm", "C++ / Wasm", "Rust / Wasm"].includes(variant.language)) {
+      assert(
+        variant.memoryPageCount >= 64,
+        `${variant.language} memoryPageCount=${variant.memoryPageCount} expected >= 64`,
+      );
+    }
   }
   const languages = wl.variants.map((v: { language: string }) => v.language);
-  for (const expected of ["Dart / WasmGC", "C / Wasm", "C++ / Wasm", "Rust / Wasm", "JavaScript"]) {
+  for (
+    const expected of [
+      "Raw WAT",
+      "Dart / WasmGC",
+      "C / Wasm",
+      "C++ / Wasm",
+      "Rust / Wasm",
+      "JavaScript",
+    ]
+  ) {
     assert(languages.includes(expected), `text-regex-log-scan missing ${expected}`);
   }
 });

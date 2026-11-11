@@ -67,6 +67,16 @@
       "file": "mlp_forward_dart.wasm",
       "glue": "mlp_forward_dart.mjs",
       "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart"
+    },
+    {
+      "key": "js-opt",
+      "label": "JavaScript row-streaming + scratch (Track B)",
+      "kind": "js",
+      "track": "B",
+      "baseline": "js",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Interchanges linear layers from column-strided (bi, o, i) to row-streaming (bi, i, o) with hoisted row offsets and 4-way column unrolling, reuses pre-allocated ping-pong Float32Array activations, and replaces per-element DataView pow2 scaling in frozen GELU with a 2,047-entry IEEE-754 exponent-bit table and unrolled Horner polynomial. Preserves ascending i = 0..W-1 Math.fround accumulation and +0 normalization (0 ULP deviation, Object.is bit-identical on both 16x128x4 and 32x512x8). Measured 2.43x over the JS Track A adapter baseline (3.3908 ms -> 1.3927 ms) and 2.78x over mlpControlled (2.5533 ms -> 0.9179 ms, arm64 macOS).",
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_opt.js"
     }
   ]
 }

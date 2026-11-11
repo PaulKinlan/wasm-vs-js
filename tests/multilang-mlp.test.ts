@@ -170,6 +170,50 @@ Deno.test(
       HIDDEN,
     );
     assertBitIdentical("Dart/WasmGC", y, ref);
+
+    // JavaScript Track B (js-opt): strict Object.is bit-identical on both reduced and full contract shapes
+    const { createMlpOptWorkspace, mlpForwardOptF32 } = await import(
+      "../benchmarks/multilang-wasm/ml-dense-mlp/mlp_opt.js"
+    );
+    const wsSmall = createMlpOptWorkspace(B, W);
+    const optSmall = mlpForwardOptF32(
+      x,
+      w,
+      bias,
+      wsSmall.scratchA,
+      wsSmall.scratchB,
+      wsSmall.y,
+      B,
+      W,
+      HIDDEN,
+    );
+    assertBitIdentical("JavaScript Track B (16x128x4)", optSmall, ref);
+
+    const { generateInput, mlpControlled, MLP_BATCH, WIDTH, HIDDEN_LAYERS } = await import(
+      "../benchmarks/v2/ml-dense-mlp/workload.js"
+    );
+    const full = generateInput();
+    const refFull = mlpControlled(
+      full.x,
+      full.w,
+      full.bias,
+      new Float32Array(MLP_BATCH * WIDTH),
+      new Float32Array(MLP_BATCH * WIDTH),
+      new Float32Array(MLP_BATCH * WIDTH),
+    );
+    const wsFull = createMlpOptWorkspace(MLP_BATCH, WIDTH);
+    const optFull = mlpForwardOptF32(
+      full.x,
+      full.w,
+      full.bias,
+      wsFull.scratchA,
+      wsFull.scratchB,
+      wsFull.y,
+      MLP_BATCH,
+      WIDTH,
+      HIDDEN_LAYERS,
+    );
+    assertBitIdentical("JavaScript Track B (32x512x8 contract)", optFull, refFull);
   },
 );
 

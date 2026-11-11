@@ -52,7 +52,17 @@
         "asc",
         "dart"
       ],
-      "variants": []
+      "variants": [
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Reverses the 256-tap vector once into a pre-allocated Float32Array workspace and accumulates 8 adjacent outputs (acc0..acc7) in scalar registers over a sliding 8-sample window. Iterates k = 0..255 in strict ascending input-sample order i = (n - 255) + k with Math.fround per multiply and add (0 ULP deviation, Object.is bit-identical). Measured 1.78x over the JS Track A baseline (22.2990 ms -> 12.5525 ms, 131,072 samples x 256 taps, arm64 macOS).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
     },
     {
       "workloadId": "audio.stft.v1",
@@ -428,7 +438,17 @@
         "asc",
         "dart"
       ],
-      "variants": []
+      "variants": [
+        {
+          "key": "js-opt",
+          "baseline": "js",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Interchanges linear layers from column-strided (bi, o, i) to row-streaming (bi, i, o) with hoisted row offsets and 4-way column unrolling, reuses pre-allocated ping-pong Float32Array activations, and replaces per-element DataView pow2 scaling in frozen GELU with a 2,047-entry IEEE-754 exponent-bit table and unrolled Horner polynomial. Preserves ascending i = 0..W-1 Math.fround accumulation and +0 normalization (0 ULP deviation, Object.is bit-identical on both 16x128x4 and 32x512x8). Measured 2.43x over the JS Track A adapter baseline (3.3908 ms -> 1.3927 ms) and 2.78x over mlpControlled (2.5533 ms -> 0.9179 ms, arm64 macOS).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
     },
     {
       "workloadId": "ml.gemm.v1",
@@ -923,10 +943,10 @@
   "summary": {
     "workloads": 45,
     "baselineEngineRows": 287,
-    "variantRows": 24,
-    "workloadsWithVariants": 4,
-    "workloadsWithoutVariants": 41,
-    "bitIdenticalVariants": 23,
+    "variantRows": 26,
+    "workloadsWithVariants": 6,
+    "workloadsWithoutVariants": 39,
+    "bitIdenticalVariants": 25,
     "reassociatedVariants": 1,
     "workloadsWithoutRoute": 1
   }
