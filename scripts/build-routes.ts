@@ -220,6 +220,8 @@ const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
   "data/autoresearch-log.v1.json",
   // Source-audited per-test worker lifecycle ledger (scripts/audit-worker-lifecycle.ts).
   "data/worker-lifecycle.v1.json",
+  // Provenance-tagged standalone Deno/V8 reference snapshot (scripts/build-reference-snapshot.ts).
+  "data/reference-snapshot.v1.json",
   "artifacts/autoresearch/archive-zip-workspace-v1_c_simd128.wasm",
   "artifacts/autoresearch/audio-fft_c_simd128.wasm",
   "artifacts/autoresearch/audio-fir_c_simd128.wasm",

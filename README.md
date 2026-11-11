@@ -40,10 +40,13 @@ M1 has one accepted implementation slice: `sum-u32`, a controlled JavaScript/lin
 - [Frozen M1 Chrome preregistration](experiments/m1-chrome-sum-u32-v1/preregistration.json) and [closed schema](schemas/preregistration.schema.json)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 - [WebAssembly build reference and 50-test output equivalence guide](docs/wasm-build-and-equivalence.md)
+- [50-test worker lifecycle audit](docs/worker-lifecycle-audit.md) and [isolated SIMD128 auto-research log](docs/autoresearch-log.md)
+- [Track B optimization spec](docs/track-b-optimizations.md) and [offline CLI reference snapshot](public/data/reference-snapshot.v1.json)
 
 The public application is [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/).
 
-- `/benchmarks/` contains 38 proposed workloads: P0=12, P1=12, and P2=14. 23/38 catalog workloads have runnable browser demos in the playground; the remaining 15 are documented proposals.
+- `/benchmarks/` freezes the v1 denominator at 38 proposed workloads: P0=12, P1=12, and P2=14. 23/38 catalog workloads have runnable browser demos in the playground; the remaining 15 v1 rows remain documented proposals. Alongside that frozen 38-workload v1 denominator, 20 v2 proposals (14 runnable demos) and out-of-catalog calibration, DOM, and game suites bring the exploratory suite to 50 benchmark specs, 48 playground suites, 45 multi-language kernel manifests (JavaScript, WAT, C, C++, Rust, AssemblyScript, and Dart/WasmGC), 24+ Track B optimization variants, 11 real-DOM iframe stages, and 345 `.wasm` artifacts.
+- `/` defaults its overview to Live Browser Runs (0 measured until you click Run) and includes an explicit Data Source toggle for the provenance-tagged Logged Reference Profile (`/data/reference-snapshot.v1.json`, captured in standalone Deno 2.9.0 / V8 14.9.207.2-rusty on Apple M4 Pro across 45 multi-language workloads). Standalone CLI reference measurements are never pooled with live browser runs or preregistered corpus claims.
 - `/run/`, `/run`, and `/run.html` now 302-redirect to `/#workload-sum-u32` — the homepage playground's sum-u32 card supersedes the retired standalone runner (the page was removed; playground.js is the runner entry point). The page uploads and stores nothing.
 - `/evidence/` records the accepted implementation and the limits of an unverified Chrome 150 attestation whose browser artifacts were not retained. Its source/build panel links the exact commit, executed JavaScript, authored WAT, build recipe, lockfile, versioned build manifest, and compiled Wasm with SHA-256 values.
 - `/evidence/v2-proposals/` renders each of the six audio proposal records from its own commit-pinned provenance. Direct JSON links remain in the HTML when JavaScript is disabled or a panel cannot load.
@@ -63,8 +66,9 @@ Requires Deno 2.9.0.
 
 ```sh
 deno task build    # reproducible WAT → Wasm plus build/footprint manifest
-deno run --allow-read scripts/build-all-wasm.ts --list   # print all 8 Wasm build lanes and 50 per-test recipes
-deno run --allow-read scripts/build-all-wasm.ts --verify # verify 50 specs, source routes, and 300/300 .wasm artifacts
+deno run --allow-read scripts/build-all-wasm.ts --list   # print all 9 Wasm build lanes and 50 per-test recipes
+deno run --allow-read scripts/build-all-wasm.ts --verify # verify 50 specs, source routes, and 345 .wasm artifacts
+deno run --no-lock --allow-read scripts/build-reference-snapshot.ts --check # verify offline CLI reference snapshot
 deno task catalog  # closed-schema, rights, denominator, and public-copy validation
 deno run --allow-read=. scripts/check-preregistration.ts # exact M1 experiment contract
 deno task check    # build, format, lint, typecheck, contracts, and tests

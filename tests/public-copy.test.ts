@@ -60,8 +60,24 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   const experiment = await Deno.readTextFile("public/experiments/index.html");
   const readme = await Deno.readTextFile("README.md");
   const runnerScript = await Deno.readTextFile("public/hosted-runner.js");
+  const playground = await Deno.readTextFile("public/playground.js");
 
   assert(home.includes("unverified and supplies no timing evidence"));
+  assert(home.includes("Live in This Browser (0 measured until you click Run)"));
+  assert(home.includes("/data/reference-snapshot.v1.json"));
+  assert(playground.includes('dataSource: "live"'));
+  assert(playground.includes("Live Browser Runs (This Tab)"));
+  assert(
+    playground.includes(
+      "Logged Reference Profile (Apple M4 Pro · Deno 2.9 / V8 CLI — Non-Browser Scope)",
+    ),
+  );
+  assert(
+    playground.includes(
+      "Viewing offline reference measurements captured in standalone Deno 2.9 / V8 on Apple M4 Pro — never pooled with browser claims. Switch back to Live Browser Runs or click ▶ Quick Tour to measure your own browser.",
+    ),
+  );
+  assert(playground.includes("source-badge reference"));
   assert(evidence.includes("Accepted performance corpus: none"));
   assert(evidence.includes("Chrome 150 attestation: unverified"));
   assert(proposalEvidence.includes("Performance claims: none."));
@@ -75,6 +91,12 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(experiment.includes("Corpus status: not collected"));
   assert(experiment.includes("grants no browser authorization"));
   assert(readme.includes("23/38 catalog workloads have runnable browser demos"));
+  assert(readme.includes("50 benchmark specs"));
+  assert(readme.includes("48 playground suites"));
+  assert(readme.includes("45 multi-language kernel manifests"));
+  assert(readme.includes("24+ Track B optimization variants"));
+  assert(/34\d `\.wasm` artifacts/.test(readme));
+  assert(readme.includes("never pooled with live browser runs"));
   assert(readme.includes("The page uploads and stores nothing"));
   assert(readme.includes("no accepted performance corpus or performance conclusion"));
   assert(readme.includes("Inspectability files use exact route entries."));

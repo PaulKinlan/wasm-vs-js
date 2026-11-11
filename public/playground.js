@@ -69,9 +69,8 @@ const MULTILANG_MANIFESTS = {
   "numeric-polybench-panel-v1": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
   "simulation-rigid-body-2d-v1":
     "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
-  "base-gltf-viewer": "/benchmarks/multilang-wasm/base-gltf-viewer.manifest.json",
-  "numeric-fft-spectral-filter-v1":
-    "/benchmarks/multilang-wasm/numeric-fft-spectral-filter-v1.manifest.json",
+  "base-gltf-viewer": "/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json",
+  "numeric-fft-spectral-filter-v1": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
 };
 
 const PLAYGROUND_WORKLOADS = [
@@ -625,6 +624,11 @@ async function loadBenchmarkSourceRegistry() {
   }
 }
 
+const referenceStore = new Map();
+let referenceSnapshotMeta = null;
+const DEFAULT_REFERENCE_DISCLAIMER =
+  "Viewing offline reference measurements captured in standalone Deno 2.9 / V8 on Apple M4 Pro — never pooled with browser claims. Switch back to Live Browser Runs or click ▶ Quick Tour to measure your own browser.";
+
 PLAYGROUND_WORKLOADS.forEach((cfg) => {
   const arch = classifyWorkloadArchetype(cfg.slug, cfg.category, "");
   suiteStore.set(cfg.slug, {
@@ -638,8 +642,90 @@ PLAYGROUND_WORKLOADS.forEach((cfg) => {
     source: "unmeasured",
     pipeline: null,
     engines: {},
+    refRecord: null,
+    multilangBatch: null,
+  });
+  referenceStore.set(cfg.slug, {
+    workKey: cfg.slug,
+    title: cfg.title,
+    category: cfg.category,
+    archetype: arch.id,
+    archetypeLabel: arch.label,
+    href: cfg.route,
+    manual: Boolean(cfg.manual),
+    source: "unavailable",
+    pipeline: null,
+    engines: {},
+    refRecord: null,
+    multilangBatch: null,
   });
 });
+
+async function loadReferenceSnapshot() {
+  try {
+    const resp = await fetch("/data/reference-snapshot.v1.json", { credentials: "omit" });
+    if (!resp.ok) return;
+    const snap = await resp.json();
+    if (!snap || !Array.isArray(snap.workloads)) return;
+    referenceSnapshotMeta = snap.provenance || {
+      scope: snap.scope || "standalone-deno-v8-cli-reference",
+      cpuModel: snap.cpuModel || "Apple M4 Pro",
+      runtime: snap.runtime || "Deno 2.9.0 / V8 14.9.207.2-rusty",
+      nonBrowserDisclaimer: snap.nonBrowserDisclaimer || DEFAULT_REFERENCE_DISCLAIMER,
+    };
+    for (const rec of snap.workloads) {
+      const key = rec.pageSlug || rec["slug"];
+      const entry = referenceStore.get(key);
+      if (!entry) continue;
+      entry.refRecord = rec;
+      entry.multilangBatch = rec.multilangBatch || null;
+      if (rec.referenceStatus === "measured" && rec.kernelTimings) {
+        const kt = rec.kernelTimings;
+        const trackAKey = kt.wasmTrackAEngine || "c";
+        const trackALabel = rec.measuredKernelNote
+          ? `${kt.wasmTrackALabel} (${rec.measuredKernel})`
+          : kt.wasmTrackALabel;
+        const batchEng = rec.multilangBatch?.engines?.[trackAKey] || null;
+        entry.source = "reference";
+        entry.engines = {
+          js: {
+            label: "JavaScript (Deno V8 CLI)",
+            warmMs: kt.jsWarmMs,
+            coldMs: kt.jsColdMs ?? null,
+            bytes: 0,
+            track: "A",
+          },
+          [trackAKey]: {
+            label: trackALabel,
+            warmMs: kt.wasmTrackAWarmMs,
+            coldMs: batchEng?.coldInstantiateMs ?? null,
+            bytes: batchEng?.binarySizeBytes ?? rec.primaryWasmBytes ?? 0,
+            track: "A",
+          },
+          "c-opt": {
+            label: kt.wasmSimdLabel,
+            warmMs: kt.wasmSimdWarmMs,
+            coldMs: null,
+            bytes: rec.simdArtifactBytes ?? 0,
+            track: "B",
+            baselineKey: trackAKey,
+            baselineWarmMs: kt.wasmTrackAWarmMs,
+          },
+        };
+      } else {
+        entry.source = "unavailable";
+        entry.engines = {};
+      }
+    }
+    renderHolisticOverview();
+  } catch {
+    // Reference snapshot remains optional when offline or unmounted in unit tests.
+  }
+}
+
+function isTrackBEngineSelection(targetEngine) {
+  return targetEngine === "best-opt" || String(targetEngine || "").endsWith("-opt");
+}
 
 function getWorkloadComparison(entry, targetEngine = "best") {
   let jsWarmMs = null;
@@ -661,30 +747,60 @@ function getWorkloadComparison(entry, targetEngine = "best") {
       wasmBytes = entry.pipeline.wasmBytes ?? 0;
       engineLabel = "Worker Wasm";
     }
+  } else if (targetEngine === "js-opt") {
+    // Track B JavaScript strictly compared against Track A JavaScript baseline.
+    const optJs = engines["js-opt"];
+    if (optJs?.warmMs > 0 && kernelJsWarm !== null) {
+      jsWarmMs = kernelJsWarm;
+      wasmWarmMs = optJs.warmMs;
+      wasmColdMs = optJs.coldMs ?? null;
+      wasmBytes = optJs.bytes ?? 0;
+      engineLabel = optJs.label || "JavaScript Track B";
+    }
   } else if (targetEngine === "best-opt") {
+    // Track B Wasm strictly compared against its own Track A Wasm baseline (never mixed with Track A JS).
     const optCandidates = [];
     for (const [k, e] of Object.entries(engines)) {
       if (
         k !== "js" && k !== "js-opt" && !k.startsWith("js-") &&
         (e.track === "B" || k.endsWith("-opt")) && e.warmMs > 0
       ) {
-        optCandidates.push({
-          label: e.label,
-          warmMs: e.warmMs,
-          coldMs: e.coldMs,
-          bytes: e.bytes ?? 0,
-        });
+        const baseKey = e.baselineKey || k.split("-")[0];
+        const baseMs = e.baselineWarmMs > 0
+          ? e.baselineWarmMs
+          : (engines[baseKey]?.warmMs > 0 ? engines[baseKey].warmMs : null);
+        if (baseMs !== null) {
+          optCandidates.push({
+            label: e.label,
+            warmMs: e.warmMs,
+            coldMs: e.coldMs,
+            bytes: e.bytes ?? 0,
+            baseMs,
+          });
+        }
       }
     }
-    if (optCandidates.length > 0 && kernelJsWarm !== null) {
-      jsWarmMs = kernelJsWarm;
+    if (optCandidates.length > 0) {
       optCandidates.sort((a, b) => a.warmMs - b.warmMs);
+      jsWarmMs = optCandidates[0].baseMs;
       wasmWarmMs = optCandidates[0].warmMs;
       wasmColdMs = optCandidates[0].coldMs;
       wasmBytes = optCandidates[0].bytes;
       engineLabel = optCandidates[0].label;
-    } else {
-      return getWorkloadComparison(entry, "best");
+    }
+  } else if (isTrackBEngineSelection(targetEngine)) {
+    // Language-specific Track B Wasm (c-opt, cpp-opt, rs-opt) vs its Track A Wasm baseline.
+    const optEng = engines[targetEngine];
+    const baseKey = optEng?.baselineKey || targetEngine.replace(/-opt$/, "");
+    const baseMs = optEng?.baselineWarmMs > 0
+      ? optEng.baselineWarmMs
+      : (engines[baseKey]?.warmMs > 0 ? engines[baseKey].warmMs : null);
+    if (optEng?.warmMs > 0 && baseMs !== null) {
+      jsWarmMs = baseMs;
+      wasmWarmMs = optEng.warmMs;
+      wasmColdMs = optEng.coldMs;
+      wasmBytes = optEng.bytes ?? 0;
+      engineLabel = optEng.label;
     }
   } else if (
     targetEngine !== "best" && engines[targetEngine]?.warmMs > 0 && kernelJsWarm !== null
@@ -695,7 +811,19 @@ function getWorkloadComparison(entry, targetEngine = "best") {
     wasmColdMs = e.coldMs;
     wasmBytes = e.bytes ?? 0;
     engineLabel = e.label;
-  } else {
+  } else if (
+    targetEngine !== "best" &&
+    entry.source === "reference" &&
+    entry.multilangBatch?.jsBatchWarmMs > 0 &&
+    entry.multilangBatch?.engines?.[targetEngine]?.batchWarmMs > 0
+  ) {
+    const batchEng = entry.multilangBatch.engines[targetEngine];
+    jsWarmMs = entry.multilangBatch.jsBatchWarmMs;
+    wasmWarmMs = batchEng.batchWarmMs;
+    wasmColdMs = batchEng.coldInstantiateMs ?? null;
+    wasmBytes = batchEng.binarySizeBytes ?? 0;
+    engineLabel = `${batchEng.label} (batch)`;
+  } else if (targetEngine === "best") {
     // targetEngine === "best": Prefer Kernel Compute Track A comparison when available;
     // fall back to Worker Task Pipeline comparison only when no kernel lane exists.
     const kernelCandidates = [];
@@ -741,6 +869,7 @@ function getWorkloadComparison(entry, targetEngine = "best") {
 }
 
 const overviewState = {
+  dataSource: "live",
   archetype: "all",
   category: "all",
   search: "",
@@ -757,13 +886,17 @@ function geomMean(arr) {
   return Math.exp(sumLogs / valid.length);
 }
 
-function exportOverviewCsv(list, targetEngine) {
+function exportOverviewCsv(list, targetEngine, dataSource) {
+  const scopeTag = dataSource === "reference"
+    ? "standalone-deno-v8-cli-reference-apple-m4-pro"
+    : "live-browser-tab";
   const headers = [
+    "Data_Source_Scope",
     "Workload",
     "Category",
-    "JS_Warm_ms",
-    "Wasm_Warm_ms",
-    "Wasm_Engine",
+    "Baseline_Warm_ms",
+    "Target_Warm_ms",
+    "Target_Engine",
     "Speedup_Ratio",
     "Wasm_Cold_ms",
     "Wasm_Bytes",
@@ -771,13 +904,14 @@ function exportOverviewCsv(list, targetEngine) {
   const rows = list.map((w) => {
     const cmp = getWorkloadComparison(w, targetEngine);
     return [
+      `"${scopeTag}"`,
       `"${w.title.replace(/"/g, '""')}"`,
       `"${w.category}"`,
-      cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(2) : "",
-      cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(2) : "",
+      cmp.jsWarmMs ? cmp.jsWarmMs.toFixed(4) : "",
+      cmp.wasmWarmMs ? cmp.wasmWarmMs.toFixed(4) : "",
       `"${cmp.engineLabel}"`,
       cmp.speedup ? cmp.speedup.toFixed(2) : "",
-      cmp.wasmColdMs ? cmp.wasmColdMs.toFixed(2) : "",
+      cmp.wasmColdMs ? cmp.wasmColdMs.toFixed(4) : "",
       cmp.wasmBytes || "",
     ].join(",");
   });
@@ -786,7 +920,7 @@ function exportOverviewCsv(list, targetEngine) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", "wasm-vs-js-benchmark-suite.csv");
+  link.setAttribute("download", `wasm-vs-js-${scopeTag}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -797,9 +931,12 @@ function renderHolisticOverview() {
   const container = document.getElementById("playground-overview");
   if (!container) return;
 
+  const isRefMode = overviewState.dataSource === "reference";
+  const isTrackBMode = isTrackBEngineSelection(overviewState.engine);
+  const activeStore = isRefMode ? referenceStore : suiteStore;
   const categories = Array.from(new Set(PLAYGROUND_WORKLOADS.map((w) => w.category))).sort();
 
-  let list = Array.from(suiteStore.values());
+  let list = Array.from(activeStore.values());
   if (overviewState.archetype !== "all") {
     list = list.filter((w) => w.archetype === overviewState.archetype);
   }
@@ -829,6 +966,16 @@ function renderHolisticOverview() {
         const sA = cmpA.speedup ?? 999999;
         const sB = cmpB.speedup ?? 999999;
         return sA - sB;
+      }
+      case "simd-desc": {
+        const simdA = a.refRecord?.simdSpeedup ?? -1;
+        const simdB = b.refRecord?.simdSpeedup ?? -1;
+        return simdB - simdA;
+      }
+      case "reuse-desc": {
+        const rA = a.refRecord?.arenaReuseSpeedup ?? -1;
+        const rB = b.refRecord?.arenaReuseSpeedup ?? -1;
+        return rB - rA;
       }
       case "wasm-asc": {
         const tA = cmpA.wasmWarmMs ?? 999999;
@@ -899,6 +1046,9 @@ function renderHolisticOverview() {
     measured.filter((w) => (getWorkloadComparison(w, overviewState.engine).speedup ?? 0) <= 0.95)
       .length;
   const evenCount = measured.length - wasmFaster - jsFaster;
+  const simdOver105Count = isRefMode
+    ? list.filter((w) => (w.refRecord?.simdSpeedup ?? 0) >= 1.05).length
+    : 0;
 
   // Build Toolbar
   const archOptions = [
@@ -921,6 +1071,16 @@ function renderHolisticOverview() {
   const toolbarHtml = `
     <div class="overview-toolbar">
       <div class="ov-control-group">
+        <label for="ov-data-source">Data Source:
+          <select id="ov-data-source">
+            <option value="live"${
+    overviewState.dataSource === "live" ? " selected" : ""
+  }>Live Browser Runs (This Tab)</option>
+            <option value="reference"${
+    overviewState.dataSource === "reference" ? " selected" : ""
+  }>Logged Reference Profile (Apple M4 Pro · Deno 2.9 / V8 CLI — Non-Browser Scope)</option>
+          </select>
+        </label>
         <label for="ov-archetype">Archetype:
           <select id="ov-archetype">${archOptions}</select>
         </label>
@@ -985,6 +1145,12 @@ function renderHolisticOverview() {
             <option value="speedup-asc"${
     overviewState.sort === "speedup-asc" ? " selected" : ""
   }>Speedup: Low → High</option>
+            <option value="simd-desc"${
+    overviewState.sort === "simd-desc" ? " selected" : ""
+  }>SIMD128 Speedup: High → Low</option>
+            <option value="reuse-desc"${
+    overviewState.sort === "reuse-desc" ? " selected" : ""
+  }>Arena Reuse Leverage: High → Low</option>
             <option value="wasm-asc"${
     overviewState.sort === "wasm-asc" ? " selected" : ""
   }>Wasm Time: Fastest First</option>
@@ -1021,22 +1187,59 @@ function renderHolisticOverview() {
     </div>
   `;
 
+  const disclaimerText = referenceSnapshotMeta?.nonBrowserDisclaimer ||
+    DEFAULT_REFERENCE_DISCLAIMER;
+  const referenceScopeBannerHtml = isRefMode
+    ? `<div class="notice" id="ov-reference-scope-banner" role="status">
+        <span class="source-badge reference">Reference CLI</span>
+        <strong>${disclaimerText}</strong>
+        <span class="muted"> Provenance: <code>${
+      referenceSnapshotMeta?.scope || "standalone-deno-v8-cli-reference"
+    }</code> · <code>${referenceSnapshotMeta?.cpuModel || "Apple M4 Pro"}</code> · <code>${
+      referenceSnapshotMeta?.runtime || "Deno 2.9.0 / V8 14.9.207.2-rusty"
+    }</code> · <a class="commit-link" href="/data/reference-snapshot.v1.json" target="_blank" rel="noopener">reference-snapshot.v1.json →</a></span>
+      </div>`
+    : "";
+
+  const trackBScopeBannerHtml = isTrackBMode
+    ? `<p class="notice">
+        <strong>Track B isolated optimization view:</strong> Ratios below measure each Track B variant strictly against that target's own Track A scalar baseline and are never pooled with Track A cross-language ratios.
+      </p>`
+    : "";
+
   // Build KPI Strip
+  const kpiSubMatched = isRefMode
+    ? `${measured.length} offline CLI reference (${list.length - measured.length} worker-only)`
+    : (measured.length === 0
+      ? "Live in This Browser (0 measured until you click Run)"
+      : `${measured.length} measured in this tab`);
+
+  const kpiRatioLabel = isTrackBMode ? "Median Track B Speedup" : "Median Ratio vs JS";
+  const kpiRatioSub = isTrackBMode
+    ? "Track B vs Track A Baseline"
+    : (overviewState.engine === "best"
+      ? "Fastest Track A Wasm vs JS"
+      : overviewState.engine.toUpperCase() + " vs JS");
+
+  const kpiSplitLabel = isTrackBMode ? "Track B Gain Split" : "Observed Regime Split";
+  const kpiSplitVal = isTrackBMode
+    ? `${wasmFaster} ≥1.05× / ${measured.length - wasmFaster} neutral`
+    : `${wasmFaster} Wasm / ${jsFaster} JS`;
+  const kpiSplitSub = isRefMode && !isTrackBMode
+    ? `${evenCount} within ±5% · ${simdOver105Count} SIMD ≥1.05×`
+    : `${evenCount} within ±5% parity`;
+
   const kpiStripHtml = `
     <div class="overview-kpis">
       <div class="kpi-card">
         <span class="kpi-label">Workloads Matched</span>
         <strong class="kpi-val">${list.length} / ${PLAYGROUND_WORKLOADS.length}</strong>
-        <span class="kpi-sub">${measured.length} measured in this tab</span>
+        <span class="kpi-sub">${kpiSubMatched}</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Median Ratio vs JS</span>
+        <span class="kpi-label">${kpiRatioLabel}</span>
         <strong class="kpi-val">${medianSpeedup ? medianSpeedup.toFixed(2) + "×" : "—"}</strong>
-        <span class="kpi-sub">${
-    overviewState.engine === "best"
-      ? "Fastest Track A Wasm vs JS"
-      : overviewState.engine.toUpperCase() + " vs JS"
-  }</span>
+        <span class="kpi-sub">${kpiRatioSub}</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">Peak Observed Ratio</span>
@@ -1048,9 +1251,9 @@ function renderHolisticOverview() {
   }</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Observed Regime Split</span>
-        <strong class="kpi-val">${wasmFaster} Wasm / ${jsFaster} JS</strong>
-        <span class="kpi-sub">${evenCount} within ±5% parity</span>
+        <span class="kpi-label">${kpiSplitLabel}</span>
+        <strong class="kpi-val">${kpiSplitVal}</strong>
+        <span class="kpi-sub">${kpiSplitSub}</span>
       </div>
     </div>
   `;
@@ -1059,23 +1262,32 @@ function renderHolisticOverview() {
   let chartsGridHtml = "";
   if (overviewState.view !== "table") {
     if (measured.length === 0) {
-      chartsGridHtml = `
+      chartsGridHtml = isRefMode && overviewState.engine === "pipeline"
+        ? `
         <div class="notice">
-          <strong>0 of ${list.length} workloads measured in this tab so far.</strong>
-          Click <strong>▶ Quick Tour (6 Archetypes)</strong> above to sample 1 tight integer loop, 1 SIMD matrix multiply, 1 DSP filter, 1 stateful parser, 1 WasmGC object graph, and 1 real-DOM journey in ~15 seconds, or click <strong>▶ Run</strong> on any row below.
+          <strong>Worker Pipeline requires a live browser Web Worker.</strong>
+          Offline CLI reference runs measure pre-instantiated kernels plus instance/arena reuse probes without browser worker IPC. Select <strong>Fastest Track A Compiler Baseline</strong> above, or switch Data Source to <strong>Live Browser Runs (This Tab)</strong>.
+        </div>
+      `
+        : `
+        <div class="notice">
+          <strong>Live in This Browser (0 measured until you click Run) — 0 of ${list.length} workloads measured in this tab so far.</strong>
+          Click <strong>▶ Quick Tour (6 Archetypes)</strong> above to measure 6 representative workloads in ~15 seconds, click <strong>▶ Run</strong> on any row below, or
+          <button type="button" id="ov-switch-reference" class="btn-ov-secondary">Inspect Logged Reference Profile (45 Offline CLI Workloads)</button>
         </div>
       `;
     } else {
       // Chart 1: Top measured workloads comparison
       const topWorkloads = measured.slice(0, 10);
       const chartRows = [];
+      const baseTag = isTrackBMode ? "Track A Base" : "JS";
       topWorkloads.forEach((w) => {
         const cmp = getWorkloadComparison(w, overviewState.engine);
         const titleShort = w.title.length > 22 ? w.title.slice(0, 20) + "…" : w.title;
         chartRows.push({
-          label: `${titleShort} (JS)`,
+          label: `${titleShort} (${baseTag})`,
           valueMs: cmp.jsWarmMs,
-          kind: "js",
+          kind: isTrackBMode && overviewState.engine !== "js-opt" ? "wasm" : "js",
         });
         chartRows.push({
           label: `${titleShort} (${
@@ -1086,22 +1298,24 @@ function renderHolisticOverview() {
         });
       });
 
+      const leftChartTitle = isTrackBMode
+        ? `Track B Execution: Track A Baseline vs ${overviewState.engine.toUpperCase()}`
+        : `Workload Execution: JS vs ${
+          overviewState.engine === "best"
+            ? "Fastest Track A Wasm"
+            : overviewState.engine.toUpperCase()
+        }${isRefMode ? " (Reference CLI)" : ""}`;
+
       const leftChartHtml = chartRows.length > 0
         ? barChartSvg(chartRows, {
-          title: `Workload Execution: JS vs ${
-            overviewState.engine === "best"
-              ? "Fastest Track A Wasm"
-              : overviewState.engine.toUpperCase()
-          }`,
-          caption: "Warm median execution duration in milliseconds (lower is faster).",
+          title: leftChartTitle,
+          caption: isRefMode
+            ? "Standalone Deno 2.9 / V8 CLI warm median duration on Apple M4 Pro (milliseconds, lower is faster; non-browser scope)."
+            : "Warm median execution duration in milliseconds (lower is faster).",
         })
         : '<p class="notice">No measured workloads matching the current filter.</p>';
 
-      // Chart 2: Paired-ratio-normalized cross-language aggregate.
-      // Computing raw-ms geomMean across mismatched subsets distorts languages
-      // absent from long-running workloads (e.g. Dart absent from 18 manifests).
-      // Normalize each toolchain via its paired ratio (JS_i / Engine_i) against
-      // the shared Kernel JS geometric mean and print exact paired sample counts (n).
+      // Chart 2: Paired-ratio-normalized cross-language aggregate (strictly Track A).
       const crossLangDefs = [
         { key: "js", label: "JavaScript (V8)", kind: "js" },
         { key: "wat", label: "Raw WAT", kind: "wasm" },
@@ -1129,6 +1343,12 @@ function renderHolisticOverview() {
             const engM = w.engines?.[d.key]?.warmMs;
             if (typeof jsM === "number" && jsM > 0 && typeof engM === "number" && engM > 0) {
               pairedRatios.push(jsM / engM);
+            } else if (
+              isRefMode &&
+              typeof w.multilangBatch?.engines?.[d.key]?.pairedRatioVsJs === "number" &&
+              w.multilangBatch.engines[d.key].pairedRatioVsJs > 0
+            ) {
+              pairedRatios.push(w.multilangBatch.engines[d.key].pairedRatioVsJs);
             }
           });
           if (pairedRatios.length > 0) {
@@ -1144,7 +1364,9 @@ function renderHolisticOverview() {
 
       const rightChartHtml = crossLangRows.length > 1
         ? barChartSvg(crossLangRows, {
-          title: "Paired Cross-Language Kernel Aggregate (Track A)",
+          title: `Paired Cross-Language Kernel Aggregate (Track A${
+            isRefMode ? " · Reference CLI" : ""
+          })`,
           caption:
             "Normalized equivalent duration (anchor JS geomMean ÷ paired JS/Engine geomMean); n shows paired workloads per toolchain so missing cells never skew averages.",
         })
@@ -1162,6 +1384,7 @@ function renderHolisticOverview() {
   // Build Master Comparison Table
   let tableHtml = "";
   if (overviewState.view !== "charts") {
+    const colCount = isRefMode ? 9 : 8;
     const tableRows = list.map((item) => {
       const cmp = getWorkloadComparison(item, overviewState.engine);
       const speedupStr = cmp.speedup ? `${cmp.speedup.toFixed(2)}×` : "—";
@@ -1190,27 +1413,60 @@ function renderHolisticOverview() {
           `</small></div>`
         : "";
 
+      const sourceBadgeHtml = isRefMode
+        ? (item.source === "reference"
+          ? `<span class="source-badge reference">Reference CLI</span>`
+          : `<span class="source-badge unmeasured">Worker-Only</span>`)
+        : (item.source === "live"
+          ? `<span class="source-badge live">Live Tab</span>`
+          : `<span class="source-badge unmeasured">Unmeasured</span>`);
+
+      let refDiagTdHtml = "";
+      if (isRefMode) {
+        const rr = item.refRecord;
+        if (rr && rr.referenceStatus === "measured") {
+          const simdTxt = typeof rr.simdSpeedup === "number"
+            ? `SIMD <strong>${rr.simdSpeedup.toFixed(2)}×</strong> (${
+              rr.v128InstructionCount ?? 0
+            } v128)`
+            : "SIMD —";
+          const reuseTxt = typeof rr.arenaReuseSpeedup === "number"
+            ? `Reuse <strong>${rr.arenaReuseSpeedup.toFixed(2)}×</strong>`
+            : "Reuse —";
+          const wlCode = rr.workerLifecycleClass
+            ? ` · <code>${rr.workerLifecycleClass}</code>`
+            : "";
+          refDiagTdHtml = `<td><small>${simdTxt}<br>${reuseTxt}${wlCode}</small></td>`;
+        } else {
+          const wlCode = rr?.workerLifecycleClass ? `<code>${rr.workerLifecycleClass}</code>` : "—";
+          refDiagTdHtml =
+            `<td><small class="muted">No multilang manifest<br>${wlCode}</small></td>`;
+        }
+      }
+
       return `
         <tr>
           <td>
             <a href="#workload-${item.workKey}" class="ov-workload-link"><strong>${item.title}</strong></a>
+            <div>${sourceBadgeHtml}</div>
             ${srcLinksHtml}
           </td>
           <td><span class="pg-cat-badge">${item.category}</span></td>
           <td>${cmp.jsWarmMs > 0 ? fmtMs(cmp.jsWarmMs) : "—"}</td>
-            <td>
-              ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
-              <br><small class="muted">${cmp.engineLabel}${
+          <td>
+            ${cmp.wasmWarmMs > 0 ? fmtMs(cmp.wasmWarmMs) : "—"}
+            <br><small class="muted">${cmp.engineLabel}${
         overviewState.engine === "pipeline" && srcMeta?.workerLifecycleClass
           ? ` · <code>${srcMeta.workerLifecycleClass}</code>`
           : ""
       }</small>
-            </td>
+          </td>
           <td>
             ${
         cmp.speedup ? `<strong class="speedup-pill ${speedupClass}">${speedupStr}</strong>` : "—"
       }
           </td>
+          ${refDiagTdHtml}
           <td>${cmp.wasmColdMs > 0 ? fmtMs(cmp.wasmColdMs) : "—"}</td>
           <td>${sizeStr}</td>
           <td>
@@ -1223,17 +1479,28 @@ function renderHolisticOverview() {
       `;
     }).join("");
 
+    const baseColTitle = isTrackBMode ? "Track A Base" : "JS Warm";
+    const targetColTitle = isTrackBMode ? "Track B Warm" : "Wasm Warm";
+    const ratioColTitle = isTrackBMode ? "Speedup vs Track A" : "Speedup vs JS";
+    const refDiagThHtml = isRefMode
+      ? `<th data-sort="simd" class="sortable-th">SIMD128 &amp; Arena Reuse</th>`
+      : "";
+    const captionScope = isRefMode
+      ? "Logged Reference Profile (Apple M4 Pro · Deno 2.9 / V8 CLI — Non-Browser Scope)"
+      : "Live Browser Runs (This Tab)";
+
     tableHtml = `
       <div class="master-table-wrap">
         <table class="master-table">
-          <caption>Suite Performance Comparison — ${list.length} workloads matching current filter</caption>
+          <caption>Suite Performance Comparison (${captionScope}) — ${list.length} workloads matching current filter</caption>
           <thead>
             <tr>
               <th data-sort="title" class="sortable-th">Workload</th>
               <th data-sort="category" class="sortable-th">Category</th>
-              <th data-sort="js" class="sortable-th">JS Warm</th>
-              <th data-sort="wasm" class="sortable-th">Wasm Warm</th>
-              <th data-sort="speedup" class="sortable-th">Speedup vs JS</th>
+              <th data-sort="js" class="sortable-th">${baseColTitle}</th>
+              <th data-sort="wasm" class="sortable-th">${targetColTitle}</th>
+              <th data-sort="speedup" class="sortable-th">${ratioColTitle}</th>
+              ${refDiagThHtml}
               <th data-sort="cold" class="sortable-th">Wasm Cold</th>
               <th data-sort="bytes" class="sortable-th">Size</th>
               <th>Actions</th>
@@ -1241,7 +1508,8 @@ function renderHolisticOverview() {
           </thead>
           <tbody>
             ${
-      tableRows || '<tr><td colspan="8" class="notice">No matching workloads found.</td></tr>'
+      tableRows ||
+      `<tr><td colspan="${colCount}" class="notice">No matching workloads found.</td></tr>`
     }
           </tbody>
         </table>
@@ -1259,10 +1527,26 @@ function renderHolisticOverview() {
       </p>`
     : "";
 
-  container.innerHTML = toolbarHtml + pipelineScopeNoticeHtml + kpiStripHtml + chartsGridHtml +
-    tableHtml;
+  container.innerHTML = toolbarHtml + referenceScopeBannerHtml + trackBScopeBannerHtml +
+    pipelineScopeNoticeHtml + kpiStripHtml + chartsGridHtml + tableHtml;
 
   // Wire Toolbar Listeners
+  const dataSourceSel = container.querySelector("#ov-data-source");
+  if (dataSourceSel) {
+    dataSourceSel.addEventListener("change", (e) => {
+      overviewState.dataSource = e.target.value;
+      renderHolisticOverview();
+    });
+  }
+
+  const switchRefBtn = container.querySelector("#ov-switch-reference");
+  if (switchRefBtn) {
+    switchRefBtn.addEventListener("click", () => {
+      overviewState.dataSource = "reference";
+      renderHolisticOverview();
+    });
+  }
+
   const archSel = container.querySelector("#ov-archetype");
   if (archSel) {
     archSel.addEventListener("change", (e) => {
@@ -1313,7 +1597,7 @@ function renderHolisticOverview() {
   const exportBtn = container.querySelector("#ov-export-csv");
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
-      exportOverviewCsv(list, overviewState.engine);
+      exportOverviewCsv(list, overviewState.engine, overviewState.dataSource);
     });
   }
 
@@ -1327,6 +1611,7 @@ function renderHolisticOverview() {
   const runFilteredBtn = container.querySelector("#ov-run-filtered");
   if (runFilteredBtn) {
     runFilteredBtn.addEventListener("click", async () => {
+      overviewState.dataSource = "live";
       const iterSelect = document.getElementById("pg-iterations");
       const iterations = Number(iterSelect ? iterSelect.value : 30);
       runFilteredBtn.disabled = true;
@@ -1374,6 +1659,8 @@ function renderHolisticOverview() {
         overviewState.sort = overviewState.sort === "wasm-asc" ? "wasm-desc" : "wasm-asc";
       } else if (s === "speedup") {
         overviewState.sort = overviewState.sort === "speedup-desc" ? "speedup-asc" : "speedup-desc";
+      } else if (s === "simd") {
+        overviewState.sort = overviewState.sort === "simd-desc" ? "reuse-desc" : "simd-desc";
       } else if (s === "cold") {
         overviewState.sort = overviewState.sort === "cold-asc" ? "cold-desc" : "cold-asc";
       } else if (s === "bytes") {
@@ -1386,6 +1673,7 @@ function renderHolisticOverview() {
   // Wire Table Quick-Run Buttons
   container.querySelectorAll(".btn-ov-table-run").forEach((btn) => {
     btn.addEventListener("click", () => {
+      overviewState.dataSource = "live";
       const key = btn.dataset.workKey;
       const cfg = PLAYGROUND_WORKLOADS.find((w) => w.slug === key);
       const card = document.querySelector(`.playground-card[data-slug="${key}"]`);
@@ -1497,7 +1785,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
         0,
     );
 
-    // Update suiteStore with live results
+    // Update suiteStore with live results (never pooled with referenceStore)
     const entry = suiteStore.get(config.slug);
     if (entry) {
       entry.source = "live";
@@ -1512,6 +1800,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
         for (const [, kResults] of Object.entries(mlData)) {
           for (const eng of (kResults ?? [])) {
             const isOpt = isTrackBVariant(eng.label, eng.track);
+            const langPrefix = String(eng.key).split("-")[0];
             const k = isOpt ? (eng.key.endsWith("-opt") ? eng.key : `${eng.key}-opt`) : eng.key;
             const rec = {
               label: eng.label,
@@ -1519,10 +1808,10 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
               coldMs: eng.coldMs ?? 0,
               bytes: eng.bytes ?? 0,
               track: isOpt ? "B" : "A",
+              baselineKey: isOpt ? langPrefix : null,
             };
             entry.engines[k] = rec;
             if (isOpt) {
-              const langPrefix = String(eng.key).split("-")[0];
               const bucketKey = `${langPrefix}-opt`;
               const prev = entry.engines[bucketKey];
               if (!prev || (rec.warmMs > 0 && rec.warmMs < prev.warmMs)) {
@@ -1533,6 +1822,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
         }
       }
     }
+    overviewState.dataSource = "live";
     renderHolisticOverview();
 
     // Render Compact Card Summary — keep Kernel Compute (Track A) and Worker Task Pipeline strictly separate.
@@ -1936,6 +2226,7 @@ function initPlaygroundUI() {
 
   renderHolisticOverview();
   loadBenchmarkSourceRegistry();
+  loadReferenceSnapshot();
 }
 
 if (document.readyState === "loading") {
